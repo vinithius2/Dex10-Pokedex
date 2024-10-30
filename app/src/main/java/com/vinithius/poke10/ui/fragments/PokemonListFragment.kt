@@ -24,6 +24,10 @@ class PokemonListFragment : Fragment() {
     private lateinit var binding: FragmentListPokemonBinding
     private lateinit var adapter: PokemonListAdapter
 
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
