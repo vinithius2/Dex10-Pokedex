@@ -10,7 +10,6 @@ import android.widget.ImageView
 import androidx.core.content.res.ResourcesCompat
 import androidx.palette.graphics.Palette
 import com.squareup.picasso.Picasso
-import com.vinithius.poke10.ui.adapter.PokemonListAdapter
 
 /**
  * Make the first letter Uppercase.
@@ -33,7 +32,7 @@ fun String.getIdIntoUrl(): String? {
     }
     return null
 }
-
+/*
 /**
  * Get if the pokemon is favorite or not, if null, returns false.
  */
@@ -44,7 +43,7 @@ fun String.getIsFavorite(context: Context): Boolean {
     )
     return sharedPref.getBoolean(this, false)
 }
-
+*/
 /**
  * Get dominant color Pallete.
  */

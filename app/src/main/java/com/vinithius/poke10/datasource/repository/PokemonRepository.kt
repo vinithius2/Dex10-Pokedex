@@ -4,22 +4,22 @@ import android.content.Context
 import android.util.Log
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
-import androidx.paging.liveData
 import com.vinithius.poke10.BuildConfig
 import com.vinithius.poke10.datasource.response.*
-import com.vinithius.poke10.extension.getIsFavorite
-import com.vinithius.poke10.pagination.PokemonPagingSource
+//import com.vinithius.poke10.extension.getIsFavorite
 import retrofit2.HttpException
 
 
 class PokemonRepository(private val remoteDataSource: PokemonRemoteDataSource) {
 
-    fun getPokemonList() =
-        Pager(config = PagingConfig(pageSize = 20, enablePlaceholders = false),
-            pagingSourceFactory = {
-                PokemonPagingSource(remoteDataSource)
-            }
-        ).liveData
+    suspend fun getPokemonList(): List<Pokemon>? {
+        return try {
+            remoteDataSource.getPokemonList()
+        } catch (e: HttpException) {
+            Log.e("Pokemon list", e.toString())
+            null
+        }
+    }
 
     suspend fun getPokemonDetail(id: Int): Pokemon? {
         return try {
@@ -74,7 +74,7 @@ class PokemonRepository(private val remoteDataSource: PokemonRemoteDataSource) {
             null
         }
     }
-
+    /*
     suspend fun setFavorite(pokemon: Pokemon, context: Context?) {
         context?.let {
             try {
@@ -89,7 +89,7 @@ class PokemonRepository(private val remoteDataSource: PokemonRemoteDataSource) {
             }
         }
     }
-
+    */
     companion object {
         const val urlFavorite: String = "https://webhook.site/${BuildConfig.WEBHOOK_KEY}"
     }

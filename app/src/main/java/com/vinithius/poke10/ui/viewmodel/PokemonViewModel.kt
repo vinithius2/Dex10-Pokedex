@@ -5,9 +5,6 @@ import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
-import androidx.paging.PagingData
-import androidx.paging.cachedIn
 import com.vinithius.poke10.datasource.repository.PokemonRepository
 import com.vinithius.poke10.datasource.response.Damage
 import com.vinithius.poke10.datasource.response.Pokemon
@@ -18,7 +15,9 @@ import kotlinx.coroutines.launch
 
 class PokemonViewModel(private val repository: PokemonRepository) : ViewModel() {
 
-    var currentResult: LiveData<PagingData<Pokemon>>? = null
+    private val _pokemonList = MutableLiveData<List<Pokemon>>()
+    val pokemonList: LiveData<List<Pokemon>>
+        get() = _pokemonList
 
     private val _pokemonDetail = MutableLiveData<Pokemon?>()
     val pokemonDetail: LiveData<Pokemon?>
@@ -45,13 +44,14 @@ class PokemonViewModel(private val repository: PokemonRepository) : ViewModel() 
     /**
      * Get pokemons list using Paging3.
      */
-    fun getPokemonList(): LiveData<PagingData<Pokemon>>? {
-        try {
-            currentResult = repository.getPokemonList().cachedIn(viewModelScope)
-        } catch (e: Exception) {
-            Log.e("Error list pokemons", e.toString())
+    fun getPokemonList() {
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                _pokemonList.value = repository.getPokemonList()
+            } catch (e: Exception) {
+                Log.e("Error list pokemons", e.toString())
+            }
         }
-        return currentResult
     }
 
     /**
@@ -138,7 +138,7 @@ class PokemonViewModel(private val repository: PokemonRepository) : ViewModel() 
     fun setFavorite(pokemon: Pokemon, context: Context?) {
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                repository.setFavorite(pokemon, context)
+                //repository.setFavorite(pokemon, context)
             } catch (e: Exception) {
                 Log.e("setFavorite", e.toString())
             }

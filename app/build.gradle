@@ -48,11 +48,17 @@ android {
 }
 
 dependencies {
-
+    // COMPOSE
     def composeBom = platform('androidx.compose:compose-bom:2023.03.00')
     implementation composeBom
     androidTestImplementation composeBom
 
+    implementation "androidx.paging:paging-compose:3.3.2"
+    implementation "androidx.navigation:navigation-compose:2.8.3"
+    implementation "androidx.activity:activity-compose:1.9.3"
+    implementation "androidx.compose.runtime:runtime"
+    implementation "androidx.compose.foundation:foundation-layout"
+    implementation "androidx.compose.runtime:runtime-livedata"
     // Choose one of the following:
     // Material Design 3
     implementation 'androidx.compose.material3:material3'
@@ -82,6 +88,7 @@ dependencies {
     // Koin for Android
     var koin_version = '3.2.0'
     implementation "io.insert-koin:koin-android:$koin_version"
+    implementation "io.insert-koin:koin-androidx-compose:$koin_version"
     // Retrofit
     var retrofit_version = '2.9.0'
     implementation "com.squareup.retrofit2:retrofit:$retrofit_version"
@@ -95,8 +102,9 @@ dependencies {
     var picasso_version = '2.8'
     implementation "com.squareup.picasso:picasso:$picasso_version"
     // Paging 3
-    def paging_version = "3.1.1"
-    implementation "androidx.paging:paging-runtime:$paging_version"
+    def paging_version = "3.3.2"
+    //implementation "androidx.paging:paging-runtime:$paging_version"
+    implementation "androidx.paging:paging-compose:3.3.2"
     // Palette
     def palette_version = "1.0.0"
     implementation "androidx.palette:palette:$palette_version"

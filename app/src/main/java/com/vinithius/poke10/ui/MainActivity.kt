@@ -1,23 +1,39 @@
 package com.vinithius.poke10.ui
 
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import androidx.navigation.Navigation
-import com.vinithius.poke10.R
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import com.vinithius.poke10.ui.screens.PokemonDetailScreen
+import com.vinithius.poke10.ui.screens.PokemonListScreen
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+        setContent {
+            MainNavigation()
+        }
     }
+}
 
-    /**
-     * This method is called whenever the user chooses to navigate Up within your application's
-     * activity hierarchy from the action bar. But, in this situation, is validet if have a
-     * navigation up in nav_host_fragment, if not, use super.onSupportNavigateUp()
-     */
-    override fun onSupportNavigateUp(): Boolean {
-        return Navigation.findNavController(this, R.id.nav_host_fragment).navigateUp()
-                || super.onSupportNavigateUp()
+@Composable
+fun MainNavigation() {
+    val navController = rememberNavController()
+    NavHost(
+        navController = navController,
+        startDestination = "pokemonList"
+    ) {
+        composable("pokemonList") { PokemonListScreen(navController) }
+        composable("pokemonDetail") { PokemonDetailScreen(navController) }
     }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun MainNavigationPreview() {
+    MainNavigation()
 }
