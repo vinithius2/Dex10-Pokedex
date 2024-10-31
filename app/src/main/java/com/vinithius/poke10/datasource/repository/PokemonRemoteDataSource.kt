@@ -6,7 +6,7 @@ import retrofit2.http.*
 interface PokemonRemoteDataSource {
 
     @GET("pokemon/")
-    suspend fun getPokemonList(): List<Pokemon>
+    suspend fun getPokemonList(@Query("limit") limit: Int): PokemonDataWrapper
     //suspend fun getPokemonList(@Query("offset") offset: Int): PokemonDataWrapper
 
     @GET("pokemon/{id}")

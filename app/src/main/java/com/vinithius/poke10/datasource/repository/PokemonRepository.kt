@@ -1,22 +1,24 @@
 package com.vinithius.poke10.datasource.repository
 
-import android.content.Context
 import android.util.Log
-import androidx.paging.Pager
-import androidx.paging.PagingConfig
 import com.vinithius.poke10.BuildConfig
-import com.vinithius.poke10.datasource.response.*
-//import com.vinithius.poke10.extension.getIsFavorite
+import com.vinithius.poke10.datasource.response.Characteristic
+import com.vinithius.poke10.datasource.response.Damage
+import com.vinithius.poke10.datasource.response.EvolutionChain
+import com.vinithius.poke10.datasource.response.Location
+import com.vinithius.poke10.datasource.response.Pokemon
+import com.vinithius.poke10.datasource.response.PokemonDataWrapper
+import com.vinithius.poke10.datasource.response.Specie
 import retrofit2.HttpException
 
 
 class PokemonRepository(private val remoteDataSource: PokemonRemoteDataSource) {
 
-    suspend fun getPokemonList(): List<Pokemon>? {
+    suspend fun getPokemonList(): PokemonDataWrapper? {
         return try {
-            remoteDataSource.getPokemonList()
+            remoteDataSource.getPokemonList(1302)
         } catch (e: HttpException) {
-            Log.e("Pokemon list", e.toString())
+            Log.e("Pokemon dataWrapper", e.toString())
             null
         }
     }
@@ -74,6 +76,7 @@ class PokemonRepository(private val remoteDataSource: PokemonRemoteDataSource) {
             null
         }
     }
+
     /*
     suspend fun setFavorite(pokemon: Pokemon, context: Context?) {
         context?.let {

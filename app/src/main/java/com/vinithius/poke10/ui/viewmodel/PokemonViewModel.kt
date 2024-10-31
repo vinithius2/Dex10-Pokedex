@@ -47,7 +47,7 @@ class PokemonViewModel(private val repository: PokemonRepository) : ViewModel() 
     fun getPokemonList() {
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                _pokemonList.value = repository.getPokemonList()
+                _pokemonList.postValue(repository.getPokemonList()?.results ?: emptyList())
             } catch (e: Exception) {
                 Log.e("Error list pokemons", e.toString())
             }
