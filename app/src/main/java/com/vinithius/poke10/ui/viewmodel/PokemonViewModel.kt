@@ -55,6 +55,7 @@ class PokemonViewModel(private val repository: PokemonRepository) : ViewModel() 
                 val result = repository.getPokemonList()?.results ?: emptyList()
                 result.map { pokemon ->
                     pokemon.favorite = repository.getFavorite(pokemon.name, context)
+                    pokemon.id = pokemon.url?.getIdIntoUrl()?.toInt()
                 }
                 _pokemonListBackup.postValue(result)
                 _pokemonList.postValue(result)
