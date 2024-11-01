@@ -31,6 +31,10 @@ class PokemonViewModel(private val repository: PokemonRepository) : ViewModel() 
     val pokemonDetailError: LiveData<Boolean>
         get() = _pokemonDetailError
 
+    private val _pokemonIsFavorite = MutableLiveData<Pokemon>()
+    val pokemonIsFavorite: LiveData<Pokemon>
+        get() = _pokemonIsFavorite
+
     private var _idPokemon: Int = 0
 
     fun setIdPokemon(value: Int) {
@@ -44,10 +48,14 @@ class PokemonViewModel(private val repository: PokemonRepository) : ViewModel() 
     /**
      * Get pokemons list using Paging3.
      */
-    fun getPokemonList() {
+    fun getPokemonList(context: Context) {
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                _pokemonList.postValue(repository.getPokemonList()?.results ?: emptyList())
+                val result = repository.getPokemonList()?.results ?: emptyList()
+                result.map { pokemon ->
+                    pokemon.favorite = repository.getFavorite(pokemon.name, context)
+                }
+                _pokemonList.postValue(result)
             } catch (e: Exception) {
                 Log.e("Error list pokemons", e.toString())
             }
@@ -133,12 +141,18 @@ class PokemonViewModel(private val repository: PokemonRepository) : ViewModel() 
 
 
     /**
-     * Set favorite pokemon to webhook.
+     * Set favorite pokemon to sharedPreferences.
      */
     fun setFavorite(pokemon: Pokemon, context: Context?) {
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                //repository.setFavorite(pokemon, context)
+                _pokemonList.value = _pokemonList.value?.map { pokemonMap ->
+                    if (pokemonMap.name == pokemon.name) {
+                        val isFavorite = repository.setFavorite(pokemon.name, context)
+                        pokemonMap.favorite = isFavorite
+                    }
+                    pokemonMap
+                }
             } catch (e: Exception) {
                 Log.e("setFavorite", e.toString())
             }

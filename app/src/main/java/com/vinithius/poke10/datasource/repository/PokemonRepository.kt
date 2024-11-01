@@ -1,7 +1,7 @@
 package com.vinithius.poke10.datasource.repository
 
+import android.content.Context
 import android.util.Log
-import com.vinithius.poke10.BuildConfig
 import com.vinithius.poke10.datasource.response.Characteristic
 import com.vinithius.poke10.datasource.response.Damage
 import com.vinithius.poke10.datasource.response.EvolutionChain
@@ -9,6 +9,7 @@ import com.vinithius.poke10.datasource.response.Location
 import com.vinithius.poke10.datasource.response.Pokemon
 import com.vinithius.poke10.datasource.response.PokemonDataWrapper
 import com.vinithius.poke10.datasource.response.Specie
+import com.vinithius.poke10.ui.MainActivity.Companion.FAVORITES
 import retrofit2.HttpException
 
 
@@ -77,24 +78,27 @@ class PokemonRepository(private val remoteDataSource: PokemonRemoteDataSource) {
         }
     }
 
-    /*
-    suspend fun setFavorite(pokemon: Pokemon, context: Context?) {
-        context?.let {
-            try {
-                val favorite = pokemon.name.getIsFavorite(context)
-                if (favorite) {
-                    remoteDataSource.setFavorite(urlFavorite, pokemon)
-                } else {
-                    remoteDataSource.deleteFavorite(urlFavorite, pokemon)
+
+    fun setFavorite(name: String, context: Context?): Boolean {
+        return try {
+            val result = context?.run {
+                val sharedPreferences = getSharedPreferences(FAVORITES, Context.MODE_PRIVATE)
+                val isFavorite = sharedPreferences.getBoolean(name, false)
+                with(sharedPreferences.edit()) {
+                    putBoolean(name, isFavorite.not())
+                    apply()
                 }
-            } catch (e: HttpException) {
-                Log.e("Favorite", e.toString())
+                isFavorite.not()
             }
+            result ?: false
+        } catch (e: HttpException) {
+            Log.e("Favorite", e.toString())
+            false
         }
     }
-    */
-    companion object {
-        const val urlFavorite: String = "https://webhook.site/${BuildConfig.WEBHOOK_KEY}"
-    }
 
+    fun getFavorite(name: String, context: Context) : Boolean {
+        val sharedPreferences = context.getSharedPreferences(FAVORITES, Context.MODE_PRIVATE)
+        return sharedPreferences.getBoolean(name, false)
+    }
 }

@@ -1,5 +1,6 @@
 package com.vinithius.poke10.ui
 
+import android.content.Context
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -32,6 +33,29 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
+
+    /**
+     * Add the boolean values of the favorite.
+     */
+    private fun setFavorite(name: String, value: Boolean) {
+        val sharedPreferences = this.getSharedPreferences(FAVORITES, Context.MODE_PRIVATE)
+        with(sharedPreferences.edit()) {
+            putBoolean(name, value)
+            apply()
+        }
+    }
+
+    /**
+     * Get favorite preferences and add into global parameter favorite.
+     */
+    private fun getFavorite(name: String): Boolean {
+        val sharedPreferences = this.getSharedPreferences(FAVORITES, Context.MODE_PRIVATE)
+        return sharedPreferences.getBoolean(name, false)
+    }
+
+    companion object {
+        const val FAVORITES = "FAVORITES"
+    }
 }
 
 @Composable
@@ -45,7 +69,9 @@ fun MainScreen() {
                 },
                 backgroundColor = MaterialTheme.colors.primary,
                 actions = {
-                    IconButton(onClick = { /* Ação de favoritos */ }) {
+                    IconButton(onClick = {
+                        /* Ação de filtro de favoritos */
+                    }) {
                         Icon(
                             imageVector = Icons.Default.Favorite,
                             contentDescription = "Favorito",

@@ -1,7 +1,15 @@
 package com.vinithius.poke10.datasource.repository
 
-import com.vinithius.poke10.datasource.response.*
-import retrofit2.http.*
+import com.vinithius.poke10.datasource.response.Characteristic
+import com.vinithius.poke10.datasource.response.Damage
+import com.vinithius.poke10.datasource.response.EvolutionChain
+import com.vinithius.poke10.datasource.response.Location
+import com.vinithius.poke10.datasource.response.Pokemon
+import com.vinithius.poke10.datasource.response.PokemonDataWrapper
+import com.vinithius.poke10.datasource.response.Specie
+import retrofit2.http.GET
+import retrofit2.http.Path
+import retrofit2.http.Query
 
 interface PokemonRemoteDataSource {
 
@@ -26,17 +34,5 @@ interface PokemonRemoteDataSource {
 
     @GET("type/{type}")
     suspend fun getPokemonDamageRelations(@Path("type") type: String): Damage
-
-    @POST
-    suspend fun setFavorite(
-        @Url url: String,
-        @Body pokemon: Pokemon
-    )
-
-    @HTTP(
-        method = "DELETE",
-        hasBody = true
-    )
-    suspend fun deleteFavorite(@Url url: String, @Body pokemon: Pokemon)
 
 }

@@ -7,13 +7,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.Card
-import androidx.compose.material.Icon
-import androidx.compose.material.IconButton
 import androidx.compose.material.Text
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -21,6 +18,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.vinithius.poke10.components.PokeballComponent
 import com.vinithius.poke10.datasource.response.Pokemon
 import com.vinithius.poke10.ui.viewmodel.PokemonViewModel
 import org.koin.androidx.compose.getViewModel
@@ -30,23 +28,21 @@ fun PokemonListScreen(
     navController: NavController,
     viewModel: PokemonViewModel = getViewModel()
 ) {
-    // Chama a função para obter a lista de pokémons
-    LaunchedEffect(Unit) {
-        viewModel.getPokemonList()  // Chama a função para buscar os Pokémons
-    }
-
-    val pokemonItems = viewModel.pokemonList.observeAsState(emptyList())
     val context = LocalContext.current
+    LaunchedEffect(Unit) {
+        viewModel.getPokemonList(context)
+    }
+    val pokemonItems by viewModel.pokemonList.observeAsState(emptyList())
     LazyColumn {
-        items(pokemonItems.value) { pokemon ->
+        items(pokemonItems) { pokemon ->
             PokemonListItem(
                 pokemon = pokemon,
                 onClickDetail = { id ->
                     viewModel.setIdPokemon(id)
                     navController.navigate("pokemonDetail/$id")
                 },
-                onClickFavorite = { pokemonClicked ->
-                    viewModel.setFavorite(pokemonClicked, context)
+                onClickFavorite = { pokemonFavorite ->
+                    viewModel.setFavorite(pokemonFavorite, context)
                 }
             )
         }
@@ -72,20 +68,23 @@ fun PokemonListItem(
             },
         elevation = 4.dp
     ) {
-        Row(
-            modifier = Modifier.padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(text = pokemon.name, modifier = Modifier.weight(1f))
-            IconButton(onClick = {
-                if (onClickFavorite != null) {
-                    onClickFavorite(pokemon)
-                }
-            }) {
-                Icon(
-                    imageVector = Icons.Default.Favorite,
-                    contentDescription = "Favorite"
-                )
+        Holder(pokemon, onClickFavorite)
+    }
+}
+
+@Composable
+fun Holder(
+    pokemon: Pokemon,
+    onClickFavorite: ((Pokemon) -> Unit)?
+) {
+    Row(
+        modifier = Modifier.padding(16.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(text = pokemon.name, modifier = Modifier.weight(1f))
+        PokeballComponent(favorite = pokemon.favorite) {
+            onClickFavorite?.run {
+                onClickFavorite(pokemon)
             }
         }
     }
@@ -94,7 +93,11 @@ fun PokemonListItem(
 @Preview(showBackground = true)
 @Composable
 fun PokemonListScreenPreview() {
-    val test = Pokemon(
+    PokemonListItem(MockuPokemon(), null, null)
+}
+
+private fun MockuPokemon(): Pokemon {
+    return Pokemon(
         0,
         "Pikachu",
         "https://pokeapi.co/api/v2/pokemon/25/",
@@ -109,8 +112,7 @@ fun PokemonListScreenPreview() {
         null,
         null,
         null,
-        listOf()
+        listOf(),
+        false
     )
-    PokemonListItem(test, null, null)
-    // Preview não mostra dados reais, pois depende do ViewModel e da coleta de Paging.
 }
