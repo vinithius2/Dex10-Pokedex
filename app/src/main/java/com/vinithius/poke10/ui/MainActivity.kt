@@ -1,6 +1,5 @@
 package com.vinithius.poke10.ui
 
-import android.content.Context
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -14,15 +13,20 @@ import androidx.compose.material.TopAppBar
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.vinithius.poke10.ui.screens.PokemonDetailScreen
 import com.vinithius.poke10.ui.screens.PokemonListScreen
 import com.vinithius.poke10.ui.theme.ThemePoke10
+import com.vinithius.poke10.ui.viewmodel.PokemonViewModel
+import org.koin.androidx.compose.getViewModel
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -34,32 +38,14 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    /**
-     * Add the boolean values of the favorite.
-     */
-    private fun setFavorite(name: String, value: Boolean) {
-        val sharedPreferences = this.getSharedPreferences(FAVORITES, Context.MODE_PRIVATE)
-        with(sharedPreferences.edit()) {
-            putBoolean(name, value)
-            apply()
-        }
-    }
-
-    /**
-     * Get favorite preferences and add into global parameter favorite.
-     */
-    private fun getFavorite(name: String): Boolean {
-        val sharedPreferences = this.getSharedPreferences(FAVORITES, Context.MODE_PRIVATE)
-        return sharedPreferences.getBoolean(name, false)
-    }
-
     companion object {
         const val FAVORITES = "FAVORITES"
     }
 }
 
 @Composable
-fun MainScreen() {
+fun MainScreen(viewModel: PokemonViewModel = getViewModel()) {
+    var favoriteFilter = false
     val navController = rememberNavController()
     Scaffold(
         topBar = {
@@ -70,7 +56,8 @@ fun MainScreen() {
                 backgroundColor = MaterialTheme.colors.primary,
                 actions = {
                     IconButton(onClick = {
-                        /* Ação de filtro de favoritos */
+                        favoriteFilter = favoriteFilter.not()
+                        viewModel.getPokemonFavoriteList(favoriteFilter)
                     }) {
                         Icon(
                             imageVector = Icons.Default.Favorite,

@@ -15,6 +15,7 @@ import kotlinx.coroutines.launch
 
 class PokemonViewModel(private val repository: PokemonRepository) : ViewModel() {
 
+    private val _pokemonListBackup = MutableLiveData<List<Pokemon>>()
     private val _pokemonList = MutableLiveData<List<Pokemon>>()
     val pokemonList: LiveData<List<Pokemon>>
         get() = _pokemonList
@@ -46,7 +47,7 @@ class PokemonViewModel(private val repository: PokemonRepository) : ViewModel() 
     }
 
     /**
-     * Get pokemons list using Paging3.
+     * Get pokemons list.
      */
     fun getPokemonList(context: Context) {
         CoroutineScope(Dispatchers.IO).launch {
@@ -55,11 +56,22 @@ class PokemonViewModel(private val repository: PokemonRepository) : ViewModel() 
                 result.map { pokemon ->
                     pokemon.favorite = repository.getFavorite(pokemon.name, context)
                 }
+                _pokemonListBackup.postValue(result)
                 _pokemonList.postValue(result)
             } catch (e: Exception) {
                 Log.e("Error list pokemons", e.toString())
             }
         }
+    }
+
+    fun getPokemonFavoriteList(isFavorite: Boolean) {
+        val currentList = _pokemonListBackup.value ?: return
+        val filteredList = if (isFavorite) {
+            currentList.filter { it.favorite } // Filtra Pokémon favoritos
+        } else {
+            currentList // Retorna a lista original
+        }
+        _pokemonList.postValue(filteredList)
     }
 
     /**
