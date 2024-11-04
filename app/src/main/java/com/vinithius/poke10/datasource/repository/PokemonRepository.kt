@@ -2,6 +2,9 @@ package com.vinithius.poke10.datasource.repository
 
 import android.content.Context
 import android.util.Log
+import androidx.room.ColumnInfo
+import com.vinithius.poke10.datasource.database.PokemonCard
+import com.vinithius.poke10.datasource.database.PokemonDao
 import com.vinithius.poke10.datasource.response.Characteristic
 import com.vinithius.poke10.datasource.response.Damage
 import com.vinithius.poke10.datasource.response.EvolutionChain
@@ -13,7 +16,32 @@ import com.vinithius.poke10.ui.MainActivity.Companion.FAVORITES
 import retrofit2.HttpException
 
 
-class PokemonRepository(private val remoteDataSource: PokemonRemoteDataSource) {
+class PokemonRepository(private val remoteDataSource: PokemonRemoteDataSource, private val localDataSource: PokemonDao) {
+
+    // Local
+
+    suspend fun getAllPokemonCard() : List<PokemonCard> {
+        return localDataSource.getAllPokemon()
+    }
+
+    suspend fun insertPokemonCard(
+        pokemon: Pokemon
+    ) {
+        pokemon.id
+        pokemon.name
+        pokemon.types
+        pokemon.evolution
+        pokemon.
+    }
+    @ColumnInfo(name = "name") val name: String,
+    @ColumnInfo(name = "type_id", index = true) val typeId: Int?,
+    @ColumnInfo(name = "evolution_id", index = true) val evolutionId: Int?,
+    @ColumnInfo(name = "image_path") val imagePath: String?
+
+
+
+
+    // Remote
 
     suspend fun getPokemonList(): PokemonDataWrapper? {
         return try {

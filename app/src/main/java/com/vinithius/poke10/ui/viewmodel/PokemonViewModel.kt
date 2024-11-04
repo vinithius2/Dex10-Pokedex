@@ -70,14 +70,16 @@ class PokemonViewModel(private val repository: PokemonRepository) : ViewModel() 
     }
 
     fun getPokemonFavoriteList(isFavorite: Boolean) {
-        _isFavoriteFilter.postValue(isFavorite)
+        _isFavoriteFilter.value = isFavorite
         val currentList = _pokemonListBackup.value ?: return
+
         val filteredList = if (isFavorite) {
             currentList.filter { it.favorite } // Filtra Pokémon favoritos
         } else {
             currentList // Retorna a lista original
         }
-        _pokemonList.postValue(filteredList)
+
+        _pokemonList.value = (filteredList)
     }
 
     /**

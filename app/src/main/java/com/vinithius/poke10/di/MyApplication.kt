@@ -1,10 +1,13 @@
 package com.vinithius.poke10.di
 
+import androidx.room.Room
+import com.vinithius.poke10.datasource.database.AppDatabase
 import com.vinithius.poke10.datasource.repository.PokemonRemoteDataSource
 import com.vinithius.poke10.datasource.repository.PokemonRepository
 import com.vinithius.poke10.ui.viewmodel.PokemonViewModel
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
+import org.koin.android.ext.koin.androidContext
 import org.koin.dsl.module
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
@@ -16,7 +19,7 @@ val repositoryModule = module {
 }
 
 val repositoryDataModule = module {
-    single { PokemonRepository(get()) }
+    single { PokemonRepository(get(), get()) }
 }
 
 val viewModelModule = module {
@@ -25,6 +28,18 @@ val viewModelModule = module {
 
 val networkModule = module {
     single { retrofit() }
+}
+
+val databaseModule = module {
+    single {
+        Room.databaseBuilder(
+            androidContext(),
+            AppDatabase::class.java,
+            "pokemon_database"
+        ).build()
+    }
+    single { get<AppDatabase>().pokemonDao() }
+    single { PokemonRepository(get(), get()) }
 }
 
 fun retrofit(): Retrofit {
