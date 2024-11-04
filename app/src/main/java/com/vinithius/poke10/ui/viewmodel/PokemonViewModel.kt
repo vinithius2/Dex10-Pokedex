@@ -20,6 +20,10 @@ class PokemonViewModel(private val repository: PokemonRepository) : ViewModel() 
     val pokemonList: LiveData<List<Pokemon>>
         get() = _pokemonList
 
+    private val _isFavoriteFilter = MutableLiveData<Boolean>()
+    val isFavoriteFilter: LiveData<Boolean>
+        get() = _isFavoriteFilter
+
     private val _pokemonDetail = MutableLiveData<Pokemon?>()
     val pokemonDetail: LiveData<Pokemon?>
         get() = _pokemonDetail
@@ -66,6 +70,7 @@ class PokemonViewModel(private val repository: PokemonRepository) : ViewModel() 
     }
 
     fun getPokemonFavoriteList(isFavorite: Boolean) {
+        _isFavoriteFilter.postValue(isFavorite)
         val currentList = _pokemonListBackup.value ?: return
         val filteredList = if (isFavorite) {
             currentList.filter { it.favorite } // Filtra Pokémon favoritos
@@ -159,16 +164,21 @@ class PokemonViewModel(private val repository: PokemonRepository) : ViewModel() 
     fun setFavorite(pokemon: Pokemon, context: Context?) {
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                _pokemonList.value = _pokemonList.value?.map { pokemonMap ->
-                    if (pokemonMap.name == pokemon.name) {
+                _pokemonList.value?.map { pokemonMap ->
+                    if (pokemonMap.id == pokemon.id) {
                         val isFavorite = repository.setFavorite(pokemon.name, context)
                         pokemonMap.favorite = isFavorite
                     }
-                    pokemonMap
                 }
             } catch (e: Exception) {
                 Log.e("setFavorite", e.toString())
             }
+        }
+    }
+
+    fun removeItemIfNotIsFavorite() {
+        _isFavoriteFilter.takeIf { it.value ?: false }?.run {
+            getPokemonFavoriteList(true)
         }
     }
 }
