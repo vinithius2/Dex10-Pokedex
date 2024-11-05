@@ -2,9 +2,15 @@ package com.vinithius.poke10.datasource.repository
 
 import android.content.Context
 import android.util.Log
-import androidx.room.ColumnInfo
-import com.vinithius.poke10.datasource.database.PokemonCard
+import com.vinithius.poke10.datasource.database.PokemonAbility
 import com.vinithius.poke10.datasource.database.PokemonDao
+import com.vinithius.poke10.datasource.database.PokemonEntity
+import com.vinithius.poke10.datasource.database.PokemonStat
+import com.vinithius.poke10.datasource.database.PokemonType
+import com.vinithius.poke10.datasource.mapper.toAbilityEntities
+import com.vinithius.poke10.datasource.mapper.toEntity
+import com.vinithius.poke10.datasource.mapper.toStatEntities
+import com.vinithius.poke10.datasource.mapper.toTypeEntities
 import com.vinithius.poke10.datasource.response.Characteristic
 import com.vinithius.poke10.datasource.response.Damage
 import com.vinithius.poke10.datasource.response.EvolutionChain
@@ -16,32 +22,47 @@ import com.vinithius.poke10.ui.MainActivity.Companion.FAVORITES
 import retrofit2.HttpException
 
 
-class PokemonRepository(private val remoteDataSource: PokemonRemoteDataSource, private val localDataSource: PokemonDao) {
+class PokemonRepository(
+    private val remoteDataSource: PokemonRemoteDataSource,
+    private val localDataSource: PokemonDao
+) {
 
-    // Local
+    // LOCAL - DATABSE
 
-    suspend fun getAllPokemonCard() : List<PokemonCard> {
-        return localDataSource.getAllPokemon()
+    suspend fun getAllPokemonEntities(): List<PokemonEntity> {
+        return localDataSource.getAllPokemonsEntities()
     }
 
-    suspend fun insertPokemonCard(
-        pokemon: Pokemon
-    ) {
-        pokemon.id
-        pokemon.name
-        pokemon.types
-        pokemon.evolution
-        pokemon.
+    suspend fun insertPokemonCard(pokemon: Pokemon) {
+        val pokemonEntity = pokemon.toEntity()
+        val statEntityList = pokemon.toStatEntities()
+        val typeEntityList = pokemon.toTypeEntities()
+        val abilityEntityList = pokemon.toAbilityEntities()
+        // Inserir Pokémon
+        val pokemonId = localDataSource.insertPokemon(pokemonEntity)
+        // Adicionando tipos (se existirem)
+        typeEntityList?.forEach { type ->
+            val typeId = localDataSource.insertType(type)
+            localDataSource.insertPokemonType(PokemonType(pokemonId = pokemonId.toInt(), typeId = typeId.toInt()))
+        }
+        // Adicionando habilidades (se existirem)
+        abilityEntityList?.forEach { ability ->
+            val abilityId = localDataSource.insertAbility(ability)
+            localDataSource.insertPokemonAbility(
+                PokemonAbility(
+                    pokemonId = pokemonId.toInt(),
+                    abilityId = abilityId.toInt()
+                )
+            )
+        }
+        // Adicionando stats (se existirem)
+        statEntityList?.forEach { stat ->
+            val statId = localDataSource.insertStat(stat)
+            localDataSource.insertPokemonStat(PokemonStat(pokemonId = pokemonId.toInt(), statId = statId.toInt()))
+        }
     }
-    @ColumnInfo(name = "name") val name: String,
-    @ColumnInfo(name = "type_id", index = true) val typeId: Int?,
-    @ColumnInfo(name = "evolution_id", index = true) val evolutionId: Int?,
-    @ColumnInfo(name = "image_path") val imagePath: String?
 
-
-
-
-    // Remote
+    // REMOTE - POKE API
 
     suspend fun getPokemonList(): PokemonDataWrapper? {
         return try {
@@ -125,7 +146,7 @@ class PokemonRepository(private val remoteDataSource: PokemonRemoteDataSource, p
         }
     }
 
-    fun getFavorite(name: String, context: Context) : Boolean {
+    fun getFavorite(name: String, context: Context): Boolean {
         val sharedPreferences = context.getSharedPreferences(FAVORITES, Context.MODE_PRIVATE)
         return sharedPreferences.getBoolean(name, false)
     }

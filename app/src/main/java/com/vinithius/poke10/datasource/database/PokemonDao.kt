@@ -10,38 +10,74 @@ import androidx.room.Transaction
 @Dao
 interface PokemonDao {
 
-    // Inserção
+    // Inserções
     @Insert(onConflict = OnConflictStrategy.IGNORE)
-    suspend fun insertPokemon(pokemon: PokemonCard)
+    suspend fun insertPokemon(pokemon: PokemonEntity): Long
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
-    suspend fun insertType(type: Type)
+    suspend fun insertType(type: Type): Long
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
-    suspend fun insertEvolution(evolution: Evolution)
+    suspend fun insertAbility(ability: Ability): Long
+
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun insertStat(stat: Stat): Long
+
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun insertPokemonType(pokemonType: PokemonType): Long
+
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun insertPokemonStat(pokemonStat: PokemonStat): Long
+
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun insertPokemonAbility(pokemonAbility: PokemonAbility): Long
 
     // Consultas
-    @Query("SELECT * FROM POKEMON WHERE id = :id")
-    suspend fun getPokemonById(id: Int): PokemonCard?
+    @Query("SELECT * FROM stat WHERE id = :id")
+    suspend fun getStatById(id: Int): Stat?
 
-    @Query("SELECT * FROM TYPE WHERE id = :id")
+    @Query("SELECT * FROM ability WHERE id = :id")
+    suspend fun getAbilityById(id: Int): Ability?
+
+    @Query("SELECT * FROM type WHERE id = :id")
     suspend fun getTypeById(id: Int): Type?
 
-    @Query("SELECT * FROM EVOLUTION WHERE id = :id")
-    suspend fun getEvolutionById(id: Int): Evolution?
+    @Query("SELECT * FROM pokemon WHERE id = :id")
+    suspend fun getPokemonById(id: Int): PokemonEntity?
 
-    // Lista de todos os Pokemons com tipos e evoluções
+    @Query("SELECT * FROM pokemon_type WHERE pokemon_id = :pokemonId")
+    suspend fun getTypesByPokemonId(pokemonId: Int): List<PokemonType>
+
+    @Query("SELECT * FROM pokemon_stat WHERE pokemon_id = :pokemonId")
+    suspend fun getStatsByPokemonId(pokemonId: Int): List<PokemonStat>
+
+    @Query("SELECT * FROM pokemon_ability WHERE pokemon_id = :pokemonId")
+    suspend fun getAbilitiesByPokemonId(pokemonId: Int): List<PokemonAbility>
+
+    // Lista de todos os Pokémon
     @Transaction
-    @Query("SELECT * FROM POKEMON")
-    suspend fun getAllPokemon(): List<PokemonCard>
+    @Query("SELECT * FROM pokemon")
+    suspend fun getAllPokemonsEntities(): List<PokemonEntity>
 
-    // Deleção
+    // Deleções
     @Delete
-    suspend fun deletePokemon(pokemon: PokemonCard)
+    suspend fun deletePokemon(pokemon: PokemonEntity)
 
     @Delete
     suspend fun deleteType(type: Type)
 
     @Delete
-    suspend fun deleteEvolution(evolution: Evolution)
+    suspend fun deleteAbility(ability: Ability)
+
+    @Delete
+    suspend fun deleteStat(stat: Stat)
+
+    @Delete
+    suspend fun deletePokemonType(pokemonType: PokemonType)
+
+    @Delete
+    suspend fun deletePokemonStat(pokemonStat: PokemonStat)
+
+    @Delete
+    suspend fun deletePokemonAbility(pokemonAbility: PokemonAbility)
 }
