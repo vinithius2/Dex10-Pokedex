@@ -5,6 +5,7 @@ import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import com.vinithius.poke10.datasource.database.PokemonWithDetails
 import com.vinithius.poke10.datasource.repository.PokemonRepository
 import com.vinithius.poke10.datasource.response.Damage
 import com.vinithius.poke10.datasource.response.Pokemon
@@ -15,9 +16,9 @@ import kotlinx.coroutines.launch
 
 class PokemonViewModel(private val repository: PokemonRepository) : ViewModel() {
 
-    private val _pokemonListBackup = MutableLiveData<List<Pokemon>>()
-    private val _pokemonList = MutableLiveData<List<Pokemon>>()
-    val pokemonList: LiveData<List<Pokemon>>
+    private val _pokemonListBackup = MutableLiveData<List<PokemonWithDetails>>()
+    private val _pokemonList = MutableLiveData<List<PokemonWithDetails>>()
+    val pokemonList: LiveData<List<PokemonWithDetails>>
         get() = _pokemonList
 
     private val _isFavoriteFilter = MutableLiveData<Boolean>()
@@ -56,11 +57,7 @@ class PokemonViewModel(private val repository: PokemonRepository) : ViewModel() 
     fun getPokemonList(context: Context) {
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                val result = repository.getPokemonList()?.results ?: emptyList()
-                result.map { pokemon ->
-                    pokemon.favorite = repository.getFavorite(pokemon.name, context)
-                    pokemon.id = pokemon.url?.getIdIntoUrl()?.toInt()
-                }
+                val result = repository.getPokemonEntityList(context) ?: emptyList()
                 _pokemonListBackup.postValue(result)
                 _pokemonList.postValue(result)
             } catch (e: Exception) {
@@ -74,12 +71,12 @@ class PokemonViewModel(private val repository: PokemonRepository) : ViewModel() 
         val currentList = _pokemonListBackup.value ?: return
 
         val filteredList = if (isFavorite) {
-            currentList.filter { it.favorite } // Filtra Pokémon favoritos
+            //currentList.filter { it.favorite } // Filtra Pokémon favoritos
         } else {
             currentList // Retorna a lista original
         }
 
-        _pokemonList.value = (filteredList)
+        //_pokemonList.value = (filteredList)
     }
 
     /**
@@ -130,7 +127,7 @@ class PokemonViewModel(private val repository: PokemonRepository) : ViewModel() 
     private suspend fun getPokemonSpecies(pokemon: Pokemon) {
         repository.getPokemonSpecies(_idPokemon)?.let { apiSpecie ->
             pokemon.apply { specie = apiSpecie }
-            apiSpecie.evolution_chain.url.getIdIntoUrl()?.let {
+            apiSpecie.evolution_chain?.url?.getIdIntoUrl()?.let {
                 getPokemonEvolution(pokemon, it.toInt())
             }
         }
@@ -151,7 +148,7 @@ class PokemonViewModel(private val repository: PokemonRepository) : ViewModel() 
     private suspend fun getPokemonDamageRelations(pokemon: Pokemon) {
         val damageList: MutableList<Damage> = mutableListOf()
         pokemon.types?.forEach { typeList ->
-            repository.getPokemonDamageRelations(typeList.type.name)?.let {
+            repository.getPokemonDamageRelations(typeList.type.name!!)?.let {
                 it.type = typeList.type
                 damageList.add(it)
             }
@@ -167,10 +164,12 @@ class PokemonViewModel(private val repository: PokemonRepository) : ViewModel() 
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 _pokemonList.value?.map { pokemonMap ->
+                    /*
                     if (pokemonMap.id == pokemon.id) {
                         val isFavorite = repository.setFavorite(pokemon.name, context)
                         pokemonMap.favorite = isFavorite
                     }
+                    */
                 }
             } catch (e: Exception) {
                 Log.e("setFavorite", e.toString())

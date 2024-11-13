@@ -2,6 +2,8 @@ plugins {
     id 'com.android.application'
     id 'org.jetbrains.kotlin.android'
     id 'kotlin-kapt'
+    id 'com.google.gms.google-services'
+    id 'com.google.firebase.crashlytics'
 }
 
 def apikeyPropertiesFile = rootProject.file("apikey.properties")
@@ -26,7 +28,7 @@ android {
 
     buildTypes {
         release {
-            minifyEnabled false
+            minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
@@ -48,10 +50,20 @@ android {
 }
 
 dependencies {
+    implementation 'com.google.firebase:firebase-database-ktx:21.0.0'
+
     // COMPOSE
     def composeBom = platform('androidx.compose:compose-bom:2023.03.00')
     implementation composeBom
     androidTestImplementation composeBom
+
+    implementation("io.coil-kt:coil-compose:2.5.0") // Coil para Compose
+    implementation("io.coil-kt:coil-gif:2.4.0")     // Suporte para GIFs
+
+    // Firebase
+    implementation 'com.google.firebase:firebase-crashlytics-ktx:19.2.1'
+    implementation 'com.google.firebase:firebase-analytics-ktx:22.1.2'
+    implementation 'com.google.firebase:firebase-database-ktx:21.0.0'
 
     implementation "androidx.paging:paging-compose:3.3.2"
     implementation "androidx.navigation:navigation-compose:2.8.3"

@@ -11,7 +11,7 @@ data class Pokemon(
     var types: List<Type>?,
     var abilities: List<Abilities>?,
     var sprites: Sprites?,
-    var encounters: List<Location>,
+    var encounters: List<Location>?,
     var evolution: EvolutionChain?,
     var characteristic: Characteristic?,
     var specie: Specie?,

@@ -15,7 +15,6 @@ interface PokemonRemoteDataSource {
 
     @GET("pokemon/")
     suspend fun getPokemonList(@Query("limit") limit: Int): PokemonDataWrapper
-    //suspend fun getPokemonList(@Query("offset") offset: Int): PokemonDataWrapper
 
     @GET("pokemon/{id}")
     suspend fun getPokemonDetail(@Path("id") id: Int): Pokemon

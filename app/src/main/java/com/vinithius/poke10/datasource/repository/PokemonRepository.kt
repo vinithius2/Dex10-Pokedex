@@ -2,13 +2,20 @@ package com.vinithius.poke10.datasource.repository
 
 import android.content.Context
 import android.util.Log
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
+import com.google.firebase.database.DatabaseReference
+import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.database.ValueEventListener
 import com.vinithius.poke10.datasource.database.PokemonAbility
 import com.vinithius.poke10.datasource.database.PokemonDao
 import com.vinithius.poke10.datasource.database.PokemonEntity
 import com.vinithius.poke10.datasource.database.PokemonStat
 import com.vinithius.poke10.datasource.database.PokemonType
+import com.vinithius.poke10.datasource.database.PokemonWithDetails
 import com.vinithius.poke10.datasource.mapper.toAbilityEntities
 import com.vinithius.poke10.datasource.mapper.toEntity
+import com.vinithius.poke10.datasource.mapper.toPokemon
 import com.vinithius.poke10.datasource.mapper.toStatEntities
 import com.vinithius.poke10.datasource.mapper.toTypeEntities
 import com.vinithius.poke10.datasource.response.Characteristic
@@ -18,8 +25,13 @@ import com.vinithius.poke10.datasource.response.Location
 import com.vinithius.poke10.datasource.response.Pokemon
 import com.vinithius.poke10.datasource.response.PokemonDataWrapper
 import com.vinithius.poke10.datasource.response.Specie
+import com.vinithius.poke10.extension.updateWithLocalData
 import com.vinithius.poke10.ui.MainActivity.Companion.FAVORITES
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.withContext
 import retrofit2.HttpException
+import kotlin.coroutines.resume
 
 
 class PokemonRepository(
@@ -27,10 +39,41 @@ class PokemonRepository(
     private val localDataSource: PokemonDao
 ) {
 
+    suspend fun getPokemonEntityList(context: Context): List<PokemonWithDetails>? {
+        insertPokemonFromFirebaseToLocal()
+        val pokemonList = localDataSource.getPokemonListWithDetails()
+        pokemonList?.map { data ->
+            data.pokemon.favorite = getFavorite(data.pokemon.name, context)
+        }
+        return pokemonList
+    }
+
+    /**
+     * Execute once
+     */
+    private suspend fun insertPokemonFromFirebaseToLocal() {
+        val countLocal = getCountPokemonEntities()
+        if (countLocal == 0) {
+            val pokemonFirebaseList = getFirebasePokemonList()
+            pokemonFirebaseList.forEach { pokemon ->
+                insertPokemonCard(pokemon)
+                Log.i("Insert pokemon", "${pokemon.id} ${pokemon.name}")
+            }
+        }
+    }
+
     // LOCAL - DATABSE
 
     suspend fun getAllPokemonEntities(): List<PokemonEntity> {
         return localDataSource.getAllPokemonsEntities()
+    }
+
+    suspend fun getCountPokemonEntities(): Int {
+        return localDataSource.getCountPokemons()
+    }
+
+    suspend fun getPokemonWithDetails(id: Int): PokemonWithDetails? {
+        return localDataSource.getPokemonWithDetailsById(id)
     }
 
     suspend fun insertPokemonCard(pokemon: Pokemon) {
@@ -43,7 +86,12 @@ class PokemonRepository(
         // Adicionando tipos (se existirem)
         typeEntityList?.forEach { type ->
             val typeId = localDataSource.insertType(type)
-            localDataSource.insertPokemonType(PokemonType(pokemonId = pokemonId.toInt(), typeId = typeId.toInt()))
+            localDataSource.insertPokemonType(
+                PokemonType(
+                    pokemonId = pokemonId.toInt(),
+                    typeId = typeId.toInt()
+                )
+            )
         }
         // Adicionando habilidades (se existirem)
         abilityEntityList?.forEach { ability ->
@@ -58,15 +106,20 @@ class PokemonRepository(
         // Adicionando stats (se existirem)
         statEntityList?.forEach { stat ->
             val statId = localDataSource.insertStat(stat)
-            localDataSource.insertPokemonStat(PokemonStat(pokemonId = pokemonId.toInt(), statId = statId.toInt()))
+            localDataSource.insertPokemonStat(
+                PokemonStat(
+                    pokemonId = pokemonId.toInt(),
+                    statId = statId.toInt()
+                )
+            )
         }
     }
 
     // REMOTE - POKE API
 
-    suspend fun getPokemonList(): PokemonDataWrapper? {
+    private suspend fun getPokemonList(limit : Int = 1302): PokemonDataWrapper? {
         return try {
-            remoteDataSource.getPokemonList(1302)
+            remoteDataSource.getPokemonList(limit)
         } catch (e: HttpException) {
             Log.e("Pokemon dataWrapper", e.toString())
             null
@@ -149,5 +202,35 @@ class PokemonRepository(
     fun getFavorite(name: String, context: Context): Boolean {
         val sharedPreferences = context.getSharedPreferences(FAVORITES, Context.MODE_PRIVATE)
         return sharedPreferences.getBoolean(name, false)
+    }
+
+    // Defina uma interface de callback
+    interface PokemonListCallback {
+        fun onCallback(pokemonList: List<Pokemon>)
+    }
+
+    // REMOTE - Firebase
+    private suspend fun getFirebasePokemonList(): List<Pokemon> = withContext(Dispatchers.IO) {
+        val pokemonList = mutableListOf<Pokemon>()
+        val database: DatabaseReference = FirebaseDatabase.getInstance().getReference("pokemons")
+
+        // Use um Continuation para aguardar o resultado assíncrono
+        suspendCancellableCoroutine { continuation ->
+            database.addValueEventListener(object : ValueEventListener {
+                override fun onDataChange(dataSnapshot: DataSnapshot) {
+                    for (pokemonSnapshot in dataSnapshot.children) {
+                        val pokemonData = (pokemonSnapshot.value as HashMap<*, *>).toPokemon()
+                        pokemonList.add(pokemonData)
+                        Log.i("Firebase pokemon", pokemonData.toString())
+                    }
+                    continuation.resume(pokemonList)
+                }
+
+                override fun onCancelled(databaseError: DatabaseError) {
+                    Log.w("FirebasePokemon", "Erro ao ler os dados", databaseError.toException())
+                    continuation.resumeWith(Result.failure(databaseError.toException()))
+                }
+            })
+        }
     }
 }

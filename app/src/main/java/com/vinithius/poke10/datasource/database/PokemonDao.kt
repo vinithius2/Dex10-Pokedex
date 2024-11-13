@@ -33,6 +33,15 @@ interface PokemonDao {
     suspend fun insertPokemonAbility(pokemonAbility: PokemonAbility): Long
 
     // Consultas
+    @Query("SELECT * FROM pokemon")
+    suspend fun getPokemonListWithDetails(): List<PokemonWithDetails>?
+
+    @Query("SELECT * FROM pokemon WHERE id = :pokemonId")
+    suspend fun getPokemonWithDetailsById(pokemonId: Int): PokemonWithDetails?
+
+    @Query("SELECT * FROM pokemon WHERE name = :pokemonName")
+    suspend fun getPokemonWithDetailsByName(pokemonName: String): PokemonWithDetails?
+
     @Query("SELECT * FROM stat WHERE id = :id")
     suspend fun getStatById(id: Int): Stat?
 
@@ -53,6 +62,9 @@ interface PokemonDao {
 
     @Query("SELECT * FROM pokemon_ability WHERE pokemon_id = :pokemonId")
     suspend fun getAbilitiesByPokemonId(pokemonId: Int): List<PokemonAbility>
+
+    @Query("SELECT COUNT(*) FROM pokemon")
+    suspend fun getCountPokemons(): Int
 
     // Lista de todos os Pokémon
     @Transaction

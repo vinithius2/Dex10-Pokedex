@@ -46,7 +46,7 @@ class DatabaseHelper(context: Context) :
 
         private const val CREATE_TABLE_POKEMON = """
             CREATE TABLE $TABLE_POKEMON (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                id INTEGER PRIMARY KEY,
                 name TEXT NOT NULL,
                 image_path TEXT
             )
@@ -92,6 +92,7 @@ class DatabaseHelper(context: Context) :
         db?.execSQL(CREATE_TABLE_POKEMON_ABILITY)
         db?.execSQL(CREATE_TABLE_POKEMON_TYPE)
     }
+
 
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
         db.execSQL("DROP TABLE IF EXISTS $TABLE_POKEMON_ABILITY")

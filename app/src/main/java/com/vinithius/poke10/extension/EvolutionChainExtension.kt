@@ -9,7 +9,7 @@ import com.vinithius.poke10.datasource.response.EvolutionChain
 fun EvolutionChain.getListEvolutions(): List<Pair<String, String>> {
     var listEvolutions = mutableListOf<Pair<String, String>>()
     this.chain.species?.let {
-        listEvolutions.add(Pair(it.name, it.url))
+        listEvolutions.add(Pair(it.name!!, it.url!!))
         listEvolutions = getEvolvesTo(this.chain, listEvolutions)
     }
     return listEvolutions.toList()
@@ -25,14 +25,14 @@ private fun getEvolvesTo(
     if (chain.evolves_to?.size != 0) {
         chain.evolves_to?.forEach { evolve ->
             evolve.species?.let { specie ->
-                listEvolutions.add(Pair(specie.name, specie.url))
+                listEvolutions.add(Pair(specie.name!!, specie.url!!))
                 evolve.evolves_to?.forEach { evolves_to ->
                     getEvolvesTo(evolves_to, listEvolutions)
                 }
             }
         }
     } else {
-        chain.species?.let { specie -> listEvolutions.add(Pair(specie.name, specie.url)) }
+        chain.species?.let { specie -> listEvolutions.add(Pair(specie.name!!, specie.url!!)) }
     }
     return listEvolutions
 }

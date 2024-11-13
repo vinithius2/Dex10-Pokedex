@@ -1,8 +1,11 @@
 package com.vinithius.poke10.datasource.database
 
 import androidx.room.ColumnInfo
+import androidx.room.Embedded
 import androidx.room.Entity
+import androidx.room.Junction
 import androidx.room.PrimaryKey
+import androidx.room.Relation
 
 enum class StatType(val value: String) {
     HP("hp"),
@@ -37,8 +40,9 @@ data class Type(
 
 @Entity(tableName = "pokemon")
 data class PokemonEntity(
-    @PrimaryKey(autoGenerate = true) val id: Int = 0,
+    @PrimaryKey val id: Int = 0,
     @ColumnInfo(name = "name") val name: String,
+    @ColumnInfo(name = "favorite") var favorite: Boolean = false,
     @ColumnInfo(name = "image_path") val imagePath: String?
 )
 
@@ -67,3 +71,44 @@ data class PokemonAbility(
     @ColumnInfo(name = "pokemon_id") val pokemonId: Int,
     @ColumnInfo(name = "ability_id") val abilityId: Int
 )
+
+data class PokemonWithDetails(
+    @Embedded val pokemon: PokemonEntity,
+
+    @Relation(
+        parentColumn = "id",
+        entityColumn = "id",
+        entity = Type::class,
+        associateBy = Junction(
+            value = PokemonType::class,
+            parentColumn = "pokemon_id",
+            entityColumn = "type_id"
+        )
+    )
+    val types: List<Type>,
+
+    @Relation(
+        parentColumn = "id",
+        entityColumn = "id",
+        entity = Ability::class,
+        associateBy = Junction(
+            value = PokemonAbility::class,
+            parentColumn = "pokemon_id",
+            entityColumn = "ability_id"
+        )
+    )
+    val abilities: List<Ability>,
+
+    @Relation(
+        parentColumn = "id",
+        entityColumn = "id",
+        entity = Stat::class,
+        associateBy = Junction(
+            value = PokemonStat::class,
+            parentColumn = "pokemon_id",
+            entityColumn = "stat_id"
+        )
+    )
+    val stats: List<Stat>
+)
+

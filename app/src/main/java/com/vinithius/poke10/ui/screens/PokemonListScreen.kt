@@ -1,15 +1,27 @@
 package com.vinithius.poke10.ui.screens
 
+import android.annotation.SuppressLint
+import android.os.Build
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.scaleOut
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Card
+import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -20,14 +32,38 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import coil.ImageLoader
+import coil.compose.AsyncImage
+import coil.decode.GifDecoder
+import coil.decode.ImageDecoderDecoder
+import coil.request.ImageRequest
+import com.vinithius.poke10.R
 import com.vinithius.poke10.components.PokeballComponent
-import com.vinithius.poke10.datasource.response.Pokemon
+import com.vinithius.poke10.datasource.database.Ability
+import com.vinithius.poke10.datasource.database.PokemonEntity
+import com.vinithius.poke10.datasource.database.PokemonWithDetails
+import com.vinithius.poke10.datasource.database.Stat
+import com.vinithius.poke10.datasource.database.StatType
+import com.vinithius.poke10.datasource.database.Type
+import com.vinithius.poke10.extension.capitalize
+import com.vinithius.poke10.extension.getDominantColorFromDrawableRes
+import com.vinithius.poke10.extension.getDominantColorFromDrawableResWithAlpha
+import com.vinithius.poke10.extension.getDrawableIco
 import com.vinithius.poke10.ui.viewmodel.PokemonViewModel
 import org.koin.androidx.compose.getViewModel
+
+const val URL_IMAGE = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/"
 
 @Composable
 fun PokemonListScreen(
@@ -44,15 +80,15 @@ fun PokemonListScreen(
     LazyColumn {
         items(
             items = pokemonItems,
-            key = { pokemon -> pokemon.id!! }
-        ) { pokemon ->
+            key = { data -> data.pokemon.id }
+        ) { pokemonData ->
             var isVisible by remember { mutableStateOf(true) }
             AnimatedVisibility(
                 visible = isVisible,
                 exit = scaleOut(animationSpec = tween(durationMillis = 300))
             ) {
                 PokemonListItem(
-                    pokemon = pokemon,
+                    pokemonData = pokemonData,
                     onCallBackFinishAnimation = {
                         if (isFavoriteFilter) {
                             isVisible = false
@@ -64,7 +100,7 @@ fun PokemonListScreen(
                         navController.navigate("pokemonDetail/$id")
                     },
                     onClickFavorite = { pokemonFavorite ->
-                        viewModel.setFavorite(pokemonFavorite, context)
+                        //viewModel.setFavorite(pokemonFavorite, context)
                     }
                 )
             }
@@ -74,75 +110,255 @@ fun PokemonListScreen(
 
 @Composable
 fun PokemonListItem(
-    pokemon: Pokemon,
+    pokemonData: PokemonWithDetails,
     onCallBackFinishAnimation: (() -> Unit)?,
     onClickDetail: ((Int) -> Unit)?,
-    onClickFavorite: ((Pokemon) -> Unit)?
+    onClickFavorite: ((PokemonWithDetails) -> Unit)?
 ) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(8.dp)
             .clickable {
-                pokemon.id?.let {
+                pokemonData.pokemon.id.let {
                     if (onClickDetail != null) {
                         onClickDetail(it)
                     }
                 }
             },
-        elevation = 4.dp
+        elevation = 5.dp,
+        shape = RoundedCornerShape(16.dp)
     ) {
-        Holder(pokemon, onClickFavorite, onCallBackFinishAnimation)
+        Holder(pokemonData, onClickFavorite, onCallBackFinishAnimation)
     }
 }
 
+@SuppressLint("DefaultLocale")
 @Composable
 fun Holder(
-    pokemon: Pokemon,
-    onClickFavorite: ((Pokemon) -> Unit)?,
+    pokemonData: PokemonWithDetails,
+    onClickFavorite: ((PokemonWithDetails) -> Unit)?,
     onCallBackFinishAnimation: (() -> Unit)?,
 ) {
-    Row(
-        modifier = Modifier.padding(16.dp),
-        verticalAlignment = Alignment.CenterVertically
+    val color = pokemonData.types.firstOrNull()?.typeName?.getDrawableIco()?.getDominantColorFromDrawableResWithAlpha(LocalContext.current, 0.1f)
+
+    Box(
+        modifier = Modifier
+            .background(
+                brush = Brush.horizontalGradient(
+                    colors = listOf(Color.Transparent, color?.let { Color(it) } ?: Color.Gray),
+                )
+            )
     ) {
-        Text(text = pokemon.name, modifier = Modifier.weight(1f))
-        PokeballComponent(
-            favorite = pokemon.favorite,
-            onCallBackFinishAnimation = {
-                onCallBackFinishAnimation?.invoke()
-            }
+        Row(
+            modifier = Modifier.padding(8.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            onClickFavorite?.run {
-                onClickFavorite(pokemon)
+            pokemonData.stats // HP
+            pokemonData.abilities // Ex: Overgrown
+
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .align(Alignment.CenterVertically)
+            ) {
+                val numberPokemon = String.format("Nº%03d", pokemonData.pokemon.id)
+                TextStyle()
+                Text(
+                    text = numberPokemon,
+                    modifier = Modifier.padding(start = 8.dp),
+                    style = TextStyle(
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.Bold,
+                        fontStyle = androidx.compose.ui.text.font.FontStyle.Italic
+                    )
+                )
+                Spacer(modifier = Modifier.size(5.dp))
+                Text(
+                    text = pokemonData.pokemon.name.capitalize(),
+                    modifier = Modifier.padding(start = 8.dp),
+                    style = TextStyle(
+                        fontSize = 24.sp,
+                        fontWeight = FontWeight.Normal,
+                        fontStyle = androidx.compose.ui.text.font.FontStyle.Normal
+                    )
+                )
+                Spacer(modifier = Modifier.size(5.dp))
+                StatComponent(pokemonData)
+                Spacer(modifier = Modifier.size(5.dp))
+                LazyRow(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.padding(start = 8.dp),
+                ) {
+                    items(
+                        items = pokemonData.types,
+                        key = { data -> data.id }
+                    ) { type ->
+                        TypeItem(type)
+                    }
+                }
+            }
+            LoadGifWithCoil(pokemonData)
+            Column(
+                modifier = Modifier.align(Alignment.CenterVertically)
+            ) {
+                PokeballComponent(
+                    favorite = pokemonData.pokemon.favorite,
+                    onCallBackFinishAnimation = {
+                        onCallBackFinishAnimation?.invoke()
+                    }
+                ) {
+                    onClickFavorite?.run {
+                        onClickFavorite(pokemonData)
+                    }
+                }
             }
         }
     }
 }
 
+@Composable
+fun StatComponent(pokemonData: PokemonWithDetails) {
+    Column(
+        modifier = Modifier.padding(start = 8.dp)
+    ) {
+        Row(
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "${pokemonData.stats[0].name.value.capitalize()}: ${pokemonData.stats[0].baseStat}",
+                style = TextStyle(
+                    fontSize = 8.sp,
+                    fontWeight = FontWeight.Thin,
+                    fontStyle = androidx.compose.ui.text.font.FontStyle.Italic
+                )
+            )
+            Spacer(modifier = Modifier.size(8.dp))
+            Text(
+                text = "${pokemonData.stats[1].name.value.capitalize()}: ${pokemonData.stats[2].baseStat}",
+                style = TextStyle(
+                    fontSize = 8.sp,
+                    fontWeight = FontWeight.Thin,
+                    fontStyle = androidx.compose.ui.text.font.FontStyle.Italic
+                )
+            )
+            Spacer(modifier = Modifier.size(8.dp))
+            Text(
+                text = "${pokemonData.stats[2].name.value.capitalize()}: ${pokemonData.stats[2].baseStat}",
+                style = TextStyle(
+                    fontSize = 8.sp,
+                    fontWeight = FontWeight.Thin,
+                    fontStyle = androidx.compose.ui.text.font.FontStyle.Italic
+                )
+            )
+        }
+    }
+}
+
+@Composable
+fun StatItem(type: Stat) {
+    Text(
+        text = "${type.name.value.capitalize()}: ${type.baseStat}",
+        style = TextStyle(
+            fontSize = 8.sp,
+            fontWeight = FontWeight.Thin,
+            fontStyle = androidx.compose.ui.text.font.FontStyle.Italic
+        )
+    )
+}
+
+@Composable
+private fun TypeItem(type: Type) {
+    val drawableIco = type.typeName.getDrawableIco()
+    val dominantColor = drawableIco.getDominantColorFromDrawableRes(LocalContext.current)
+    Box(
+        modifier = Modifier
+            .background(
+                color = dominantColor?.let { Color(it) } ?: Color.Gray,
+                shape = RoundedCornerShape(100)
+            )
+            .shadow(
+                elevation = 1.dp, // Elevation da sombra (intensidade)
+                shape = RoundedCornerShape(16.dp), // Forma da sombra (deve ser a mesma forma que o Box)
+                clip = false // Se deve ou não cortar a sombra nos limites da forma
+            )
+            .padding(horizontal = 5.dp, vertical = 5.dp)
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(5.dp)
+        ) {
+            Image(
+                painter = painterResource(
+                    id = drawableIco
+                ),
+                contentDescription = type.typeName,
+                modifier = Modifier.size(20.dp)
+            )
+            Text(
+                text = type.typeName.capitalize(),
+                color = Color.White,
+                style = MaterialTheme.typography.body2,
+                modifier = Modifier.padding(end = 2.dp)
+            )
+        }
+    }
+}
+
+@Composable
+fun LoadGifWithCoil(pokemonData: PokemonWithDetails) {
+    val context = LocalContext.current
+    val imageLoader = ImageLoader.Builder(context)
+        .components {
+            if (Build.VERSION.SDK_INT >= 28) {
+                add(ImageDecoderDecoder.Factory())
+            } else {
+                add(GifDecoder.Factory())
+            }
+        }
+        .build()
+    val imageRequest = ImageRequest.Builder(context)
+        .data(pokemonData.pokemon.imagePath ?: "$URL_IMAGE/${pokemonData.pokemon.id}.png")
+        .crossfade(true)
+        .error(R.drawable.not_found)
+        .build()
+
+    AsyncImage(
+        model = imageRequest,
+        contentDescription = pokemonData.pokemon.name,
+        imageLoader = imageLoader,
+        modifier = Modifier
+            .size(70.dp)
+    )
+}
+
 @Preview(showBackground = true)
 @Composable
 fun PokemonListScreenPreview() {
-    PokemonListItem(MockuPokemon(), null, null, null)
+    PokemonListItem(setMockupPokemon(), null, null, null)
 }
 
-private fun MockuPokemon(): Pokemon {
-    return Pokemon(
-        0,
-        "Pikachu",
-        "https://pokeapi.co/api/v2/pokemon/25/",
-        0,
-        0,
-        0,
-        null,
-        null,
-        null,
-        null,
-        emptyList(),
-        null,
-        null,
-        null,
-        listOf(),
-        false
+private fun setMockupPokemon(): PokemonWithDetails {
+    return PokemonWithDetails(
+        pokemon = PokemonEntity(
+            1,
+            "bulbasaur",
+            true,
+            "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/showdown/1.gif",
+        ),
+        types = listOf(Type(1, "grass"), Type(2, "poison")),
+        abilities = listOf(
+            Ability(1, "overgrow", true, 10),
+            Ability(2, "chlorophyll", false, 20)
+        ),
+        stats = listOf(
+            Stat(1, StatType.HP, 10, 10),
+            Stat(2, StatType.ATTACK, 10, 10),
+            Stat(3, StatType.DEFENSE, 10, 10),
+            Stat(4, StatType.SPECIAL_ATTACK, 10, 10),
+            Stat(5, StatType.SPECIAL_DEFENSE, 10, 10),
+            Stat(6, StatType.SPEED, 10, 10),
+        )
     )
 }
