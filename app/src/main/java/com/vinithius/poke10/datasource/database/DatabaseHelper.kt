@@ -48,7 +48,10 @@ class DatabaseHelper(context: Context) :
             CREATE TABLE $TABLE_POKEMON (
                 id INTEGER PRIMARY KEY,
                 name TEXT NOT NULL,
-                image_path TEXT
+                color TEXT NOT NULL,
+                habitat TEXT NOT NULL,
+                image_path TEXT,
+                favorite INTEGER DEFAULT 0
             )
         """
 

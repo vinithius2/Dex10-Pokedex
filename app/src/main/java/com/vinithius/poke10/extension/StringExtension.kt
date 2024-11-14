@@ -7,6 +7,7 @@ import android.graphics.drawable.Drawable
 import android.net.Uri
 import android.util.Log
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.palette.graphics.Palette
 import coil.Coil
@@ -15,7 +16,7 @@ import coil.decode.GifDecoder
 import coil.drawable.MovieDrawable
 import com.squareup.picasso.Picasso
 import com.vinithius.poke10.R
-
+import android.graphics.Color as ParseColor
 import coil.request.ImageRequest
 import coil.request.SuccessResult
 import kotlinx.coroutines.Dispatchers
@@ -109,6 +110,21 @@ fun String.getDominantColorPalleteq(): HashMap<String, Palette.Swatch?> {
     return hashMapColor
 }
 
+fun String.getDrawableHabitat(): Int {
+    val drawableMap = mapOf(
+        "cave" to R.drawable.cave,
+        "forest" to R.drawable.forest,
+        "grassland" to R.drawable.grassland,
+        "mountain" to R.drawable.mountain,
+        "rare" to R.drawable.mountain, // rare
+        "rough-terrain" to R.drawable.mountain, // rough_terrain
+        "sea" to R.drawable.sea,
+        "urban" to R.drawable.urban,
+        "waters-edge" to R.drawable.mountain, // waters_edge
+    )
+    return drawableMap[this] ?: R.drawable.unknow
+}
+
 fun String.getDrawableIco(): Int {
     val drawableMap = mapOf(
         "bug" to R.drawable.bug,
@@ -131,4 +147,48 @@ fun String.getDrawableIco(): Int {
         "unknow" to R.drawable.unknow,
     )
     return drawableMap[this] ?: R.drawable.unknow
+}
+
+fun String.getDrawableIcoColor(): Color {
+    val drawableMap = mapOf(
+        "bug" to Color(0xFF1C4B27),
+        "dark" to Color(0xFF595978),
+        "dragon" to Color(0xFF448A95),
+        "electric" to Color(0xFFE2E32B),
+        "fairy" to Color(0xFF961A45),
+        "fighting" to Color(0xFF994025),
+        "fire" to Color(0xFFAB1F24),
+        "flying" to Color(0xFF4A677D),
+        "ghost" to Color(0xFF33336B),
+        "grass" to Color(0xFF147B3D),
+        "ground" to Color(0xFFA8702D),
+        "ice" to Color(0xFF86D2F5),
+        "poison" to Color(0xFF5E2D89),
+        "psychic" to Color(0xFFA52A6C),
+        "rock" to Color(0xFF48190B),
+        "steel" to Color(0xFF60756E),
+        "water" to Color(0xFF1552E1),
+        "unknow" to Color(0xFF75525C)
+    )
+    return drawableMap[this] ?: Color(0xFF75525C)
+}
+
+fun String.getColorByString(): Color {
+    return try {
+        val colorMap = mapOf(
+            "black" to ParseColor.BLACK,
+            "blue" to ParseColor.BLUE,
+            "brown" to ParseColor.parseColor("#8B4513"),
+            "gray" to ParseColor.GRAY,
+            "green" to ParseColor.GREEN,
+            "pink" to ParseColor.parseColor("#FFC0CB"),
+            "purple" to ParseColor.parseColor("#800080"),
+            "red" to ParseColor.RED,
+            "white" to ParseColor.WHITE,
+            "yellow" to ParseColor.YELLOW
+        )
+        colorMap[this]?.let { Color(it) } ?: Color(ParseColor.BLACK)
+    } catch (e: IllegalArgumentException) {
+        Color(ParseColor.BLACK)
+    }
 }

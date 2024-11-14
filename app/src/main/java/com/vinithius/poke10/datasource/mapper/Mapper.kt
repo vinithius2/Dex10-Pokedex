@@ -24,7 +24,9 @@ fun Pokemon.toEntity(): PokemonEntity {
     return PokemonEntity(
         id = id ?: 0,
         name = name,
-        imagePath = sprites?.front_default
+        imagePath = sprites?.front_default,
+        color = color ?: "unknow",
+        habitat = habitat ?: "unknow",
     )
 }
 
@@ -188,6 +190,8 @@ fun HashMap<*, *>.toPokemon(): Pokemon {
         characteristic = characteristic,
         specie = specie,
         damage = damage,
-        favorite = this["favorite"].toString().toBoolean()
+        favorite = this["favorite"].toString().toBoolean(),
+        color = this["color"].toString(),
+        habitat = this["habitat"].toString(),
     )
 }

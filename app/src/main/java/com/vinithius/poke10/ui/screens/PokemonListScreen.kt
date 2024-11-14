@@ -21,7 +21,6 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Card
-import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -32,9 +31,15 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shadow
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
@@ -57,9 +62,11 @@ import com.vinithius.poke10.datasource.database.Stat
 import com.vinithius.poke10.datasource.database.StatType
 import com.vinithius.poke10.datasource.database.Type
 import com.vinithius.poke10.extension.capitalize
+import com.vinithius.poke10.extension.getColorByString
 import com.vinithius.poke10.extension.getDominantColorFromDrawableRes
-import com.vinithius.poke10.extension.getDominantColorFromDrawableResWithAlpha
+import com.vinithius.poke10.extension.getDrawableHabitat
 import com.vinithius.poke10.extension.getDrawableIco
+import com.vinithius.poke10.extension.getDrawableIcoColor
 import com.vinithius.poke10.ui.viewmodel.PokemonViewModel
 import org.koin.androidx.compose.getViewModel
 
@@ -140,80 +147,125 @@ fun Holder(
     onClickFavorite: ((PokemonWithDetails) -> Unit)?,
     onCallBackFinishAnimation: (() -> Unit)?,
 ) {
-    val color = pokemonData.types.firstOrNull()?.typeName?.getDrawableIco()?.getDominantColorFromDrawableResWithAlpha(LocalContext.current, 0.1f)
-
     Box(
-        modifier = Modifier
-            .background(
-                brush = Brush.horizontalGradient(
-                    colors = listOf(Color.Transparent, color?.let { Color(it) } ?: Color.Gray),
-                )
-            )
+        Modifier.background(Color.White)
     ) {
-        Row(
-            modifier = Modifier.padding(8.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            pokemonData.stats // HP
-            pokemonData.abilities // Ex: Overgrown
+        Image(
+            painter = painterResource(id = pokemonData.pokemon.habitat.getDrawableHabitat()),
+            contentDescription = null,
+            contentScale = ContentScale.Crop,
+            modifier = Modifier
+                .matchParentSize()
+                .drawWithContent {
+                    drawContent()
+                    drawRect(
+                        brush = Brush.horizontalGradient(
+                            colors = listOf(
+                                Color.Black.copy(alpha = 0.8f),
+                                Color.Black.copy(alpha = 0.3f),
+                                Color.Transparent
+                            ),
+                            startX = size.width * 0.1f,
+                            endX = size.width
+                        ),
+                        blendMode = BlendMode.DstIn
+                    )
+                }
+        )
 
-            Column(
-                modifier = Modifier
-                    .weight(1f)
-                    .align(Alignment.CenterVertically)
+        Box(
+            modifier = Modifier
+                .drawBehind {
+                    val strokeWidth = 8f
+                    val yPosition = (size.height - strokeWidth) + 4
+                    drawLine(
+                        color = pokemonData.pokemon.color.getColorByString(),
+                        start = Offset(0f, yPosition),
+                        end = Offset(size.width, yPosition),
+                        strokeWidth = strokeWidth
+                    )
+                }
+        ) {
+            Row(
+                modifier = Modifier.padding(8.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                val numberPokemon = String.format("Nº%03d", pokemonData.pokemon.id)
-                TextStyle()
-                Text(
-                    text = numberPokemon,
-                    modifier = Modifier.padding(start = 8.dp),
-                    style = TextStyle(
-                        fontSize = 10.sp,
-                        fontWeight = FontWeight.Bold,
-                        fontStyle = androidx.compose.ui.text.font.FontStyle.Italic
-                    )
-                )
-                Spacer(modifier = Modifier.size(5.dp))
-                Text(
-                    text = pokemonData.pokemon.name.capitalize(),
-                    modifier = Modifier.padding(start = 8.dp),
-                    style = TextStyle(
-                        fontSize = 24.sp,
-                        fontWeight = FontWeight.Normal,
-                        fontStyle = androidx.compose.ui.text.font.FontStyle.Normal
-                    )
-                )
-                Spacer(modifier = Modifier.size(5.dp))
-                StatComponent(pokemonData)
-                Spacer(modifier = Modifier.size(5.dp))
-                LazyRow(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    modifier = Modifier.padding(start = 8.dp),
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .align(Alignment.CenterVertically)
                 ) {
-                    items(
-                        items = pokemonData.types,
-                        key = { data -> data.id }
-                    ) { type ->
-                        TypeItem(type)
+                    val numberPokemon = String.format("Nº%03d", pokemonData.pokemon.id)
+                    Text(
+                        text = numberPokemon,
+                        color = Color.White,
+                        modifier = Modifier.padding(start = 8.dp),
+                        style = TextStyle(
+                            fontSize = 10.sp,
+                            fontWeight = FontWeight.Bold,
+                            fontStyle = androidx.compose.ui.text.font.FontStyle.Normal,
+                            shadow = Shadow(
+                                color = Color.Black,
+                                offset = Offset(
+                                    2f,
+                                    2f
+                                ),
+                                blurRadius = 1f
+                            )
+                        )
+                    )
+                    Spacer(modifier = Modifier.size(5.dp))
+                    Text(
+                        text = pokemonData.pokemon.name.capitalize(),
+                        modifier = Modifier.padding(start = 8.dp),
+                        color = Color.White,
+                        style = TextStyle(
+                            fontSize = 24.sp,
+                            fontWeight = FontWeight.Black,
+                            fontStyle = androidx.compose.ui.text.font.FontStyle.Normal,
+                            shadow = Shadow(
+                                color = Color.Black,
+                                offset = Offset(
+                                    2f,
+                                    2f
+                                ),
+                                blurRadius = 1f
+                            )
+                        ),
+                    )
+                    Spacer(modifier = Modifier.size(5.dp))
+                    StatComponent(pokemonData)
+                    Spacer(modifier = Modifier.size(5.dp))
+                    LazyRow(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        modifier = Modifier.padding(start = 8.dp),
+                    ) {
+                        items(
+                            items = pokemonData.types,
+                            key = { data -> data.id }
+                        ) { type ->
+                            TypeItem(type)
+                        }
                     }
                 }
-            }
-            LoadGifWithCoil(pokemonData)
-            Column(
-                modifier = Modifier.align(Alignment.CenterVertically)
-            ) {
-                PokeballComponent(
-                    favorite = pokemonData.pokemon.favorite,
-                    onCallBackFinishAnimation = {
-                        onCallBackFinishAnimation?.invoke()
-                    }
+                LoadGifWithCoil(pokemonData)
+                Column(
+                    modifier = Modifier.align(Alignment.CenterVertically)
                 ) {
-                    onClickFavorite?.run {
-                        onClickFavorite(pokemonData)
+                    PokeballComponent(
+                        favorite = pokemonData.pokemon.favorite,
+                        onCallBackFinishAnimation = {
+                            onCallBackFinishAnimation?.invoke()
+                        }
+                    ) {
+                        onClickFavorite?.run {
+                            onClickFavorite(pokemonData)
+                        }
                     }
                 }
             }
         }
+
     }
 }
 
@@ -230,8 +282,17 @@ fun StatComponent(pokemonData: PokemonWithDetails) {
                 text = "${pokemonData.stats[0].name.value.capitalize()}: ${pokemonData.stats[0].baseStat}",
                 style = TextStyle(
                     fontSize = 8.sp,
-                    fontWeight = FontWeight.Thin,
-                    fontStyle = androidx.compose.ui.text.font.FontStyle.Italic
+                    color = Color.White,
+                    fontWeight = FontWeight.SemiBold,
+                    fontStyle = androidx.compose.ui.text.font.FontStyle.Normal,
+                    shadow = Shadow(
+                        color = Color.Black,
+                        offset = Offset(
+                            1f,
+                            1f
+                        ),
+                        blurRadius = 1f
+                    )
                 )
             )
             Spacer(modifier = Modifier.size(8.dp))
@@ -239,8 +300,17 @@ fun StatComponent(pokemonData: PokemonWithDetails) {
                 text = "${pokemonData.stats[1].name.value.capitalize()}: ${pokemonData.stats[2].baseStat}",
                 style = TextStyle(
                     fontSize = 8.sp,
-                    fontWeight = FontWeight.Thin,
-                    fontStyle = androidx.compose.ui.text.font.FontStyle.Italic
+                    color = Color.White,
+                    fontWeight = FontWeight.SemiBold,
+                    fontStyle = androidx.compose.ui.text.font.FontStyle.Normal,
+                    shadow = Shadow(
+                        color = Color.Black,
+                        offset = Offset(
+                            1f,
+                            1f
+                        ),
+                        blurRadius = 1f
+                    )
                 )
             )
             Spacer(modifier = Modifier.size(8.dp))
@@ -248,8 +318,17 @@ fun StatComponent(pokemonData: PokemonWithDetails) {
                 text = "${pokemonData.stats[2].name.value.capitalize()}: ${pokemonData.stats[2].baseStat}",
                 style = TextStyle(
                     fontSize = 8.sp,
-                    fontWeight = FontWeight.Thin,
-                    fontStyle = androidx.compose.ui.text.font.FontStyle.Italic
+                    color = Color.White,
+                    fontWeight = FontWeight.SemiBold,
+                    fontStyle = androidx.compose.ui.text.font.FontStyle.Normal,
+                    shadow = Shadow(
+                        color = Color.Black,
+                        offset = Offset(
+                            1f,
+                            1f
+                        ),
+                        blurRadius = 1f
+                    )
                 )
             )
         }
@@ -257,31 +336,18 @@ fun StatComponent(pokemonData: PokemonWithDetails) {
 }
 
 @Composable
-fun StatItem(type: Stat) {
-    Text(
-        text = "${type.name.value.capitalize()}: ${type.baseStat}",
-        style = TextStyle(
-            fontSize = 8.sp,
-            fontWeight = FontWeight.Thin,
-            fontStyle = androidx.compose.ui.text.font.FontStyle.Italic
-        )
-    )
-}
-
-@Composable
 private fun TypeItem(type: Type) {
-    val drawableIco = type.typeName.getDrawableIco()
-    val dominantColor = drawableIco.getDominantColorFromDrawableRes(LocalContext.current)
+    type.typeName.getDrawableIcoColor()
     Box(
         modifier = Modifier
             .background(
-                color = dominantColor?.let { Color(it) } ?: Color.Gray,
+                color = type.typeName.getDrawableIcoColor(),
                 shape = RoundedCornerShape(100)
             )
             .shadow(
-                elevation = 1.dp, // Elevation da sombra (intensidade)
-                shape = RoundedCornerShape(16.dp), // Forma da sombra (deve ser a mesma forma que o Box)
-                clip = false // Se deve ou não cortar a sombra nos limites da forma
+                elevation = 1.dp,
+                shape = RoundedCornerShape(16.dp),
+                clip = false
             )
             .padding(horizontal = 5.dp, vertical = 5.dp)
     ) {
@@ -291,7 +357,7 @@ private fun TypeItem(type: Type) {
         ) {
             Image(
                 painter = painterResource(
-                    id = drawableIco
+                    id = type.typeName.getDrawableIco()
                 ),
                 contentDescription = type.typeName,
                 modifier = Modifier.size(20.dp)
@@ -299,7 +365,18 @@ private fun TypeItem(type: Type) {
             Text(
                 text = type.typeName.capitalize(),
                 color = Color.White,
-                style = MaterialTheme.typography.body2,
+                style = TextStyle(
+                    fontWeight = FontWeight.Bold,
+                    fontStyle = androidx.compose.ui.text.font.FontStyle.Normal,
+                    shadow = Shadow(
+                        color = Color.Black,
+                        offset = Offset(
+                            1f,
+                            1f
+                        ),
+                        blurRadius = 0.5f
+                    )
+                ),
                 modifier = Modifier.padding(end = 2.dp)
             )
         }
@@ -344,6 +421,8 @@ private fun setMockupPokemon(): PokemonWithDetails {
         pokemon = PokemonEntity(
             1,
             "bulbasaur",
+            "green",
+            "grassland",
             true,
             "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/showdown/1.gif",
         ),

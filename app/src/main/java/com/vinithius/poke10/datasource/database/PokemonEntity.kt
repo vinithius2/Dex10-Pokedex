@@ -42,6 +42,8 @@ data class Type(
 data class PokemonEntity(
     @PrimaryKey val id: Int = 0,
     @ColumnInfo(name = "name") val name: String,
+    @ColumnInfo(name = "color") val color: String,
+    @ColumnInfo(name = "habitat") val habitat: String,
     @ColumnInfo(name = "favorite") var favorite: Boolean = false,
     @ColumnInfo(name = "image_path") val imagePath: String?
 )
