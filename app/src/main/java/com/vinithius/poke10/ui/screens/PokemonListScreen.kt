@@ -21,6 +21,7 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Card
+import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -49,11 +50,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import coil.ImageLoader
-import coil.compose.AsyncImage
+import coil.compose.AsyncImagePainter
+import coil.compose.rememberAsyncImagePainter
 import coil.decode.GifDecoder
 import coil.decode.ImageDecoderDecoder
 import coil.request.ImageRequest
-import com.vinithius.poke10.R
 import com.vinithius.poke10.components.PokeballComponent
 import com.vinithius.poke10.datasource.database.Ability
 import com.vinithius.poke10.datasource.database.PokemonEntity
@@ -63,7 +64,6 @@ import com.vinithius.poke10.datasource.database.StatType
 import com.vinithius.poke10.datasource.database.Type
 import com.vinithius.poke10.extension.capitalize
 import com.vinithius.poke10.extension.getColorByString
-import com.vinithius.poke10.extension.getDominantColorFromDrawableRes
 import com.vinithius.poke10.extension.getDrawableHabitat
 import com.vinithius.poke10.extension.getDrawableIco
 import com.vinithius.poke10.extension.getDrawableIcoColor
@@ -395,19 +395,34 @@ fun LoadGifWithCoil(pokemonData: PokemonWithDetails) {
             }
         }
         .build()
+
     val imageRequest = ImageRequest.Builder(context)
         .data(pokemonData.pokemon.imagePath ?: "$URL_IMAGE/${pokemonData.pokemon.id}.png")
         .crossfade(true)
-        .error(R.drawable.not_found)
+        .error(android.R.drawable.ic_menu_report_image)
         .build()
 
-    AsyncImage(
-        model = imageRequest,
-        contentDescription = pokemonData.pokemon.name,
-        imageLoader = imageLoader,
-        modifier = Modifier
-            .size(70.dp)
-    )
+    Box(modifier = Modifier.size(70.dp)) {
+        val painter = rememberAsyncImagePainter(
+            model = imageRequest,
+            imageLoader = imageLoader
+        )
+        // Loading
+        if (painter.state is AsyncImagePainter.State.Loading) {
+            CircularProgressIndicator(
+                color = Color.White,
+                modifier = Modifier
+                    .align(Alignment.Center)
+                    .size(30.dp)
+            )
+        }
+        // Final result
+        Image(
+            painter = painter,
+            contentDescription = pokemonData.pokemon.name,
+            modifier = Modifier.size(70.dp)
+        )
+    }
 }
 
 @Preview(showBackground = true)

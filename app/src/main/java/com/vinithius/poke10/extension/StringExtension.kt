@@ -116,11 +116,11 @@ fun String.getDrawableHabitat(): Int {
         "forest" to R.drawable.forest,
         "grassland" to R.drawable.grassland,
         "mountain" to R.drawable.mountain,
-        "rare" to R.drawable.mountain, // rare
-        "rough-terrain" to R.drawable.mountain, // rough_terrain
+        "rare" to R.drawable.rare,
+        "rough-terrain" to R.drawable.rough_terrain,
         "sea" to R.drawable.sea,
         "urban" to R.drawable.urban,
-        "waters-edge" to R.drawable.mountain, // waters_edge
+        "waters-edge" to R.drawable.waters_edge,
     )
     return drawableMap[this] ?: R.drawable.unknow
 }
