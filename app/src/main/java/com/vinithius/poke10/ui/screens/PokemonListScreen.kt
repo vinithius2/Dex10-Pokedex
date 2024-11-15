@@ -297,7 +297,7 @@ fun StatComponent(pokemonData: PokemonWithDetails) {
             )
             Spacer(modifier = Modifier.size(8.dp))
             Text(
-                text = "${pokemonData.stats[1].name.value.capitalize()}: ${pokemonData.stats[2].baseStat}",
+                text = "${pokemonData.stats[1].name.value.capitalize()}: ${pokemonData.stats[1].baseStat}",
                 style = TextStyle(
                     fontSize = 8.sp,
                     color = Color.White,

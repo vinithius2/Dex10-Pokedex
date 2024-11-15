@@ -122,7 +122,7 @@ fun String.getDrawableHabitat(): Int {
         "urban" to R.drawable.urban,
         "waters-edge" to R.drawable.waters_edge,
     )
-    return drawableMap[this] ?: R.drawable.unknow
+    return drawableMap[this] ?: R.drawable.unknow_habitat
 }
 
 fun String.getDrawableIco(): Int {

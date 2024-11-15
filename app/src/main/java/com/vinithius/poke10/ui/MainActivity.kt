@@ -72,7 +72,13 @@ fun MainScreen(viewModel: PokemonViewModel = getViewModel()) {
             Modifier.padding(innerPadding)
         ) {
             composable("pokemonList") { PokemonListScreen(navController) }
-            composable("pokemonDetail") { PokemonDetailScreen(navController) }
+            // Definindo a rota pokemonDetail com parâmetro
+            composable("pokemonDetail/{pokemonId}") { backStackEntry ->
+                val pokemonId = backStackEntry.arguments?.getString("pokemonId")?.toInt()
+                if (pokemonId != null) {
+                    PokemonDetailScreen(navController, pokemonId)
+                }
+            }
         }
     }
 }

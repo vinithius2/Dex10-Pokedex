@@ -8,6 +8,7 @@ import org.koin.androidx.compose.getViewModel
 @Composable
 fun PokemonDetailScreen(
     navController: NavController,
+    pokemonId: Int,
     viewModel: PokemonViewModel = getViewModel()
 ) {
 
