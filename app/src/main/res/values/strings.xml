@@ -38,4 +38,5 @@
     <string name="toast_mythical">This is a Mythical pokemon!</string>
     <string name="toast_legendary">This is a legendary pokemon!</string>
     <string name="close">Close</string>
+    <string name="search">Search</string>
 </resources>

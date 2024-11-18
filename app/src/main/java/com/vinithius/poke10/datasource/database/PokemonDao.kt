@@ -6,11 +6,12 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction
+import androidx.room.Update
 
 @Dao
 interface PokemonDao {
 
-    // Inserções
+    // INSERTS
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertPokemon(pokemon: PokemonEntity): Long
 
@@ -32,7 +33,11 @@ interface PokemonDao {
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertPokemonAbility(pokemonAbility: PokemonAbility): Long
 
-    // Consultas
+    // UPDATE
+    @Update(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun updatePokemonIsFavorite(pokemonAbility: PokemonAbility): Int
+
+    // SELECT
     @Query("SELECT * FROM pokemon")
     suspend fun getPokemonListWithDetails(): List<PokemonWithDetails>?
 

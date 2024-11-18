@@ -25,7 +25,6 @@ import com.vinithius.poke10.datasource.response.Location
 import com.vinithius.poke10.datasource.response.Pokemon
 import com.vinithius.poke10.datasource.response.PokemonDataWrapper
 import com.vinithius.poke10.datasource.response.Specie
-import com.vinithius.poke10.extension.updateWithLocalData
 import com.vinithius.poke10.ui.MainActivity.Companion.FAVORITES
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.suspendCancellableCoroutine
@@ -40,22 +39,22 @@ class PokemonRepository(
 ) {
 
     suspend fun getPokemonEntityList(context: Context): List<PokemonWithDetails>? {
-        insertPokemonFromFirebaseToLocal()
+        insertPokemonFromFirebaseToLocal(context)
         val pokemonList = localDataSource.getPokemonListWithDetails()
-        pokemonList?.map { data ->
-            data.pokemon.favorite = getFavorite(data.pokemon.name, context)
-        }
         return pokemonList
     }
 
     /**
      * Execute once
      */
-    private suspend fun insertPokemonFromFirebaseToLocal() {
+    private suspend fun insertPokemonFromFirebaseToLocal(context: Context) {
         val countLocal = getCountPokemonEntities()
+        // TODO: Compare the count from firebase and database for get the difference
         if (countLocal == 0) {
             val pokemonFirebaseList = getFirebasePokemonList()
             pokemonFirebaseList.forEach { pokemon ->
+                val isFavorite = getFavorite(pokemon.name, context)
+                pokemon.favorite = isFavorite
                 insertPokemonCard(pokemon)
                 Log.i("Insert pokemon", "${pokemon.id} ${pokemon.name}")
             }
@@ -117,7 +116,7 @@ class PokemonRepository(
 
     // REMOTE - POKE API
 
-    private suspend fun getPokemonList(limit : Int = 1302): PokemonDataWrapper? {
+    private suspend fun getPokemonList(limit: Int = 1302): PokemonDataWrapper? {
         return try {
             remoteDataSource.getPokemonList(limit)
         } catch (e: HttpException) {

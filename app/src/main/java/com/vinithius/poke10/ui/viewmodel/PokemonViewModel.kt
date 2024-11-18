@@ -12,7 +12,9 @@ import com.vinithius.poke10.datasource.response.Pokemon
 import com.vinithius.poke10.extension.getIdIntoUrl
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class PokemonViewModel(private val repository: PokemonRepository) : ViewModel() {
 
@@ -160,16 +162,15 @@ class PokemonViewModel(private val repository: PokemonRepository) : ViewModel() 
     /**
      * Set favorite pokemon to sharedPreferences.
      */
-    fun setFavorite(pokemon: Pokemon, context: Context?) {
+    fun setFavorite(pokemon: PokemonWithDetails, context: Context?) {
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 _pokemonList.value?.map { pokemonMap ->
-                    /*
-                    if (pokemonMap.id == pokemon.id) {
-                        val isFavorite = repository.setFavorite(pokemon.name, context)
-                        pokemonMap.favorite = isFavorite
+                    pokemonMap.pokemon.id
+                    if (pokemonMap.pokemon.id == pokemon.pokemon.id) {
+                        val isFavorite = repository.setFavorite(pokemon.pokemon.name, context)
+                        pokemonMap.pokemon.favorite = isFavorite
                     }
-                    */
                 }
             } catch (e: Exception) {
                 Log.e("setFavorite", e.toString())
@@ -180,6 +181,22 @@ class PokemonViewModel(private val repository: PokemonRepository) : ViewModel() 
     fun removeItemIfNotIsFavorite() {
         _isFavoriteFilter.takeIf { it.value ?: false }?.run {
             getPokemonFavoriteList(true)
+        }
+    }
+
+    fun getSearchPokemon(query: String) {
+        CoroutineScope(Dispatchers.IO).launch {
+            delay(100)
+            val filteredList = if (query.isNotEmpty()) {
+                _pokemonListBackup.value?.filter { pokemon ->
+                    pokemon.pokemon.name.contains(query, ignoreCase = true)
+                }
+            } else {
+                _pokemonListBackup.value
+            }
+            withContext(Dispatchers.Main) {
+                _pokemonList.value = filteredList ?: _pokemonListBackup.value
+            }
         }
     }
 }
