@@ -179,7 +179,12 @@ class PokemonRepository(
         }
     }
 
+    suspend fun setFavorite(pokemon: PokemonEntity): Boolean {
+        val countUpdate = localDataSource.updatePokemonIsFavorite(pokemon)
+        return countUpdate > 0
+    }
 
+/*
     fun setFavorite(name: String, context: Context?): Boolean {
         return try {
             val result = context?.run {
@@ -197,15 +202,11 @@ class PokemonRepository(
             false
         }
     }
+*/
 
     fun getFavorite(name: String, context: Context): Boolean {
         val sharedPreferences = context.getSharedPreferences(FAVORITES, Context.MODE_PRIVATE)
         return sharedPreferences.getBoolean(name, false)
-    }
-
-    // Defina uma interface de callback
-    interface PokemonListCallback {
-        fun onCallback(pokemonList: List<Pokemon>)
     }
 
     // REMOTE - Firebase

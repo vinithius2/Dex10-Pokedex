@@ -96,8 +96,8 @@ private fun GetTopBar(
                     value = searchQuery,
                     onValueChange = {
                         searchQuery = it
-                        viewModel.getSearchPokemon(searchQuery)
-                    }, // Adicionar callback aqui
+                        viewModel.getFilterPokemon(searchQuery)
+                    },
                     placeholder = {
                         Text(
                             text = "${stringResource(R.string.search)}...",
@@ -106,7 +106,7 @@ private fun GetTopBar(
                     },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true,
-                    leadingIcon = { // Ícone a esquerda do TextField
+                    leadingIcon = {
                         Icon(
                             imageVector = Icons.Default.Search,
                             contentDescription = "Search Icon",
@@ -117,7 +117,7 @@ private fun GetTopBar(
                         if (searchQuery.isNotEmpty()) {
                             IconButton(onClick = {
                                 searchQuery = String()
-                                viewModel.getSearchPokemon(searchQuery)
+                                viewModel.getFilterPokemon(searchQuery)
                                 isSearchActive = false
                             }) {
                                 Icon(

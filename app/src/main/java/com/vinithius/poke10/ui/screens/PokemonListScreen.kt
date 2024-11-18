@@ -107,7 +107,7 @@ fun PokemonListScreen(
                         navController.navigate("pokemonDetail/$id")
                     },
                     onClickFavorite = { pokemonFavorite ->
-                        viewModel.setFavorite(pokemonFavorite, context)
+                        viewModel.setFavorite(pokemonFavorite)
                     }
                 )
             }

@@ -70,15 +70,13 @@ class PokemonViewModel(private val repository: PokemonRepository) : ViewModel() 
 
     fun getPokemonFavoriteList(isFavorite: Boolean) {
         _isFavoriteFilter.value = isFavorite
-        val currentList = _pokemonListBackup.value ?: return
-
-        val filteredList = if (isFavorite) {
-            //currentList.filter { it.favorite } // Filtra Pokémon favoritos
-        } else {
-            currentList // Retorna a lista original
+        _pokemonListBackup.value?.run {
+            if (isFavorite) {
+                _pokemonList.value = this.filter { it.pokemon.favorite }
+            } else {
+                _pokemonList.value = this
+            }
         }
-
-        //_pokemonList.value = (filteredList)
     }
 
     /**
@@ -162,14 +160,13 @@ class PokemonViewModel(private val repository: PokemonRepository) : ViewModel() 
     /**
      * Set favorite pokemon to sharedPreferences.
      */
-    fun setFavorite(pokemon: PokemonWithDetails, context: Context?) {
+    fun setFavorite(pokemon: PokemonWithDetails) {
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 _pokemonList.value?.map { pokemonMap ->
-                    pokemonMap.pokemon.id
                     if (pokemonMap.pokemon.id == pokemon.pokemon.id) {
-                        val isFavorite = repository.setFavorite(pokemon.pokemon.name, context)
-                        pokemonMap.pokemon.favorite = isFavorite
+                        pokemon.pokemon.favorite = pokemon.pokemon.favorite.not()
+                        repository.setFavorite(pokemon.pokemon)
                     }
                 }
             } catch (e: Exception) {
@@ -184,7 +181,7 @@ class PokemonViewModel(private val repository: PokemonRepository) : ViewModel() 
         }
     }
 
-    fun getSearchPokemon(query: String) {
+    fun getFilterPokemon(query: String) {
         CoroutineScope(Dispatchers.IO).launch {
             delay(100)
             val filteredList = if (query.isNotEmpty()) {

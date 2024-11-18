@@ -35,7 +35,7 @@ interface PokemonDao {
 
     // UPDATE
     @Update(onConflict = OnConflictStrategy.IGNORE)
-    suspend fun updatePokemonIsFavorite(pokemonAbility: PokemonAbility): Int
+    suspend fun updatePokemonIsFavorite(pokemon: PokemonEntity): Int
 
     // SELECT
     @Query("SELECT * FROM pokemon")
