@@ -58,7 +58,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             ThemePoke10 {
-                MainScreen() // Coloque o AppContent dentro do ThemePoke10 para garantir que o tema seja aplicado a tudo
+                MainScreen()
             }
         }
         showAds()
@@ -90,7 +90,7 @@ fun SetupSystemUI() {
     val statusBarColor = MaterialTheme.colorScheme.primary
     systemUiController.setStatusBarColor(
         color = statusBarColor,
-        darkIcons = MaterialTheme.colorScheme.primary.luminance() > 0.5 // Ícones escuros para cores claras
+        darkIcons = MaterialTheme.colorScheme.primary.luminance() > 0.5
     )
 }
 
@@ -131,19 +131,17 @@ private fun GetTopBar(
                             tint = MaterialTheme.colorScheme.secondary
                         )
                     },
-                    trailingIcon = { // Ícone a direita do TextField
-                        if (searchQuery.isNotEmpty()) {
-                            IconButton(onClick = {
-                                searchQuery = String()
-                                viewModel.getFilterPokemon(searchQuery)
-                                isSearchActive = false
-                            }) {
-                                Icon(
-                                    imageVector = Icons.Default.Clear,
-                                    contentDescription = "Clear search",
-                                    tint = MaterialTheme.colorScheme.secondary
-                                )
-                            }
+                    trailingIcon = {
+                        IconButton(onClick = {
+                            searchQuery = String()
+                            viewModel.getFilterPokemon(searchQuery)
+                            isSearchActive = false
+                        }) {
+                            Icon(
+                                imageVector = Icons.Default.Clear,
+                                contentDescription = "Clear search",
+                                tint = MaterialTheme.colorScheme.secondary
+                            )
                         }
                     },
                     colors = TextFieldDefaults.colors(
@@ -159,10 +157,10 @@ private fun GetTopBar(
             actionIconContentColor = MaterialTheme.colorScheme.onPrimary,
             scrolledContainerColor = MaterialTheme.colorScheme.primary,
             navigationIconContentColor = MaterialTheme.colorScheme.onPrimary
-        ), // Para definir a cor do fundo do AppBar
+        ),
         actions = {
-            if (!isSearchActive) {
-                IconButton(onClick = { isSearchActive = !isSearchActive }) {
+            if (isSearchActive.not()) {
+                IconButton(onClick = { isSearchActive = isSearchActive.not() }) {
                     Icon(
                         imageVector = Icons.Default.Search,
                         contentDescription = stringResource(R.string.search)
@@ -211,7 +209,9 @@ private fun GetNavHost(innerPadding: PaddingValues) {
 @Composable
 fun MainScreenPreview() {
     ThemePoke10 {
-        MainScreen()
+        GetTopBar(
+            getViewModel()
+        )
     }
 }
 
@@ -219,6 +219,8 @@ fun MainScreenPreview() {
 @Composable
 fun MainScreenDarkPreview() {
     ThemePoke10(darkTheme = true) {
-        MainScreen()
+        GetTopBar(
+            getViewModel()
+        )
     }
 }

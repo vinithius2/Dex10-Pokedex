@@ -1,5 +1,6 @@
 package com.vinithius.poke10.ui.screens
 
+import GetFilterBar
 import android.annotation.SuppressLint
 import android.os.Build
 import androidx.compose.animation.AnimatedVisibility
@@ -83,33 +84,36 @@ fun PokemonListScreen(
     }
     val pokemonItems by viewModel.pokemonList.observeAsState(emptyList())
     val isFavoriteFilter by viewModel.isFavoriteFilter.observeAsState(false)
-
-    LazyColumn {
-        items(
-            items = pokemonItems,
-            key = { data -> data.pokemon.id }
-        ) { pokemonData ->
-            var isVisible by remember { mutableStateOf(true) }
-            AnimatedVisibility(
-                visible = isVisible,
-                exit = scaleOut(animationSpec = tween(durationMillis = 300))
-            ) {
-                PokemonListItem(
-                    pokemonData = pokemonData,
-                    onCallBackFinishAnimation = {
-                        if (isFavoriteFilter) {
-                            isVisible = false
-                            viewModel.removeItemIfNotIsFavorite()
+    Column(
+        modifier = Modifier.fillMaxWidth()) {
+        GetFilterBar(pokemonItems)
+        LazyColumn {
+            items(
+                items = pokemonItems,
+                key = { data -> data.pokemon.id }
+            ) { pokemonData ->
+                var isVisible by remember { mutableStateOf(true) }
+                AnimatedVisibility(
+                    visible = isVisible,
+                    exit = scaleOut(animationSpec = tween(durationMillis = 300))
+                ) {
+                    PokemonListItem(
+                        pokemonData = pokemonData,
+                        onCallBackFinishAnimation = {
+                            if (isFavoriteFilter) {
+                                isVisible = false
+                                viewModel.removeItemIfNotIsFavorite()
+                            }
+                        },
+                        onClickDetail = { id ->
+                            viewModel.setIdPokemon(id)
+                            navController.navigate("pokemonDetail/$id")
+                        },
+                        onClickFavorite = { pokemonFavorite ->
+                            viewModel.setFavorite(pokemonFavorite)
                         }
-                    },
-                    onClickDetail = { id ->
-                        viewModel.setIdPokemon(id)
-                        navController.navigate("pokemonDetail/$id")
-                    },
-                    onClickFavorite = { pokemonFavorite ->
-                        viewModel.setFavorite(pokemonFavorite)
-                    }
-                )
+                    )
+                }
             }
         }
     }
