@@ -57,53 +57,47 @@ fun Pokemon.toTypeEntities(): List<Type>? {
 }
 
 fun HashMap<*, *>.toPokemon(): Pokemon {
-    val stats = (this["stats"] as List<HashMap<*, *>>).map {
+    val stats = (this["stats"] as? List<HashMap<*, *>>)?.map {
         StatResponse(
-            stat = Default(it["name"] as String, null),
-            base_stat = (it["base_stat"] as Long).toInt(),
-            effort = (it["effort"] as Long).toInt()
+            stat = Default(it["name"] as? String ?: String(), null),
+            base_stat = (it["base_stat"] as? Long)?.toInt() ?: 0,
+            effort = (it["effort"] as? Long)?.toInt() ?: 0
         )
-    }
-    val types = (this["types"] as List<HashMap<*, *>>).map {
+    } ?: emptyList()
+    val types = (this["types"] as? List<HashMap<*, *>>)?.map {
         TypeResponse(
             slot = null,
-            type = Default(it["type_name"] as String, null)
+            type = Default(it["type_name"] as? String ?: String(), null)
         )
-    }
-    val abilities = (this["abilities"] as List<HashMap<*, *>>).map {
+    } ?: emptyList()
+    val abilities = (this["abilities"] as? List<HashMap<*, *>>)?.map {
         Abilities(
-            is_hidden = it["is_hidden"] as Boolean,
-            slot = (it["slot"] as Long).toInt(),
-            ability = Default(it["name"] as String, null)
+            is_hidden = it["is_hidden"] as? Boolean ?: false,
+            slot = (it["slot"] as? Long)?.toInt() ?: 0,
+            ability = Default(it["name"] as? String ?: String(), null)
         )
-    }
+    } ?: emptyList()
 
-    val encounters = this["encounters"]?.run {
-        (this as List<String>).map {
-            Location(
-                location_area = Default(it, null),
-                version_details = null
-            )
-        }
-    }
+    val encounters = (this["encounters"] as? List<String>)?.map {
+        Location(location_area = Default(it, null), version_details = null)
+    } ?: emptyList()
 
     val evolution = EvolutionChain(
         chain = Chain(
             is_baby = false,
-            species = Default(this["evolution"] as String, null),
+            species = Default(this["evolution"] as? String ?: "", null),
             evolution_details = null,
             evolves_to = null
         ),
         baby_trigger_item = null,
         id = 0
     )
+
     val characteristic = Characteristic(
         descriptions = listOf(
             Description(
-                description = this["characteristic"] as String,
-                language = Default(
-                    "", null
-                ) // Mudar depois para vários idiomas
+                description = this["characteristic"] as? String ?: "",
+                language = Default("", null) // Adicionar traduções depois
             )
         ),
         gene_modulo = 0,

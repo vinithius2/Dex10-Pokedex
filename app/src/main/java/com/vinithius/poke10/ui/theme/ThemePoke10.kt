@@ -10,22 +10,22 @@ import androidx.compose.ui.graphics.Color
 
 // Cores para o tema claro
 private val LightColors = lightColorScheme(
-    primary = Color(0xFFFF5722), // Laranja avermelhado
-    onPrimary = Color.White,    // Texto sobre a cor primária
-    background = Color(0xFFFFF9C4), // Amarelo bem claro
-    onBackground = Color(0xFF3E2723), // Marrom escuro para contraste
-    surface = Color(0xFFFFECB3), // Amarelo suave
-    onSurface = Color.Black     // Texto em superfícies claras
+    primary = Color(0xFFFF8080),
+    onPrimary = Color.White,
+    background = Color(0xFFDEDEDE),
+    onBackground = Color(0xFF838282),
+    surface = Color(0xFFFFF1D0),
+    onSurface = Color.Black
 )
 
 // Cores para o tema escuro
 private val DarkColors = darkColorScheme(
-    primary = Color(0xFFFF8A65), // Laranja mais claro para modo escuro
-    onPrimary = Color.Black,    // Texto escuro para contraste no modo escuro
-    background = Color(0xFF303030), // Fundo cinza escuro
-    onBackground = Color(0xFFFFCCBC), // Texto com tom de laranja suave
-    surface = Color(0xFF424242), // Superfícies cinza médio
-    onSurface = Color.White     // Texto em superfícies escuras
+    primary = Color(0xFF110000),
+    onPrimary = Color.Black,
+    background = Color(0xFF171717),
+    onBackground = Color(0xFF211B1A),
+    surface = Color(0xFF1E1E1E),
+    onSurface = Color.White
 )
 
 // Tipografia básica

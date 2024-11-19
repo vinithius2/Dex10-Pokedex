@@ -3,6 +3,7 @@ package com.vinithius.poke10.datasource.database
 import androidx.room.ColumnInfo
 import androidx.room.Embedded
 import androidx.room.Entity
+import androidx.room.Index
 import androidx.room.Junction
 import androidx.room.PrimaryKey
 import androidx.room.Relation
@@ -16,7 +17,10 @@ enum class StatType(val value: String) {
     SPEED("speed")
 }
 
-@Entity(tableName = "stat")
+@Entity(
+    tableName = "stat",
+    indices = [Index(value = ["name"])] // Para melhorar buscas por nome, caso necessário
+)
 data class Stat(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
     @ColumnInfo(name = "name") val name: StatType, // ENUM para representar os nomes dos stats
@@ -24,7 +28,10 @@ data class Stat(
     @ColumnInfo(name = "effort") val effort: Int
 )
 
-@Entity(tableName = "ability")
+@Entity(
+    tableName = "ability",
+    indices = [Index(value = ["name"])] // Para melhorar buscas por nome, caso necessário
+)
 data class Ability(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
     @ColumnInfo(name = "name") val name: String,
@@ -32,13 +39,19 @@ data class Ability(
     @ColumnInfo(name = "slot") val slot: Int
 )
 
-@Entity(tableName = "type")
+@Entity(
+    tableName = "type",
+    indices = [Index(value = ["type_name"])] // Para melhorar buscas por tipo
+)
 data class Type(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
     @ColumnInfo(name = "type_name") val typeName: String
 )
 
-@Entity(tableName = "pokemon")
+@Entity(
+    tableName = "pokemon",
+    indices = [Index(value = ["name"])] // Para melhorar buscas por nome de Pokémon
+)
 data class PokemonEntity(
     @PrimaryKey val id: Int = 0,
     @ColumnInfo(name = "name") val name: String,
@@ -50,24 +63,39 @@ data class PokemonEntity(
 
 // Relações --->
 
-// Tabela para detalhar a relação entre Pokémon e o seu tipo
-@Entity(tableName = "pokemon_type")
+@Entity(
+    tableName = "pokemon_type",
+    indices = [
+        Index(value = ["pokemon_id"]),
+        Index(value = ["type_id"])
+    ]
+)
 data class PokemonType(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
     @ColumnInfo(name = "pokemon_id") val pokemonId: Int,
     @ColumnInfo(name = "type_id") val typeId: Int
 )
 
-// Tabela para detalhar a relação entre Pokémon e suas estatísticas
-@Entity(tableName = "pokemon_stat")
+@Entity(
+    tableName = "pokemon_stat",
+    indices = [
+        Index(value = ["pokemon_id"]),
+        Index(value = ["stat_id"])
+    ]
+)
 data class PokemonStat(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
     @ColumnInfo(name = "pokemon_id") val pokemonId: Int,
     @ColumnInfo(name = "stat_id") val statId: Int
 )
 
-// Tabela para detalhar a relação entre Pokémon e suas habilidades
-@Entity(tableName = "pokemon_ability")
+@Entity(
+    tableName = "pokemon_ability",
+    indices = [
+        Index(value = ["pokemon_id"]),
+        Index(value = ["ability_id"])
+    ]
+)
 data class PokemonAbility(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
     @ColumnInfo(name = "pokemon_id") val pokemonId: Int,

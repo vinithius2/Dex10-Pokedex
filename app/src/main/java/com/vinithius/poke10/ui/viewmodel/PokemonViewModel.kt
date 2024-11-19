@@ -70,13 +70,6 @@ class PokemonViewModel(private val repository: PokemonRepository) : ViewModel() 
 
     fun getPokemonFavoriteList(isFavorite: Boolean) {
         _isFavoriteFilter.value = isFavorite
-        _pokemonListBackup.value?.run {
-            if (isFavorite) {
-                _pokemonList.value = this.filter { it.pokemon.favorite }
-            } else {
-                _pokemonList.value = this
-            }
-        }
     }
 
     /**
@@ -181,12 +174,20 @@ class PokemonViewModel(private val repository: PokemonRepository) : ViewModel() 
         }
     }
 
-    fun getFilterPokemon(query: String) {
+    fun getFilterPokemon(
+        search: String = String()
+    ) {
         CoroutineScope(Dispatchers.IO).launch {
             delay(100)
-            val filteredList = if (query.isNotEmpty()) {
-                _pokemonListBackup.value?.filter { pokemon ->
-                    pokemon.pokemon.name.contains(query, ignoreCase = true)
+            val filteredList = if (search.isNotEmpty()) {
+                _pokemonListBackup.value?.run {
+                    var filtered = this.filter { pokemon ->
+                        pokemon.pokemon.name.contains(search, ignoreCase = true)
+                    }
+                    if (_isFavoriteFilter.value == true) {
+                        filtered = filtered.filter { it.pokemon.favorite }
+                    }
+                    filtered
                 }
             } else {
                 _pokemonListBackup.value

@@ -38,12 +38,15 @@ interface PokemonDao {
     suspend fun updatePokemonIsFavorite(pokemon: PokemonEntity): Int
 
     // SELECT
+    @Transaction
     @Query("SELECT * FROM pokemon")
     suspend fun getPokemonListWithDetails(): List<PokemonWithDetails>?
 
+    @Transaction
     @Query("SELECT * FROM pokemon WHERE id = :pokemonId")
     suspend fun getPokemonWithDetailsById(pokemonId: Int): PokemonWithDetails?
 
+    @Transaction
     @Query("SELECT * FROM pokemon WHERE name = :pokemonName")
     suspend fun getPokemonWithDetailsByName(pokemonName: String): PokemonWithDetails?
 

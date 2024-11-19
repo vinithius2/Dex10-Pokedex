@@ -11,18 +11,20 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.windowInsetsPadding
-import androidx.compose.material.Icon
-import androidx.compose.material.IconButton
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Scaffold
-import androidx.compose.material.Text
-import androidx.compose.material.TextField
-import androidx.compose.material.TextFieldDefaults
-import androidx.compose.material.TopAppBar
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.material3.TopAppBar
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -39,11 +41,15 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
+import com.google.android.gms.ads.MobileAds
 import com.vinithius.poke10.R
 import com.vinithius.poke10.ui.screens.PokemonDetailScreen
 import com.vinithius.poke10.ui.screens.PokemonListScreen
 import com.vinithius.poke10.ui.theme.ThemePoke10
 import com.vinithius.poke10.ui.viewmodel.PokemonViewModel
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import org.koin.androidx.compose.getViewModel
 
 class MainActivity : ComponentActivity() {
@@ -51,7 +57,17 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            ThemePoke10 { MainScreen() }
+            ThemePoke10 {
+                MainScreen() // Coloque o AppContent dentro do ThemePoke10 para garantir que o tema seja aplicado a tudo
+            }
+        }
+        showAds()
+    }
+
+    private fun showAds() {
+        val backgroundScope = CoroutineScope(Dispatchers.IO)
+        backgroundScope.launch {
+            MobileAds.initialize(this@MainActivity) {}
         }
     }
 
@@ -71,19 +87,21 @@ fun MainScreen(
 @Composable
 fun SetupSystemUI() {
     val systemUiController = rememberSystemUiController()
-    val statusBarColor = MaterialTheme.colors.primary
+    val statusBarColor = MaterialTheme.colorScheme.primary
     systemUiController.setStatusBarColor(
         color = statusBarColor,
-        darkIcons = MaterialTheme.colors.primary.luminance() > 0.5 // Ícones escuros para cores claras
+        darkIcons = MaterialTheme.colorScheme.primary.luminance() > 0.5 // Ícones escuros para cores claras
     )
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun GetTopBar(
     viewModel: PokemonViewModel
 ) {
     var searchQuery by remember { mutableStateOf("") }
     var isSearchActive by remember { mutableStateOf(false) }
+
     TopAppBar(
         title = {
             Image(
@@ -101,7 +119,7 @@ private fun GetTopBar(
                     placeholder = {
                         Text(
                             text = "${stringResource(R.string.search)}...",
-                            color = MaterialTheme.colors.secondary
+                            color = MaterialTheme.colorScheme.secondary
                         )
                     },
                     modifier = Modifier.fillMaxWidth(),
@@ -110,7 +128,7 @@ private fun GetTopBar(
                         Icon(
                             imageVector = Icons.Default.Search,
                             contentDescription = "Search Icon",
-                            tint = MaterialTheme.colors.secondary
+                            tint = MaterialTheme.colorScheme.secondary
                         )
                     },
                     trailingIcon = { // Ícone a direita do TextField
@@ -123,28 +141,31 @@ private fun GetTopBar(
                                 Icon(
                                     imageVector = Icons.Default.Clear,
                                     contentDescription = "Clear search",
-                                    tint = MaterialTheme.colors.secondary
+                                    tint = MaterialTheme.colorScheme.secondary
                                 )
                             }
                         }
                     },
-                    colors = TextFieldDefaults.textFieldColors(
-                        backgroundColor = Color.Transparent,
-                        focusedIndicatorColor = MaterialTheme.colors.primary,
-                        unfocusedIndicatorColor = Color.Gray
+                    colors = TextFieldDefaults.colors(
+                        focusedTextColor = MaterialTheme.colorScheme.primary
                     )
                 )
             }
         },
         modifier = Modifier.windowInsetsPadding(WindowInsets.statusBars),
-        backgroundColor = MaterialTheme.colors.primary,
+        colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+            containerColor = MaterialTheme.colorScheme.primary,
+            titleContentColor = MaterialTheme.colorScheme.onPrimary,
+            actionIconContentColor = MaterialTheme.colorScheme.onPrimary,
+            scrolledContainerColor = MaterialTheme.colorScheme.primary,
+            navigationIconContentColor = MaterialTheme.colorScheme.onPrimary
+        ), // Para definir a cor do fundo do AppBar
         actions = {
-            if (isSearchActive.not()) {
-                IconButton(onClick = { isSearchActive = isSearchActive.not() }) {
+            if (!isSearchActive) {
+                IconButton(onClick = { isSearchActive = !isSearchActive }) {
                     Icon(
                         imageVector = Icons.Default.Search,
                         contentDescription = stringResource(R.string.search)
-
                     )
                 }
             }

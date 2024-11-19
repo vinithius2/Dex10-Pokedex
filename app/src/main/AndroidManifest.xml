@@ -12,7 +12,10 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.Poke10">
+        android:theme="@style/Theme.MaterialComponents.DayNight">
+        <meta-data
+            android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="ca-app-pub-1482093243889958~6420740637"/>
         <activity
             android:name="com.vinithius.poke10.ui.MainActivity"
             android:exported="true">
