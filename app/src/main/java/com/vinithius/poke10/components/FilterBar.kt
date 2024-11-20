@@ -9,19 +9,22 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -42,11 +45,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.vinithius.poke10.R
 import com.vinithius.poke10.datasource.database.Ability
 import com.vinithius.poke10.datasource.database.PokemonEntity
 import com.vinithius.poke10.datasource.database.PokemonWithDetails
@@ -54,6 +59,9 @@ import com.vinithius.poke10.datasource.database.Stat
 import com.vinithius.poke10.datasource.database.StatType
 import com.vinithius.poke10.datasource.database.Type
 import com.vinithius.poke10.extension.capitalize
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -65,6 +73,7 @@ fun GetFilterBar(
     val sheetState = rememberModalBottomSheetState()
     var showBottomSheet by remember { mutableStateOf(false) }
     var labelTitle by remember { mutableStateOf(String()) }
+    var loading by remember { mutableStateOf(false) }
 
     val checkboxStateMapTypes = rememberCheckboxStateMap(
         pokemonWithDetails.flatMap { pokemon -> pokemon.types.map { it.typeName } }
@@ -88,21 +97,57 @@ fun GetFilterBar(
         "habitat" to checkboxStateMapHabitats,
     )
 
+    val filterList = mutableListOf<String>().apply {
+        // Adiciona o primeiro item sem ação
+        add("first")
+
+        // Adiciona as chaves do filterMap
+        addAll(filterMap.keys)
+
+        // Adiciona o último item com ação
+        add("last")
+    }
+
     LazyRow(
         horizontalArrangement = Arrangement.spacedBy(14.dp),
         modifier = Modifier.padding(10.dp)
     ) {
-        items(filterMap.keys.toList()) { filter ->
-            ViewHolder(
-                label = filter,
-                filterMap = filterMap[filter],
-                onClick = { label ->
-                    labelTitle = label
-                    showBottomSheet = showBottomSheet.not()
+        itemsIndexed(filterList) { _, filter ->
+            when (filter) {
+                "first" -> ViewHolderFirst()
+                "last" -> {
+                    ViewHolderLast(
+                        loading = loading,
+                        onClick = {
+                            loading = true
+                            filterMap.keys.toList().forEach {
+                                filterMap[it]?.let { clearMap ->
+                                    clearAllFilter(clearMap)
+                                }
+                            }
+                            onCallBackFilter.invoke(filterMap)
+                            CoroutineScope(Dispatchers.Main).launch {
+                                delay(500)
+                                loading = false
+                            }
+                        }
+                    )
                 }
-            )
+
+                else -> {
+                    ViewHolder(
+                        label = filter,
+                        filterMap = filterMap[filter],
+                        onClick = { label ->
+                            labelTitle = label
+                            showBottomSheet = showBottomSheet.not()
+                        }
+                    )
+                }
+            }
         }
     }
+
     // BottomSheet
     if (showBottomSheet) {
         ModalBottomSheet(
@@ -145,6 +190,21 @@ fun rememberCheckboxStateMap(filters: List<String>): SnapshotStateMap<String, Bo
                 put(filter, false)
             }
         }
+    }
+}
+
+@Composable
+fun ViewHolderFirst() {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Icon(
+            painter = painterResource(R.drawable.baseline_filter_list_alt_24),
+            contentDescription = "Filter",
+            tint = MaterialTheme.colorScheme.secondary,
+            modifier = Modifier.padding(4.dp)
+        )
     }
 }
 
@@ -197,6 +257,57 @@ fun ViewHolder(
         }
     }
 }
+
+@Composable
+fun ViewHolderLast(
+    loading: Boolean = false,
+    onClick: () -> Unit
+) {
+    Box(
+        modifier = Modifier
+            .clip(shape = RoundedCornerShape(8.dp))
+            .background(MaterialTheme.colorScheme.onSecondary)
+            .clickable {
+                if (!loading) {
+                    onClick.invoke()
+                }
+            }
+            .padding(horizontal = 8.dp, vertical = 4.dp),
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text(
+                text = "Clear All",
+                color = MaterialTheme.colorScheme.secondary,
+                modifier = Modifier.padding(4.dp),
+                style = TextStyle(
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Bold,
+                    fontStyle = androidx.compose.ui.text.font.FontStyle.Normal,
+                )
+            )
+            if (loading) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(24.dp),
+                    strokeWidth = 2.dp,
+                    color = MaterialTheme.colorScheme.secondary
+                )
+            } else {
+                Icon(
+                    imageVector = Icons.Default.Delete,
+                    contentDescription = "Clear All",
+                    tint = MaterialTheme.colorScheme.secondary,
+                    modifier = Modifier
+                        .width(20.dp)
+                        .height(20.dp)
+                )
+            }
+        }
+    }
+}
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -284,9 +395,7 @@ fun ContentBottomSheet(
         ) {
             Button(
                 onClick = {
-                    filterMap.keys.toList().forEach {
-                        filterMap[it] = false
-                    }
+                    clearAllFilter(filterMap)
                 },
 
                 modifier = Modifier.weight(1f)
@@ -294,6 +403,12 @@ fun ContentBottomSheet(
                 Text("Clear All")
             }
         }
+    }
+}
+
+private fun clearAllFilter(filterMap: SnapshotStateMap<String, Boolean>) {
+    filterMap.keys.toList().forEach {
+        filterMap[it] = false
     }
 }
 
