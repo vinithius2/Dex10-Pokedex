@@ -18,6 +18,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -39,7 +41,7 @@ import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -93,6 +95,7 @@ fun GetFilterBar(
         items(filterMap.keys.toList()) { filter ->
             ViewHolder(
                 label = filter,
+                filterMap = filterMap[filter],
                 onClick = { label ->
                     labelTitle = label
                     showBottomSheet = showBottomSheet.not()
@@ -148,31 +151,50 @@ fun rememberCheckboxStateMap(filters: List<String>): SnapshotStateMap<String, Bo
 @Composable
 fun ViewHolder(
     label: String,
+    filterMap: SnapshotStateMap<String, Boolean>?,
     onClick: (label: String) -> Unit = {}
 ) {
-    Box(
-        modifier = Modifier
-            .clip(shape = RoundedCornerShape(4.dp))
-            .background(MaterialTheme.colorScheme.onSecondary)
-            .shadow(
-                elevation = 1.dp,
-                shape = RoundedCornerShape(4.dp),
-                clip = true
-            )
-            .clickable {
-                onClick.invoke(label)
-            },
+    BadgedBox(
+        badge = {
+            val count = filterMap?.values?.filter { it }?.count()
+            count?.takeIf { it > 0 }?.run {
+                Badge(
+                    containerColor = Color.Red,
+                    contentColor = Color.White
+                ) {
+                    Text(count.toString())
+                }
+            }
+        }
     ) {
-        Text(
-            text = label.capitalize(),
-            color = MaterialTheme.colorScheme.secondary,
-            modifier = Modifier.padding(4.dp),
-            style = TextStyle(
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Bold,
-                fontStyle = androidx.compose.ui.text.font.FontStyle.Normal,
-            )
-        )
+        Box(
+            modifier = Modifier
+                .clip(shape = RoundedCornerShape(8.dp))
+                .background(MaterialTheme.colorScheme.onSecondary)
+                .clickable { onClick.invoke(label) }
+                .padding(horizontal = 8.dp, vertical = 4.dp),
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    text = label.capitalize(),
+                    color = MaterialTheme.colorScheme.secondary,
+                    modifier = Modifier.padding(4.dp),
+                    style = TextStyle(
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold,
+                        fontStyle = androidx.compose.ui.text.font.FontStyle.Normal,
+                    )
+                )
+                Icon(
+                    imageVector = Icons.Default.KeyboardArrowDown,
+                    contentDescription = "Close",
+                    tint = MaterialTheme.colorScheme.secondary
+                )
+            }
+        }
     }
 }
 
