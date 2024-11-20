@@ -2,6 +2,7 @@ package com.vinithius.poke10.ui.viewmodel
 
 import android.content.Context
 import android.util.Log
+import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -12,20 +13,39 @@ import com.vinithius.poke10.datasource.response.Pokemon
 import com.vinithius.poke10.extension.getIdIntoUrl
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 class PokemonViewModel(private val repository: PokemonRepository) : ViewModel() {
 
-    private val _pokemonListBackup = MutableLiveData<List<PokemonWithDetails>>()
-    private val _pokemonList = MutableLiveData<List<PokemonWithDetails>>()
-    val pokemonList: LiveData<List<PokemonWithDetails>>
-        get() = _pokemonList
+    // Filter
+
+    // Mapa reativo para filtros
+    private val _filterMap: MutableLiveData<Map<String, SnapshotStateMap<String, Boolean>>> =
+        MutableLiveData()
+    val filterMap: LiveData<Map<String, SnapshotStateMap<String, Boolean>>>
+        get() = _filterMap
 
     private val _isFavoriteFilter = MutableLiveData<Boolean>()
     val isFavoriteFilter: LiveData<Boolean>
         get() = _isFavoriteFilter
+
+    private val _pokemonIsFavorite = MutableLiveData<Pokemon>()
+    val pokemonIsFavorite: LiveData<Pokemon>
+        get() = _pokemonIsFavorite
+
+    private val _searchNameFilter = MutableLiveData<String>()
+    val searchNameFilter: LiveData<String>
+        get() = _searchNameFilter
+
+    // Screens
+
+    private val _pokemonListBackup = MutableLiveData<List<PokemonWithDetails>>()
+    val pokemonListBackup: LiveData<List<PokemonWithDetails>>
+        get() = _pokemonListBackup
+    private val _pokemonList = MutableLiveData<List<PokemonWithDetails>>()
+    val pokemonList: LiveData<List<PokemonWithDetails>>
+        get() = _pokemonList
 
     private val _pokemonDetail = MutableLiveData<Pokemon?>()
     val pokemonDetail: LiveData<Pokemon?>
@@ -39,11 +59,9 @@ class PokemonViewModel(private val repository: PokemonRepository) : ViewModel() 
     val pokemonDetailError: LiveData<Boolean>
         get() = _pokemonDetailError
 
-    private val _pokemonIsFavorite = MutableLiveData<Pokemon>()
-    val pokemonIsFavorite: LiveData<Pokemon>
-        get() = _pokemonIsFavorite
-
     private var _idPokemon: Int = 0
+
+    // ### ----- SCREEN LIST POKEMON'S ----- ### //
 
     fun setIdPokemon(value: Int) {
         _idPokemon = value
@@ -68,9 +86,91 @@ class PokemonViewModel(private val repository: PokemonRepository) : ViewModel() 
         }
     }
 
+    /**
+     * Set favorite pokemon to database.
+     */
+    fun setFavorite(pokemon: PokemonWithDetails) {
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                _pokemonList.value?.map { pokemonMap ->
+                    if (pokemonMap.pokemon.id == pokemon.pokemon.id) {
+                        pokemon.pokemon.favorite = pokemon.pokemon.favorite.not()
+                        repository.setFavorite(pokemon.pokemon)
+                    }
+                }
+            } catch (e: Exception) {
+                Log.e("setFavorite", e.toString())
+            }
+        }
+    }
+
+    /**
+     * Remove item if not a favorite from the filter favorites
+     */
+    fun removeItemIfNotIsFavorite() {
+        _isFavoriteFilter.takeIf { it.value ?: false }?.run {
+            getPokemonFavoriteList(true)
+        }
+    }
+
+    // FILTERS
+
+    fun getPokemonSearch(search: String) {
+        _searchNameFilter.value = search
+        getFilterPokemon()
+    }
+
     fun getPokemonFavoriteList(isFavorite: Boolean) {
         _isFavoriteFilter.value = isFavorite
+        getFilterPokemon()
     }
+
+    fun updateFilterState(filter: Map<String, SnapshotStateMap<String, Boolean>>) {
+        _filterMap.value = filter
+        getFilterPokemon()
+    }
+
+    private fun getFilterPokemon() {
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val searchQuery = _searchNameFilter.value.orEmpty()
+                val isFavorite = _isFavoriteFilter.value ?: false
+                val filterMapValues = _filterMap.value ?: emptyMap()
+
+                val filteredList = _pokemonListBackup.value?.filter { pokemonWithDetails ->
+                    val matchesSearch = pokemonWithDetails.pokemon.name.contains(
+                        searchQuery,
+                        ignoreCase = true
+                    )
+                    val matchesFavorites = isFavorite.not() || pokemonWithDetails.pokemon.favorite
+                    val matchesFilters = filterMapValues.all { (key, stateMap) ->
+                        val selectedValues = stateMap.filterValues { it }.keys
+                        if (selectedValues.isEmpty()) {
+                            true
+                        } else {
+                            when (key) {
+                                "type" -> pokemonWithDetails.types.any { it.typeName in selectedValues }
+                                "ability" -> pokemonWithDetails.abilities.any { it.name in selectedValues }
+                                "color" -> pokemonWithDetails.pokemon.color in selectedValues
+                                "habitat" -> pokemonWithDetails.pokemon.habitat in selectedValues
+                                else -> true
+                            }
+                        }
+                    }
+                    matchesSearch && matchesFavorites && matchesFilters
+                }
+                withContext(Dispatchers.Main) {
+                    _pokemonList.value = filteredList ?: _pokemonListBackup.value
+                }
+
+                Log.d("getFilterPokemon", "Filtered list size: ${filteredList?.size}")
+            } catch (e: Exception) {
+                Log.e("getFilterPokemon", "Erro ao aplicar filtros: ${e.message}", e)
+            }
+        }
+    }
+
+    // ### ----- SCREEN DETAILS POKEMON ----- ### //
 
     /**
      * Get all details pokemon.
@@ -149,52 +249,4 @@ class PokemonViewModel(private val repository: PokemonRepository) : ViewModel() 
         pokemon.damage = damageList
     }
 
-
-    /**
-     * Set favorite pokemon to sharedPreferences.
-     */
-    fun setFavorite(pokemon: PokemonWithDetails) {
-        CoroutineScope(Dispatchers.IO).launch {
-            try {
-                _pokemonList.value?.map { pokemonMap ->
-                    if (pokemonMap.pokemon.id == pokemon.pokemon.id) {
-                        pokemon.pokemon.favorite = pokemon.pokemon.favorite.not()
-                        repository.setFavorite(pokemon.pokemon)
-                    }
-                }
-            } catch (e: Exception) {
-                Log.e("setFavorite", e.toString())
-            }
-        }
-    }
-
-    fun removeItemIfNotIsFavorite() {
-        _isFavoriteFilter.takeIf { it.value ?: false }?.run {
-            getPokemonFavoriteList(true)
-        }
-    }
-
-    fun getFilterPokemon(
-        search: String = String()
-    ) {
-        CoroutineScope(Dispatchers.IO).launch {
-            delay(100)
-            val filteredList = if (search.isNotEmpty()) {
-                _pokemonListBackup.value?.run {
-                    var filtered = this.filter { pokemon ->
-                        pokemon.pokemon.name.contains(search, ignoreCase = true)
-                    }
-                    if (_isFavoriteFilter.value == true) {
-                        filtered = filtered.filter { it.pokemon.favorite }
-                    }
-                    filtered
-                }
-            } else {
-                _pokemonListBackup.value
-            }
-            withContext(Dispatchers.Main) {
-                _pokemonList.value = filteredList ?: _pokemonListBackup.value
-            }
-        }
-    }
 }

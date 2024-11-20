@@ -141,4 +141,3 @@ data class PokemonWithDetails(
     )
     val stats: List<Stat>
 )
-

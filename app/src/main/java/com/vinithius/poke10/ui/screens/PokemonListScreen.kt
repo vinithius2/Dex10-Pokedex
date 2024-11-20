@@ -31,6 +31,7 @@ import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
@@ -83,10 +84,15 @@ fun PokemonListScreen(
         viewModel.getPokemonList(context)
     }
     val pokemonItems by viewModel.pokemonList.observeAsState(emptyList())
+    val pokemonItemsBackup by viewModel.pokemonListBackup.observeAsState(emptyList())
     val isFavoriteFilter by viewModel.isFavoriteFilter.observeAsState(false)
+
     Column(
-        modifier = Modifier.fillMaxWidth()) {
-        GetFilterBar(pokemonItems)
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        GetFilterBar(pokemonItemsBackup) {
+            getFilterBarData(it, viewModel)
+        }
         LazyColumn {
             items(
                 items = pokemonItems,
@@ -117,6 +123,13 @@ fun PokemonListScreen(
             }
         }
     }
+}
+
+fun getFilterBarData(
+    filter: Map<String, SnapshotStateMap<String, Boolean>>,
+    viewModel: PokemonViewModel
+) {
+    viewModel.updateFilterState(filter)
 }
 
 @Composable

@@ -3,26 +3,39 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.Button
-import androidx.compose.material.Text
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material3.Button
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.SheetState
+import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -39,54 +52,60 @@ import com.vinithius.poke10.datasource.database.Stat
 import com.vinithius.poke10.datasource.database.StatType
 import com.vinithius.poke10.datasource.database.Type
 import com.vinithius.poke10.extension.capitalize
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun GetFilterBar(pokemonWithDetails: List<PokemonWithDetails>) {
-
+fun GetFilterBar(
+    pokemonWithDetails: List<PokemonWithDetails>,
+    onCallBackFilter: (filter: Map<String, SnapshotStateMap<String, Boolean>>) -> Unit = {}
+) {
     val sheetState = rememberModalBottomSheetState()
-    val coroutineScope = rememberCoroutineScope()
     var showBottomSheet by remember { mutableStateOf(false) }
+    var labelTitle by remember { mutableStateOf(String()) }
 
-    // Extração de filtros
-    val types =
-        pokemonWithDetails.flatMap { pokemon -> pokemon.types.map { it.typeName } }.distinct()
-    val abilities =
-        pokemonWithDetails.flatMap { pokemon -> pokemon.abilities.map { it.name } }.distinct()
-    val colors = pokemonWithDetails.map { it.pokemon.color }.distinct()
-    val habitats = pokemonWithDetails.map { it.pokemon.habitat }.distinct()
-    val favorite = listOf(true, false) // Filtro booleano para favoritos
+    val checkboxStateMapTypes = rememberCheckboxStateMap(
+        pokemonWithDetails.flatMap { pokemon -> pokemon.types.map { it.typeName } }
+    )
+    val checkboxStateMapAbilities = rememberCheckboxStateMap(
+        pokemonWithDetails.flatMap { pokemon -> pokemon.abilities.map { it.name } }
+    )
+    val checkboxStateMapColors = rememberCheckboxStateMap(
+        pokemonWithDetails.map { it.pokemon.color }
+    )
+    val checkboxStateMapHabitats = rememberCheckboxStateMap(
+        pokemonWithDetails.map { it.pokemon.habitat }
+    )
+    // Todo: Create filter by stats
 
-    // Montagem da lista de filtros
-    val filterList = listOf(
-        "type" to types,
-        "ability" to abilities,
-        "color" to colors,
-        "habitat" to habitats,
-        "favorite" to favorite.map { if (it) "Favorite" else "Not Favorite" }
+    // Mapeamento dos filtros
+    val filterMap = mapOf(
+        "type" to checkboxStateMapTypes,
+        "ability" to checkboxStateMapAbilities,
+        "color" to checkboxStateMapColors,
+        "habitat" to checkboxStateMapHabitats,
     )
 
     LazyRow(
         horizontalArrangement = Arrangement.spacedBy(14.dp),
         modifier = Modifier.padding(10.dp)
     ) {
-        items(filterList) { filter ->
-            FilterChip(
-                label = filter.first,
-                onClick = {
+        items(filterMap.keys.toList()) { filter ->
+            ViewHolder(
+                label = filter,
+                onClick = { label ->
+                    labelTitle = label
                     showBottomSheet = showBottomSheet.not()
                 }
             )
         }
     }
-
     // BottomSheet
     if (showBottomSheet) {
         ModalBottomSheet(
             onDismissRequest = {
                 showBottomSheet = false
+                onCallBackFilter.invoke(filterMap)
             },
             sheetState = sheetState,
             shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp),
@@ -103,34 +122,33 @@ fun GetFilterBar(pokemonWithDetails: List<PokemonWithDetails>) {
                 )
             }
         ) {
-            Column(
-                modifier = Modifier.padding(16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
+            ContentBottomSheet(
+                labelTitle,
+                filterMap[labelTitle]!!,
+                sheetState
             ) {
-                Text(
-                    "Book Your Flight",
-                    style = MaterialTheme.typography.bodyLarge,
-                    fontWeight = FontWeight.Bold
-                )
-                Spacer(modifier = Modifier.height(16.dp))
-                Button(onClick = {
-                    coroutineScope.launch { sheetState.hide() }.invokeOnCompletion {
-                        if (!sheetState.isVisible) {
-                            showBottomSheet = false
-                        }
-                    }
-                }) {
-                    Text("Hide Bottom Sheet")
-                }
+                showBottomSheet = it
+                onCallBackFilter.invoke(filterMap)
             }
         }
     }
 }
 
 @Composable
-fun FilterChip(
+fun rememberCheckboxStateMap(filters: List<String>): SnapshotStateMap<String, Boolean> {
+    return remember(filters) {
+        mutableStateMapOf<String, Boolean>().apply {
+            filters.distinct().sorted().forEach { filter ->
+                put(filter, false)
+            }
+        }
+    }
+}
+
+@Composable
+fun ViewHolder(
     label: String,
-    onClick: () -> Unit = {}
+    onClick: (label: String) -> Unit = {}
 ) {
     Box(
         modifier = Modifier
@@ -142,7 +160,7 @@ fun FilterChip(
                 clip = true
             )
             .clickable {
-                onClick.invoke()
+                onClick.invoke(label)
             },
     ) {
         Text(
@@ -160,54 +178,103 @@ fun FilterChip(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun BottomSheet(
-    coroutineScope: CoroutineScope = rememberCoroutineScope(),
-    sheetState: SheetState = rememberModalBottomSheetState(),
+fun ContentBottomSheet(
+    labelTitle: String,
+    filterMap: SnapshotStateMap<String, Boolean>,
+    sheetState: SheetState,
+    onClickListener: (value: Boolean) -> Unit
 ) {
-    var showBottomSheet by remember { mutableStateOf(false) }
-    if (showBottomSheet) {
-        ModalBottomSheet(
-            onDismissRequest = {
-                showBottomSheet = false
-            },
-            sheetState = sheetState,
-            shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp),
-            containerColor = MaterialTheme.colorScheme.surface,
-            tonalElevation = 16.dp,
-            dragHandle = {
-                Box(
-                    modifier = Modifier
-                        .padding(8.dp)
-                        .width(50.dp)
-                        .height(6.dp)
-                        .clip(RoundedCornerShape(50))
-                        .background(MaterialTheme.colorScheme.primary)
-                )
-            }
+    val coroutineScope = rememberCoroutineScope()
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp)
+    ) {
+        // Conteúdo rolável
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 80.dp),
         ) {
-            Column(
-                modifier = Modifier.padding(16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    "Book Your Flight",
+                    text = labelTitle.capitalize(),
                     style = MaterialTheme.typography.bodyLarge,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(start = 8.dp)
                 )
-                Spacer(modifier = Modifier.height(16.dp))
-                Button(onClick = {
-                    coroutineScope.launch { sheetState.hide() }.invokeOnCompletion {
-                        if (!sheetState.isVisible) {
-                            showBottomSheet = false
+                IconButton(
+                    onClick = {
+                        coroutineScope.launch { sheetState.hide() }.invokeOnCompletion {
+                            if (sheetState.isVisible.not()) {
+                                onClickListener.invoke(false)
+                            }
                         }
                     }
-                }) {
-                    Text("Hide Bottom Sheet")
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.KeyboardArrowDown,
+                        contentDescription = "Close",
+                        tint = MaterialTheme.colorScheme.onSurface
+                    )
                 }
+            }
+            Spacer(modifier = Modifier.height(16.dp))
+            LazyVerticalGrid(
+                columns = GridCells.Fixed(2),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier.padding(8.dp)
+            ) {
+                items(filterMap.keys.toList()) { filter ->
+                    Row(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(MaterialTheme.colorScheme.secondary.copy(alpha = 0.1f))
+                            .padding(horizontal = 16.dp, vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Checkbox(
+                            checked = filterMap[filter] == true,
+                            onCheckedChange = { isChecked ->
+                                filterMap[filter] = isChecked
+                            }
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(text = filter.capitalize(), style = MaterialTheme.typography.bodySmall)
+                    }
+                }
+            }
+        }
+        // Buttons fixed bellow
+        Row(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .fillMaxWidth()
+                .padding(16.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Button(
+                onClick = {
+                    filterMap.keys.toList().forEach {
+                        filterMap[it] = false
+                    }
+                },
+
+                modifier = Modifier.weight(1f)
+            ) {
+                Text("Clear All")
             }
         }
     }
 }
+
 
 @Preview
 @Composable
