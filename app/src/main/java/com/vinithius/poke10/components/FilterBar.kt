@@ -157,7 +157,7 @@ fun GetFilterBar(
             },
             sheetState = sheetState,
             shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp),
-            containerColor = MaterialTheme.colorScheme.surface,
+            containerColor = MaterialTheme.colorScheme.secondary,
             tonalElevation = 16.dp,
             dragHandle = {
                 Box(
@@ -166,7 +166,7 @@ fun GetFilterBar(
                         .width(50.dp)
                         .height(6.dp)
                         .clip(RoundedCornerShape(50))
-                        .background(MaterialTheme.colorScheme.primary)
+                        .background(MaterialTheme.colorScheme.onSecondary)
                 )
             }
         ) {
@@ -202,7 +202,7 @@ fun ViewHolderFirst() {
         Icon(
             painter = painterResource(R.drawable.baseline_filter_list_alt_24),
             contentDescription = "Filter",
-            tint = MaterialTheme.colorScheme.secondary,
+            tint = MaterialTheme.colorScheme.onSecondary,
             modifier = Modifier.padding(4.dp)
         )
     }
@@ -292,13 +292,13 @@ fun ViewHolderLast(
                 CircularProgressIndicator(
                     modifier = Modifier.size(24.dp),
                     strokeWidth = 2.dp,
-                    color = MaterialTheme.colorScheme.secondary
+                    color = MaterialTheme.colorScheme.onSecondary
                 )
             } else {
                 Icon(
                     imageVector = Icons.Default.Delete,
                     contentDescription = "Clear All",
-                    tint = MaterialTheme.colorScheme.secondary,
+                    tint = MaterialTheme.colorScheme.onSecondary,
                     modifier = Modifier
                         .width(20.dp)
                         .height(20.dp)
@@ -354,7 +354,7 @@ fun ContentBottomSheet(
                     Icon(
                         imageVector = Icons.Default.KeyboardArrowDown,
                         contentDescription = "Close",
-                        tint = MaterialTheme.colorScheme.onSurface
+                        tint = MaterialTheme.colorScheme.onSecondary
                     )
                 }
             }
@@ -397,7 +397,6 @@ fun ContentBottomSheet(
                 onClick = {
                     clearAllFilter(filterMap)
                 },
-
                 modifier = Modifier.weight(1f)
             ) {
                 Text("Clear All")
