@@ -230,7 +230,7 @@ fun ViewHolder(
         Box(
             modifier = Modifier
                 .clip(shape = RoundedCornerShape(8.dp))
-                .background(MaterialTheme.colorScheme.onSecondary)
+                .background(MaterialTheme.colorScheme.secondary)
                 .clickable { onClick.invoke(label) }
                 .padding(horizontal = 8.dp, vertical = 4.dp),
         ) {
@@ -240,7 +240,7 @@ fun ViewHolder(
             ) {
                 Text(
                     text = label.capitalize(),
-                    color = MaterialTheme.colorScheme.secondary,
+                    color = MaterialTheme.colorScheme.onSecondary,
                     modifier = Modifier.padding(4.dp),
                     style = TextStyle(
                         fontSize = 14.sp,
@@ -251,7 +251,7 @@ fun ViewHolder(
                 Icon(
                     imageVector = Icons.Default.KeyboardArrowDown,
                     contentDescription = "Close",
-                    tint = MaterialTheme.colorScheme.secondary
+                    tint = MaterialTheme.colorScheme.onSecondary
                 )
             }
         }
@@ -266,7 +266,7 @@ fun ViewHolderLast(
     Box(
         modifier = Modifier
             .clip(shape = RoundedCornerShape(8.dp))
-            .background(MaterialTheme.colorScheme.onSecondary)
+            .background(MaterialTheme.colorScheme.secondary)
             .clickable {
                 if (!loading) {
                     onClick.invoke()
@@ -280,7 +280,7 @@ fun ViewHolderLast(
         ) {
             Text(
                 text = "Clear All",
-                color = MaterialTheme.colorScheme.secondary,
+                color = MaterialTheme.colorScheme.onSecondary,
                 modifier = Modifier.padding(4.dp),
                 style = TextStyle(
                     fontSize = 14.sp,

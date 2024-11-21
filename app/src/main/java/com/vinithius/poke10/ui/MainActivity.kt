@@ -1,5 +1,8 @@
 package com.vinithius.poke10.ui
 
+import android.content.Context
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -11,10 +14,16 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.Divider
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FavoriteBorder
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -31,8 +40,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -87,10 +98,10 @@ fun MainScreen(
 @Composable
 fun SetupSystemUI() {
     val systemUiController = rememberSystemUiController()
-    val statusBarColor = MaterialTheme.colorScheme.primary
+    val statusBarColor = MaterialTheme.colorScheme.tertiary
     systemUiController.setStatusBarColor(
         color = statusBarColor,
-        darkIcons = MaterialTheme.colorScheme.primary.luminance() > 0.5
+        darkIcons = MaterialTheme.colorScheme.tertiary.luminance() > 0.5
     )
 }
 
@@ -99,16 +110,12 @@ fun SetupSystemUI() {
 private fun GetTopBar(
     viewModel: PokemonViewModel
 ) {
+    val context = LocalContext.current
     var searchQuery by remember { mutableStateOf("") }
     var isSearchActive by remember { mutableStateOf(false) }
 
     TopAppBar(
         title = {
-            Image(
-                painter = painterResource(id = R.drawable.pokemon_logo_small),
-                contentDescription = "Poke10",
-                modifier = Modifier.size(40.dp)
-            )
             if (isSearchActive) {
                 TextField(
                     value = searchQuery,
@@ -119,16 +126,19 @@ private fun GetTopBar(
                     placeholder = {
                         Text(
                             text = "${stringResource(R.string.search)}...",
-                            color = MaterialTheme.colorScheme.secondary
+                            color = MaterialTheme.colorScheme.onSecondary
                         )
                     },
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 4.dp, top = 4.dp)
+                        .clip(RoundedCornerShape(40.dp)),
                     singleLine = true,
                     leadingIcon = {
                         Icon(
                             imageVector = Icons.Default.Search,
                             contentDescription = "Search Icon",
-                            tint = MaterialTheme.colorScheme.secondary
+                            tint = MaterialTheme.colorScheme.onSecondary
                         )
                     },
                     trailingIcon = {
@@ -140,13 +150,22 @@ private fun GetTopBar(
                             Icon(
                                 imageVector = Icons.Default.Clear,
                                 contentDescription = "Clear search",
-                                tint = MaterialTheme.colorScheme.secondary
+                                tint = MaterialTheme.colorScheme.onSecondary
                             )
                         }
                     },
                     colors = TextFieldDefaults.colors(
-                        focusedTextColor = MaterialTheme.colorScheme.primary
-                    )
+                        focusedTextColor = MaterialTheme.colorScheme.onSecondary,
+                        unfocusedIndicatorColor = Color.Transparent, // Remove a linha quando não está focado
+                        focusedIndicatorColor = Color.Transparent,  // Remove a linha quando está focado
+                        disabledIndicatorColor = Color.Transparent  // Remove a linha quando desativado
+                    ),
+                )
+            } else {
+                Image(
+                    painter = painterResource(id = R.drawable.pokemon_logo_small),
+                    contentDescription = "Poke10",
+                    modifier = Modifier.size(40.dp)
                 )
             }
         },
@@ -167,22 +186,117 @@ private fun GetTopBar(
                     )
                 }
             }
-            GetIconButtons(viewModel)
+            AppMenu(context, viewModel)
         }
     )
 }
 
 @Composable
-private fun GetIconButtons(viewModel: PokemonViewModel) {
+private fun AppMenu(
+    context: Context,
+    viewModel: PokemonViewModel
+) {
     var favoriteFilter by remember { mutableStateOf(false) }
+    var expanded by remember { mutableStateOf(false) }
     IconButton(onClick = {
         favoriteFilter = favoriteFilter.not()
         viewModel.getPokemonFavoriteList(favoriteFilter)
     }) {
         Icon(
-            imageVector = Icons.Default.Favorite,
+            imageVector = if (favoriteFilter) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
             contentDescription = "Favorito",
-            tint = if (favoriteFilter) Color.Red else Color.White
+            tint = Color.White
+        )
+    }
+    IconButton(onClick = { expanded = true }) {
+        Icon(Icons.Default.MoreVert, contentDescription = "More options")
+    }
+    DropDownMenuRight(
+        expanded = expanded,
+        onDismissRequest = { expanded = false },
+        onChangelogClick = { },
+        onNightModeToggle = { },
+        isNightMode = false,
+        onShareAppClick = { },
+        onInviteFriendsClick = { },
+        onRateAppClick = { },
+        onSuggestionsClick = {
+            val intent =
+                Intent(
+                    Intent.ACTION_VIEW,
+                    Uri.parse("https://forms.gle/6Rbsv7voquN3AjbT8")
+                )
+            context.startActivity(intent)
+        },
+        onDonateClick = { }
+    )
+}
+
+@Composable
+private fun DropDownMenuRight(
+    expanded: Boolean,
+    onDismissRequest: () -> Unit,
+    onChangelogClick: () -> Unit,
+    onNightModeToggle: (Boolean) -> Unit,
+    isNightMode: Boolean,
+    onShareAppClick: () -> Unit,
+    onInviteFriendsClick: () -> Unit,
+    onRateAppClick: () -> Unit,
+    onSuggestionsClick: () -> Unit,
+    onDonateClick: () -> Unit
+) {
+    DropdownMenu(
+        expanded = expanded,
+        onDismissRequest = onDismissRequest
+    ) {
+        // Categoria: Configurações
+        Text(
+            text = "Configurações",
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+        )
+        DropdownMenuItem(
+            text = { Text("Modo Noturno: ${if (isNightMode) "Ativado" else "Desativado"}") },
+            onClick = { onNightModeToggle(!isNightMode) }
+        )
+        DropdownMenuItem(
+            text = { Text("Changelog (Novidades)") },
+            onClick = onChangelogClick
+        )
+        Divider()
+
+        // Categoria: Interação com o App
+        Text(
+            text = "Interação",
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+        )
+        DropdownMenuItem(
+            text = { Text("Compartilhar App") },
+            onClick = onShareAppClick
+        )
+        DropdownMenuItem(
+            text = { Text("Avaliar App") },
+            onClick = onRateAppClick
+        )
+        Divider()
+
+        // Categoria: Feedback e Apoio
+        Text(
+            text = "Feedback e Apoio",
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+        )
+        DropdownMenuItem(
+            text = { Text("Sugestões ou Bugs") },
+            onClick = onSuggestionsClick
+        )
+        DropdownMenuItem(
+            text = { Text("Doar para o Desenvolvedor ❤️") },
+            onClick = onDonateClick
         )
     }
 }
