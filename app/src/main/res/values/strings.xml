@@ -39,4 +39,20 @@
     <string name="toast_legendary">This is a legendary pokemon!</string>
     <string name="close">Close</string>
     <string name="search">Search</string>
+    <!-- NEW -->
+    <string name="donate_to_developer">Donate to Developer ❤️</string>
+    <string name="suggestions_or_bugs">Suggestions or Bugs</string>
+    <string name="feedback_and_support">Feedback and Support</string>
+    <string name="rate_app">Rate App</string>
+    <string name="share_app">Share App</string>
+    <string name="interaction">Interaction</string>
+    <string name="changelog_whats_new">Changelog (What\'s New)</string>
+    <string name="night_mode">Night Mode:</string>
+    <string name="enabled">Enabled</string>
+    <string name="disabled">Disabled</string>
+    <string name="settings">Settings</string>
+    <string name="favorite">Favorite</string>
+    <string name="clear_search">Clear search</string>
+    <string name="search_icon">Search Icon</string>
+    <string name="more_options">More options</string>
 </resources>

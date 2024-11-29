@@ -1,5 +1,6 @@
 package com.vinithius.poke10.ui
 
+import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
@@ -15,13 +16,13 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.Divider
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.Divider
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -53,6 +54,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.google.android.gms.ads.MobileAds
+import com.google.android.play.core.review.ReviewManager
+import com.google.android.play.core.review.ReviewManagerFactory
 import com.vinithius.poke10.R
 import com.vinithius.poke10.ui.screens.PokemonDetailScreen
 import com.vinithius.poke10.ui.screens.PokemonListScreen
@@ -137,7 +140,7 @@ private fun GetTopBar(
                     leadingIcon = {
                         Icon(
                             imageVector = Icons.Default.Search,
-                            contentDescription = "Search Icon",
+                            contentDescription = stringResource(id = R.string.search_icon),
                             tint = MaterialTheme.colorScheme.onSecondary
                         )
                     },
@@ -149,22 +152,22 @@ private fun GetTopBar(
                         }) {
                             Icon(
                                 imageVector = Icons.Default.Clear,
-                                contentDescription = "Clear search",
+                                contentDescription = stringResource(id = R.string.clear_search),
                                 tint = MaterialTheme.colorScheme.onSecondary
                             )
                         }
                     },
                     colors = TextFieldDefaults.colors(
                         focusedTextColor = MaterialTheme.colorScheme.onSecondary,
-                        unfocusedIndicatorColor = Color.Transparent, // Remove a linha quando não está focado
-                        focusedIndicatorColor = Color.Transparent,  // Remove a linha quando está focado
-                        disabledIndicatorColor = Color.Transparent  // Remove a linha quando desativado
+                        unfocusedIndicatorColor = Color.Transparent,
+                        focusedIndicatorColor = Color.Transparent,
+                        disabledIndicatorColor = Color.Transparent
                     ),
                 )
             } else {
                 Image(
                     painter = painterResource(id = R.drawable.pokemon_logo_small),
-                    contentDescription = "Poke10",
+                    contentDescription = stringResource(id = R.string.app_name),
                     modifier = Modifier.size(40.dp)
                 )
             }
@@ -204,12 +207,15 @@ private fun AppMenu(
     }) {
         Icon(
             imageVector = if (favoriteFilter) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
-            contentDescription = "Favorito",
+            contentDescription = stringResource(id = R.string.favorite),
             tint = Color.White
         )
     }
     IconButton(onClick = { expanded = true }) {
-        Icon(Icons.Default.MoreVert, contentDescription = "More options")
+        Icon(
+            Icons.Default.MoreVert,
+            contentDescription = stringResource(id = R.string.more_options)
+        )
     }
     DropDownMenuRight(
         expanded = expanded,
@@ -219,7 +225,9 @@ private fun AppMenu(
         isNightMode = false,
         onShareAppClick = { },
         onInviteFriendsClick = { },
-        onRateAppClick = { },
+        onRateAppClick = {
+            requestInAppReview(context)
+        },
         onSuggestionsClick = {
             val intent =
                 Intent(
@@ -251,51 +259,60 @@ private fun DropDownMenuRight(
     ) {
         // Categoria: Configurações
         Text(
-            text = "Configurações",
+            text = stringResource(id = R.string.settings),
             style = MaterialTheme.typography.labelSmall,
             color = MaterialTheme.colorScheme.primary,
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
         )
         DropdownMenuItem(
-            text = { Text("Modo Noturno: ${if (isNightMode) "Ativado" else "Desativado"}") },
+            text = {
+                Text(
+                    "${stringResource(id = R.string.night_mode)} ${
+                        if (isNightMode) stringResource(
+                            id = R.string.enabled
+                        ) else stringResource(id = R.string.disabled)
+                    }"
+                )
+            },
             onClick = { onNightModeToggle(!isNightMode) }
         )
         DropdownMenuItem(
-            text = { Text("Changelog (Novidades)") },
+            text = { Text(stringResource(id = R.string.changelog_whats_new)) },
             onClick = onChangelogClick
         )
         Divider()
 
         // Categoria: Interação com o App
         Text(
-            text = "Interação",
+            text = stringResource(id = R.string.interaction),
             style = MaterialTheme.typography.labelSmall,
             color = MaterialTheme.colorScheme.primary,
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
         )
         DropdownMenuItem(
-            text = { Text("Compartilhar App") },
+            text = { Text(stringResource(id = R.string.share_app)) },
             onClick = onShareAppClick
         )
         DropdownMenuItem(
-            text = { Text("Avaliar App") },
+            text = { Text(stringResource(id = R.string.rate_app)) },
             onClick = onRateAppClick
         )
         Divider()
 
         // Categoria: Feedback e Apoio
         Text(
-            text = "Feedback e Apoio",
+            text = stringResource(id = R.string.feedback_and_support),
             style = MaterialTheme.typography.labelSmall,
             color = MaterialTheme.colorScheme.primary,
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
         )
         DropdownMenuItem(
-            text = { Text("Sugestões ou Bugs") },
+            text = { Text(stringResource(id = R.string.suggestions_or_bugs)) },
             onClick = onSuggestionsClick
         )
+
         DropdownMenuItem(
-            text = { Text("Doar para o Desenvolvedor ❤️") },
+            text = { Text(stringResource(id = R.string.donate_to_developer)) },
             onClick = onDonateClick
         )
     }
@@ -315,6 +332,23 @@ private fun GetNavHost(innerPadding: PaddingValues) {
             if (pokemonId != null) {
                 PokemonDetailScreen(navController, pokemonId)
             }
+        }
+    }
+}
+
+fun requestInAppReview(context: Context) {
+    val reviewManager: ReviewManager = ReviewManagerFactory.create(context)
+    val requestFlow = reviewManager.requestReviewFlow()
+    requestFlow.addOnCompleteListener { requestTask ->
+        if (requestTask.isSuccessful) {
+            val reviewInfo = requestTask.result
+            val flow = reviewManager.launchReviewFlow(context as Activity, reviewInfo)
+            flow.addOnCompleteListener { _ ->
+                // Do nothing
+            }
+        } else {
+            val exception = requestTask.exception
+            exception?.printStackTrace()
         }
     }
 }

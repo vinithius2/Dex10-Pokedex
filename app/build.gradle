@@ -62,6 +62,8 @@ dependencies {
     implementation("io.coil-kt:coil-compose:2.5.0") // Coil para Compose
     implementation("io.coil-kt:coil-gif:2.4.0")     // Suporte para GIFs
 
+    implementation 'com.google.android.play:review:2.0.2'
+
     // Firebase
     implementation 'com.google.firebase:firebase-crashlytics-ktx:19.2.1'
     implementation 'com.google.firebase:firebase-analytics-ktx:22.1.2'
