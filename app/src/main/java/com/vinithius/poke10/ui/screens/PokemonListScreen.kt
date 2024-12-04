@@ -4,6 +4,10 @@ import GetFilterBar
 import android.annotation.SuppressLint
 import android.os.Build
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.AnimatedVisibilityScope
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionLayout
+import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.Image
@@ -31,6 +35,7 @@ import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -74,9 +79,11 @@ import org.koin.androidx.compose.getViewModel
 
 const val URL_IMAGE = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/"
 
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
-fun PokemonListScreen(
+fun SharedTransitionScope.PokemonListScreen(
     navController: NavController,
+    animatedVisibilityScope: AnimatedVisibilityScope,
     viewModel: PokemonViewModel = getViewModel()
 ) {
     val context = LocalContext.current
@@ -104,16 +111,18 @@ fun PokemonListScreen(
                     exit = scaleOut(animationSpec = tween(durationMillis = 300))
                 ) {
                     PokemonListItem(
+                        viewModel = viewModel,
                         pokemonData = pokemonData,
+                        animatedVisibilityScope = animatedVisibilityScope,
                         onCallBackFinishAnimation = {
                             if (isFavoriteFilter) {
                                 isVisible = false
                                 viewModel.removeItemIfNotIsFavorite()
                             }
                         },
-                        onClickDetail = { id ->
+                        onClickDetail = { id, name ->
                             viewModel.setIdPokemon(id)
-                            navController.navigate("pokemonDetail/$id")
+                            navController.navigate("pokemonDetail/$id/$name")
                         },
                         onClickFavorite = { pokemonFavorite ->
                             viewModel.setFavorite(pokemonFavorite)
@@ -132,11 +141,14 @@ fun getFilterBarData(
     viewModel.updateFilterState(filter)
 }
 
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
-fun PokemonListItem(
+fun SharedTransitionScope.PokemonListItem(
+    viewModel: PokemonViewModel?,
     pokemonData: PokemonWithDetails,
+    animatedVisibilityScope: AnimatedVisibilityScope?,
     onCallBackFinishAnimation: (() -> Unit)?,
-    onClickDetail: ((Int) -> Unit)?,
+    onClickDetail: ((Int, String) -> Unit)?,
     onClickFavorite: ((PokemonWithDetails) -> Unit)?
 ) {
     Card(
@@ -144,23 +156,32 @@ fun PokemonListItem(
             .fillMaxWidth()
             .padding(8.dp)
             .clickable {
-                pokemonData.pokemon.id.let {
+                pokemonData.pokemon.let {
                     if (onClickDetail != null) {
-                        onClickDetail(it)
+                        onClickDetail(it.id, it.name)
                     }
                 }
             },
         elevation = 5.dp,
         shape = RoundedCornerShape(16.dp)
     ) {
-        Holder(pokemonData, onClickFavorite, onCallBackFinishAnimation)
+        Holder(
+            viewModel,
+            pokemonData,
+            animatedVisibilityScope,
+            onClickFavorite,
+            onCallBackFinishAnimation
+        )
     }
 }
 
+@OptIn(ExperimentalSharedTransitionApi::class)
 @SuppressLint("DefaultLocale")
 @Composable
-fun Holder(
+fun SharedTransitionScope.Holder(
+    viewModel: PokemonViewModel?,
     pokemonData: PokemonWithDetails,
+    animatedVisibilityScope: AnimatedVisibilityScope?,
     onClickFavorite: ((PokemonWithDetails) -> Unit)?,
     onCallBackFinishAnimation: (() -> Unit)?,
 ) {
@@ -265,7 +286,7 @@ fun Holder(
                         }
                     }
                 }
-                LoadGifWithCoil(pokemonData)
+                LoadGifWithCoil(viewModel, pokemonData, animatedVisibilityScope)
                 Column(
                     modifier = Modifier.align(Alignment.CenterVertically)
                 ) {
@@ -400,8 +421,13 @@ private fun TypeItem(type: Type) {
     }
 }
 
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
-fun LoadGifWithCoil(pokemonData: PokemonWithDetails) {
+fun SharedTransitionScope.LoadGifWithCoil(
+    viewModel: PokemonViewModel?,
+    pokemonData: PokemonWithDetails,
+    animatedVisibilityScope: AnimatedVisibilityScope?,
+) {
     val context = LocalContext.current
     val imageLoader = ImageLoader.Builder(context)
         .components {
@@ -419,11 +445,25 @@ fun LoadGifWithCoil(pokemonData: PokemonWithDetails) {
         .error(android.R.drawable.ic_menu_report_image)
         .build()
 
-    Box(modifier = Modifier.size(70.dp)) {
+    Box(modifier = Modifier
+        .size(70.dp)) {
+
         val painter = rememberAsyncImagePainter(
             model = imageRequest,
             imageLoader = imageLoader
         )
+        LaunchedEffect(painter) {
+            snapshotFlow { painter.state }
+                .collect { state ->
+                    if (state is AsyncImagePainter.State.Success) {
+                        viewModel?.updateSharedImage(
+                            pokemonData.pokemon.id.toString(),
+                            painter
+                        )
+                    }
+                }
+        }
+
         // Loading
         if (painter.state is AsyncImagePainter.State.Loading) {
             CircularProgressIndicator(
@@ -438,14 +478,33 @@ fun LoadGifWithCoil(pokemonData: PokemonWithDetails) {
             painter = painter,
             contentDescription = pokemonData.pokemon.name,
             modifier = Modifier.size(70.dp)
+                .sharedElement(
+                    state = rememberSharedContentState(key = "${pokemonData.pokemon.id}"),
+                    animatedVisibilityScope = animatedVisibilityScope!!,
+                    boundsTransform = { _, _ ->
+                        tween(durationMillis = 1000)
+                    }
+                )
         )
     }
 }
 
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Preview(showBackground = true)
 @Composable
 fun PokemonListScreenPreview() {
-    PokemonListItem(setMockupPokemon(), null, null, null)
+    SharedTransitionLayout {
+        AnimatedVisibility(visible = true) {
+            PokemonListItem(
+                null,
+                setMockupPokemon(),
+                null,
+                null,
+                null,
+                null
+            )
+        }
+    }
 }
 
 private fun setMockupPokemon(): PokemonWithDetails {

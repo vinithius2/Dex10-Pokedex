@@ -6,6 +6,7 @@ import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import coil.compose.AsyncImagePainter
 import com.vinithius.poke10.datasource.database.PokemonWithDetails
 import com.vinithius.poke10.datasource.repository.PokemonRepository
 import com.vinithius.poke10.datasource.response.Damage
@@ -60,6 +61,19 @@ class PokemonViewModel(private val repository: PokemonRepository) : ViewModel() 
         get() = _pokemonDetailError
 
     private var _idPokemon: Int = 0
+
+    // Pokemon images
+    private val _sharedPokemonImages = MutableLiveData<Map<String, AsyncImagePainter>>()
+    val sharedPokemonImages: LiveData<Map<String, AsyncImagePainter>> = _sharedPokemonImages
+
+    fun updateSharedImage(pokemonId: String, imagePainter: AsyncImagePainter) {
+        val currentImages = _sharedPokemonImages.value.orEmpty()
+        _sharedPokemonImages.value = currentImages + (pokemonId to imagePainter)
+    }
+
+    fun getSharedImage(pokemonId: String): AsyncImagePainter? {
+        return _sharedPokemonImages.value?.get(pokemonId)
+    }
 
     // ### ----- SCREEN LIST POKEMON'S ----- ### //
 

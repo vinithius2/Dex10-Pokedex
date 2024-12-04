@@ -7,6 +7,8 @@ import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionLayout
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
@@ -49,9 +51,11 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.google.android.gms.ads.MobileAds
 import com.google.android.play.core.review.ReviewManager
@@ -318,20 +322,43 @@ private fun DropDownMenuRight(
     }
 }
 
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 private fun GetNavHost(innerPadding: PaddingValues) {
-    val navController = rememberNavController()
-    NavHost(
-        navController = navController,
-        startDestination = "pokemonList",
-        Modifier.padding(innerPadding)
-    ) {
-        composable("pokemonList") { PokemonListScreen(navController) }
-        composable("pokemonDetail/{pokemonId}") { backStackEntry ->
-            val pokemonId = backStackEntry.arguments?.getString("pokemonId")?.toInt()
-            if (pokemonId != null) {
-                PokemonDetailScreen(navController, pokemonId)
+    SharedTransitionLayout {
+        val navController = rememberNavController()
+        NavHost(
+            navController = navController,
+            startDestination = "pokemonList",
+            Modifier.padding(innerPadding)
+        ) {
+            composable("pokemonList") {
+                PokemonListScreen(
+                    navController,
+                    this
+                )
             }
+            composable(
+                route = "pokemonDetail/{pokemonId}/{pokemonName}",
+                arguments = listOf(
+                    navArgument("pokemonId") { type = NavType.StringType },
+                    navArgument("pokemonName") { type = NavType.StringType }
+                )
+            ) { backStackEntry ->
+
+                val pokemonId = backStackEntry.arguments?.getString("pokemonId")?.toIntOrNull()
+                val pokemonName = backStackEntry.arguments?.getString("pokemonName")
+
+                if (pokemonId != null && pokemonName != null) {
+                    PokemonDetailScreen(
+                        navController,
+                        pokemonId,
+                        pokemonName,
+                        this
+                    )
+                }
+            }
+
         }
     }
 }
