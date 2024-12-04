@@ -445,8 +445,10 @@ fun SharedTransitionScope.LoadGifWithCoil(
         .error(android.R.drawable.ic_menu_report_image)
         .build()
 
-    Box(modifier = Modifier
-        .size(70.dp)) {
+    Box(
+        modifier = Modifier
+            .size(70.dp)
+    ) {
 
         val painter = rememberAsyncImagePainter(
             model = imageRequest,
@@ -477,7 +479,8 @@ fun SharedTransitionScope.LoadGifWithCoil(
         Image(
             painter = painter,
             contentDescription = pokemonData.pokemon.name,
-            modifier = Modifier.size(70.dp)
+            modifier = Modifier
+                .size(70.dp)
                 .sharedElement(
                     state = rememberSharedContentState(key = "${pokemonData.pokemon.id}"),
                     animatedVisibilityScope = animatedVisibilityScope!!,
@@ -488,6 +491,8 @@ fun SharedTransitionScope.LoadGifWithCoil(
         )
     }
 }
+
+// PREVIEW ///////////////////////////////////////////////////////////////////////////////////////
 
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Preview(showBackground = true)

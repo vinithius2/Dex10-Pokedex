@@ -81,8 +81,8 @@ class PokemonViewModel(private val repository: PokemonRepository) : ViewModel() 
         _idPokemon = value
     }
 
-    fun cleanPokemon() {
-        _pokemonDetail.value = null
+    private fun cleanPokemon() {
+        _pokemonDetail.postValue(null)
     }
 
     /**
@@ -191,6 +191,7 @@ class PokemonViewModel(private val repository: PokemonRepository) : ViewModel() 
      */
     fun getPokemonDetail() {
         CoroutineScope(Dispatchers.IO).launch {
+            cleanPokemon()
             _pokemonDetailError.postValue(false)
             try {
                 _pokemonDetailLoading.postValue(true)
