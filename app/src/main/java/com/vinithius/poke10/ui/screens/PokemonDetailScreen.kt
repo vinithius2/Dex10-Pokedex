@@ -40,6 +40,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.vinithius.poke10.R
+import com.vinithius.poke10.components.TypeListResponse
 import com.vinithius.poke10.datasource.response.Pokemon
 import com.vinithius.poke10.extension.capitalize
 import com.vinithius.poke10.extension.convertInch
@@ -256,6 +257,7 @@ fun PokemonDetailScreenPreview() {
                             }
                         }
                     }
+                    TypeListResponse(pokemonDetail.types!!)
                 }
             }
         }
@@ -491,6 +493,7 @@ fun SharedTransitionScope.PokemonDetailScreen(
                             }
                         }
                     }
+                    TypeListResponse(pokemonDetail?.types ?: listOf())
                 }
             }
         }

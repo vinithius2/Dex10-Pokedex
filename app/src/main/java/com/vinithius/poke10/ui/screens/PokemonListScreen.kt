@@ -63,6 +63,7 @@ import coil.decode.GifDecoder
 import coil.decode.ImageDecoderDecoder
 import coil.request.ImageRequest
 import com.vinithius.poke10.components.PokeballComponent
+import com.vinithius.poke10.components.TypeListDataBase
 import com.vinithius.poke10.datasource.database.Ability
 import com.vinithius.poke10.datasource.database.PokemonEntity
 import com.vinithius.poke10.datasource.database.PokemonWithDetails
@@ -274,17 +275,7 @@ fun SharedTransitionScope.Holder(
                     Spacer(modifier = Modifier.size(5.dp))
                     StatComponent(pokemonData)
                     Spacer(modifier = Modifier.size(5.dp))
-                    LazyRow(
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        modifier = Modifier.padding(start = 8.dp),
-                    ) {
-                        items(
-                            items = pokemonData.types,
-                            key = { data -> data.id }
-                        ) { type ->
-                            TypeItem(type)
-                        }
-                    }
+                    TypeListDataBase(pokemonData.types)
                 }
                 LoadGifWithCoil(viewModel, pokemonData, animatedVisibilityScope)
                 Column(
@@ -368,54 +359,6 @@ fun StatComponent(pokemonData: PokemonWithDetails) {
                         blurRadius = 1f
                     )
                 )
-            )
-        }
-    }
-}
-
-@Composable
-private fun TypeItem(type: Type) {
-    type.typeName.getDrawableIcoColor()
-    Box(
-        modifier = Modifier
-            .background(
-                color = type.typeName.getDrawableIcoColor(),
-                shape = RoundedCornerShape(100)
-            )
-            .shadow(
-                elevation = 1.dp,
-                shape = RoundedCornerShape(16.dp),
-                clip = false
-            )
-            .padding(horizontal = 5.dp, vertical = 5.dp)
-    ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(5.dp)
-        ) {
-            Image(
-                painter = painterResource(
-                    id = type.typeName.getDrawableIco()
-                ),
-                contentDescription = type.typeName,
-                modifier = Modifier.size(20.dp)
-            )
-            Text(
-                text = type.typeName.capitalize(),
-                color = Color.White,
-                style = TextStyle(
-                    fontWeight = FontWeight.Bold,
-                    fontStyle = androidx.compose.ui.text.font.FontStyle.Normal,
-                    shadow = Shadow(
-                        color = Color.Black,
-                        offset = Offset(
-                            1f,
-                            1f
-                        ),
-                        blurRadius = 0.5f
-                    )
-                ),
-                modifier = Modifier.padding(end = 2.dp)
             )
         }
     }
