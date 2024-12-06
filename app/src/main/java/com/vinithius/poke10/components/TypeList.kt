@@ -22,25 +22,34 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.vinithius.poke10.datasource.response.Type as TypeResponse
-import com.vinithius.poke10.datasource.database.Type as TypeDataBase
 import com.vinithius.poke10.extension.capitalize
 import com.vinithius.poke10.extension.getDrawableIco
 import com.vinithius.poke10.extension.getDrawableIcoColor
+import com.vinithius.poke10.datasource.database.Type as TypeDataBase
+import com.vinithius.poke10.datasource.response.Type as TypeResponse
 
 @Composable
 fun TypeListResponse(
     types: List<TypeResponse>
 ) {
-    LazyRow(
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        modifier = Modifier.padding(start = 8.dp),
-    ) {
-        items(
-            items = types,
-            key = { data -> data.type.name!! }
-        ) { type ->
-            TypeItem(type.type.name ?: String())
+    if (types.isNotEmpty()) {
+        LazyRow(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier.padding(start = 8.dp),
+        ) {
+            items(
+                items = types,
+                key = { data -> data.type.name!! }
+            ) { type ->
+                TypeItem(type.type.name ?: String())
+            }
+        }
+    } else {
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier.padding(start = 8.dp),
+        ) {
+            TypeItemShimmer()
         }
     }
 }
@@ -49,15 +58,24 @@ fun TypeListResponse(
 fun TypeListDataBase(
     types: List<TypeDataBase>
 ) {
-    LazyRow(
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        modifier = Modifier.padding(start = 8.dp),
-    ) {
-        items(
-            items = types,
-            key = { data -> data.id }
-        ) { type ->
-            TypeItem(type.typeName)
+    if (types.isNotEmpty()) {
+        LazyRow(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier.padding(start = 8.dp),
+        ) {
+            items(
+                items = types,
+                key = { data -> data.id }
+            ) { type ->
+                TypeItem(type.typeName)
+            }
+        }
+    } else {
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier.padding(start = 8.dp),
+        ) {
+            TypeItemShimmer()
         }
     }
 }
@@ -90,6 +108,54 @@ private fun TypeItem(typeName: String) {
             )
             Text(
                 text = typeName.capitalize(),
+                color = Color.White,
+                style = TextStyle(
+                    fontWeight = FontWeight.Bold,
+                    fontStyle = androidx.compose.ui.text.font.FontStyle.Normal,
+                    shadow = Shadow(
+                        color = Color.Black,
+                        offset = Offset(
+                            1f,
+                            1f
+                        ),
+                        blurRadius = 0.5f
+                    )
+                ),
+                modifier = Modifier.padding(end = 2.dp)
+            )
+        }
+    }
+}
+
+@Composable
+private fun TypeItemShimmer() {
+    Box(
+        modifier = Modifier
+            .background(
+                color = Color.LightGray,
+                shape = RoundedCornerShape(100)
+            )
+            .shadow(
+                elevation = 1.dp,
+                shape = RoundedCornerShape(16.dp),
+                clip = false
+            )
+            .padding(horizontal = 5.dp, vertical = 5.dp)
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(5.dp)
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(20.dp)
+                    .background(
+                        color = Color.Gray,
+                        shape = RoundedCornerShape(100)
+                    )
+            )
+            Text(
+                text = "Loading",
                 color = Color.White,
                 style = TextStyle(
                     fontWeight = FontWeight.Bold,

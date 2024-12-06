@@ -22,7 +22,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Card
@@ -41,7 +40,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.drawWithContent
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
@@ -73,8 +71,6 @@ import com.vinithius.poke10.datasource.database.Type
 import com.vinithius.poke10.extension.capitalize
 import com.vinithius.poke10.extension.getColorByString
 import com.vinithius.poke10.extension.getDrawableHabitat
-import com.vinithius.poke10.extension.getDrawableIco
-import com.vinithius.poke10.extension.getDrawableIcoColor
 import com.vinithius.poke10.ui.viewmodel.PokemonViewModel
 import org.koin.androidx.compose.getViewModel
 
