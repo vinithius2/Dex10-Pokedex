@@ -55,6 +55,7 @@ import com.vinithius.poke10.extension.capitalize
 import com.vinithius.poke10.extension.convertInch
 import com.vinithius.poke10.extension.convertPounds
 import com.vinithius.poke10.extension.converterIntToDouble
+import com.vinithius.poke10.extension.getColorByString
 import com.vinithius.poke10.extension.getDrawableHabitat
 import com.vinithius.poke10.ui.viewmodel.PokemonViewModel
 import ir.ehsannarmani.compose_charts.RowChart
@@ -65,7 +66,7 @@ import ir.ehsannarmani.compose_charts.models.LabelProperties
 import org.koin.androidx.compose.getViewModel
 
 // PREVIEW ///////////////////////////////////////////////////////////////////////////////////////
-
+/*
 @SuppressLint("DefaultLocale")
 @Preview(showBackground = true)
 @Composable
@@ -277,7 +278,7 @@ fun PokemonDetailScreenPreview() {
         }
     }
 }
-
+*/
 
 // CODE //////////////////////////////////////////////////////////////////////////////////////////
 
@@ -288,6 +289,7 @@ fun SharedTransitionScope.PokemonDetailScreen(
     navController: NavController?,
     pokemonId: Int,
     pokemonName: String,
+    pokemonColor: String,
     animatedVisibilityScope: AnimatedVisibilityScope?,
     viewModel: PokemonViewModel = getViewModel()
 ) {
@@ -365,46 +367,87 @@ fun SharedTransitionScope.PokemonDetailScreen(
                             Column(
                                 horizontalAlignment = Alignment.CenterHorizontally
                             ) {
-                                Image(
-                                    painter = painterResource(id = R.drawable.height),
-                                    contentDescription = "height",
-                                    modifier = Modifier.size(20.dp)
-                                )
-                                Spacer(modifier = Modifier.size(2.dp))
-                                Text(
-                                    text = resultWeight,
-                                    style = TextStyle(
-                                        fontSize = 12.sp,
-                                        fontWeight = FontWeight.Bold,
-                                        fontStyle = androidx.compose.ui.text.font.FontStyle.Normal,
+                                if (pokemonDetail != null) {
+                                    Image(
+                                        painter = painterResource(id = R.drawable.height),
+                                        contentDescription = "height",
+                                        modifier = Modifier.size(20.dp)
                                     )
-                                )
+                                    Spacer(modifier = Modifier.size(2.dp))
+                                    Text(
+                                        text = resultWeight,
+                                        style = TextStyle(
+                                            fontSize = 12.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            fontStyle = androidx.compose.ui.text.font.FontStyle.Normal,
+                                        )
+                                    )
+                                } else {
+                                    Image(
+                                        painter = painterResource(id = R.drawable.height),
+                                        contentDescription = "height",
+                                        modifier = Modifier
+                                            .size(20.dp)
+                                            .shimmer()
+                                    )
+                                    Spacer(modifier = Modifier.size(2.dp))
+                                    Text(
+                                        text = context.getString(R.string.kg_lbs_loading),
+                                        style = TextStyle(
+                                            fontSize = 12.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            fontStyle = androidx.compose.ui.text.font.FontStyle.Normal,
+                                        ),
+                                        modifier = Modifier.shimmer()
+                                    )
+                                }
                             }
                             Column(
                                 horizontalAlignment = Alignment.CenterHorizontally
                             ) {
-                                Image(
-                                    painter = painterResource(id = R.drawable.weight),
-                                    contentDescription = "height",
-                                    modifier = Modifier.size(20.dp)
-                                )
-                                Spacer(modifier = Modifier.size(2.dp))
-                                Text(
-                                    text = resultHeight,
-                                    style = TextStyle(
-                                        fontSize = 12.sp,
-                                        fontWeight = FontWeight.Bold,
-                                        fontStyle = androidx.compose.ui.text.font.FontStyle.Normal,
+                                if (pokemonDetail != null) {
+                                    Image(
+                                        painter = painterResource(id = R.drawable.weight),
+                                        contentDescription = "height",
+                                        modifier = Modifier.size(20.dp)
                                     )
-                                )
+                                    Spacer(modifier = Modifier.size(2.dp))
+                                    Text(
+                                        text = resultHeight,
+                                        style = TextStyle(
+                                            fontSize = 12.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            fontStyle = androidx.compose.ui.text.font.FontStyle.Normal,
+                                        )
+                                    )
+                                } else {
+                                    Image(
+                                        painter = painterResource(id = R.drawable.weight),
+                                        contentDescription = "height",
+                                        modifier = Modifier
+                                            .size(20.dp)
+                                            .shimmer()
+                                    )
+                                    Spacer(modifier = Modifier.size(2.dp))
+                                    Text(
+                                        text = context.getString(R.string.m_inch_loading),
+                                        style = TextStyle(
+                                            fontSize = 12.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            fontStyle = androidx.compose.ui.text.font.FontStyle.Normal,
+                                        ),
+                                        modifier = Modifier.shimmer()
+                                    )
+                                }
                             }
                         }
                         Spacer(modifier = Modifier.size(5.dp))
                         // Generation and Base Experience
                         val generation =
                             pokemonDetail?.specie?.generation?.name?.split("-")?.last()?.uppercase()
-                                ?: "?"
-                        val baseExperience = pokemonDetail?.base_experience.toString()
+                                ?: context.getString(R.string.three_dots)
+                        val baseExperience = pokemonDetail?.base_experience?.toString()
+                            ?: context.getString(R.string.three_dots)
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -415,52 +458,94 @@ fun SharedTransitionScope.PokemonDetailScreen(
                             Column(
                                 horizontalAlignment = Alignment.CenterHorizontally
                             ) {
-                                Row {
-                                    Text(
-                                        text = context.getString(R.string.generation),
-                                        style = TextStyle(
-                                            fontSize = 12.sp,
-                                            fontWeight = FontWeight.Bold,
-                                            fontStyle = androidx.compose.ui.text.font.FontStyle.Normal,
+                                Row(horizontalArrangement = Arrangement.spacedBy(2.dp)) {
+                                    if (pokemonDetail != null) {
+                                        Text(
+                                            text = context.getString(R.string.generation),
+                                            style = TextStyle(
+                                                fontSize = 12.sp,
+                                                fontWeight = FontWeight.Bold,
+                                                fontStyle = androidx.compose.ui.text.font.FontStyle.Normal,
+                                            )
                                         )
-                                    )
-                                    Text(
-                                        text = generation,
-                                        style = TextStyle(
-                                            fontSize = 12.sp,
-                                            fontWeight = FontWeight.Normal,
-                                            fontStyle = androidx.compose.ui.text.font.FontStyle.Normal,
+                                        Text(
+                                            text = generation,
+                                            style = TextStyle(
+                                                fontSize = 12.sp,
+                                                fontWeight = FontWeight.Normal,
+                                                fontStyle = androidx.compose.ui.text.font.FontStyle.Normal,
+                                            )
                                         )
-                                    )
+                                    } else {
+                                        Text(
+                                            text = context.getString(R.string.generation),
+                                            style = TextStyle(
+                                                fontSize = 12.sp,
+                                                fontWeight = FontWeight.Bold,
+                                                fontStyle = androidx.compose.ui.text.font.FontStyle.Normal,
+                                            ),
+                                            modifier = Modifier.shimmer()
+                                        )
+                                        Text(
+                                            text = generation,
+                                            style = TextStyle(
+                                                fontSize = 12.sp,
+                                                fontWeight = FontWeight.Normal,
+                                                fontStyle = androidx.compose.ui.text.font.FontStyle.Normal,
+                                            ),
+                                            modifier = Modifier.shimmer()
+                                        )
+                                    }
                                 }
                             }
                             Column(
                                 horizontalAlignment = Alignment.CenterHorizontally
                             ) {
-                                Row {
-                                    Text(
-                                        text = context.getString(R.string.base_exp),
-                                        style = TextStyle(
-                                            fontSize = 12.sp,
-                                            fontWeight = FontWeight.Bold,
-                                            fontStyle = androidx.compose.ui.text.font.FontStyle.Normal,
+                                Row(horizontalArrangement = Arrangement.spacedBy(2.dp)) {
+                                    if (pokemonDetail != null) {
+                                        Text(
+                                            text = context.getString(R.string.base_exp),
+                                            style = TextStyle(
+                                                fontSize = 12.sp,
+                                                fontWeight = FontWeight.Bold,
+                                                fontStyle = androidx.compose.ui.text.font.FontStyle.Normal,
+                                            )
                                         )
-                                    )
-                                    Text(
-                                        text = baseExperience,
-                                        style = TextStyle(
-                                            fontSize = 12.sp,
-                                            fontWeight = FontWeight.Normal,
-                                            fontStyle = androidx.compose.ui.text.font.FontStyle.Normal,
+                                        Text(
+                                            text = baseExperience,
+                                            style = TextStyle(
+                                                fontSize = 12.sp,
+                                                fontWeight = FontWeight.Normal,
+                                                fontStyle = androidx.compose.ui.text.font.FontStyle.Normal,
+                                            )
                                         )
-                                    )
+                                    } else {
+                                        Text(
+                                            text = context.getString(R.string.base_exp),
+                                            style = TextStyle(
+                                                fontSize = 12.sp,
+                                                fontWeight = FontWeight.Bold,
+                                                fontStyle = androidx.compose.ui.text.font.FontStyle.Normal,
+                                            ),
+                                            modifier = Modifier.shimmer()
+                                        )
+                                        Text(
+                                            text = baseExperience,
+                                            style = TextStyle(
+                                                fontSize = 12.sp,
+                                                fontWeight = FontWeight.Normal,
+                                                fontStyle = androidx.compose.ui.text.font.FontStyle.Normal,
+                                            ),
+                                            modifier = Modifier.shimmer()
+                                        )
+                                    }
                                 }
                             }
                         }
                         Spacer(modifier = Modifier.size(5.dp))
                         // Shape and Base Capture rate
-                        val shape = pokemonDetail?.specie?.shape?.name?.capitalize() ?: "?"
-                        val captureRate = pokemonDetail?.specie?.capture_rate?.toString() ?: "?"
+                        val shape = pokemonDetail?.specie?.shape?.name?.capitalize() ?: context.getString(R.string.three_dots)
+                        val captureRate = pokemonDetail?.specie?.capture_rate?.toString() ?: context.getString(R.string.three_dots)
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -471,45 +556,87 @@ fun SharedTransitionScope.PokemonDetailScreen(
                             Column(
                                 horizontalAlignment = Alignment.CenterHorizontally
                             ) {
-                                Row {
-                                    Text(
-                                        text = context.getString(R.string.shape),
-                                        style = TextStyle(
-                                            fontSize = 12.sp,
-                                            fontWeight = FontWeight.Bold,
-                                            fontStyle = androidx.compose.ui.text.font.FontStyle.Normal,
+                                Row(horizontalArrangement = Arrangement.spacedBy(2.dp)) {
+                                    if (pokemonDetail != null) {
+                                        Text(
+                                            text = context.getString(R.string.shape),
+                                            style = TextStyle(
+                                                fontSize = 12.sp,
+                                                fontWeight = FontWeight.Bold,
+                                                fontStyle = androidx.compose.ui.text.font.FontStyle.Normal,
+                                            )
                                         )
-                                    )
-                                    Text(
-                                        text = shape,
-                                        style = TextStyle(
-                                            fontSize = 12.sp,
-                                            fontWeight = FontWeight.Normal,
-                                            fontStyle = androidx.compose.ui.text.font.FontStyle.Normal,
+                                        Text(
+                                            text = shape,
+                                            style = TextStyle(
+                                                fontSize = 12.sp,
+                                                fontWeight = FontWeight.Normal,
+                                                fontStyle = androidx.compose.ui.text.font.FontStyle.Normal,
+                                            )
                                         )
-                                    )
+                                    } else {
+                                        Text(
+                                            text = context.getString(R.string.shape),
+                                            style = TextStyle(
+                                                fontSize = 12.sp,
+                                                fontWeight = FontWeight.Bold,
+                                                fontStyle = androidx.compose.ui.text.font.FontStyle.Normal,
+                                            ),
+                                            modifier = Modifier.shimmer()
+                                        )
+                                        Text(
+                                            text = shape,
+                                            style = TextStyle(
+                                                fontSize = 12.sp,
+                                                fontWeight = FontWeight.Normal,
+                                                fontStyle = androidx.compose.ui.text.font.FontStyle.Normal,
+                                            ),
+                                            modifier = Modifier.shimmer()
+                                        )
+                                    }
                                 }
                             }
                             Column(
                                 horizontalAlignment = Alignment.CenterHorizontally
                             ) {
-                                Row {
-                                    Text(
-                                        text = context.getString(R.string.capture_rate),
-                                        style = TextStyle(
-                                            fontSize = 12.sp,
-                                            fontWeight = FontWeight.Bold,
-                                            fontStyle = androidx.compose.ui.text.font.FontStyle.Normal,
+                                Row(horizontalArrangement = Arrangement.spacedBy(2.dp)) {
+                                    if (pokemonDetail != null) {
+                                        Text(
+                                            text = context.getString(R.string.capture_rate),
+                                            style = TextStyle(
+                                                fontSize = 12.sp,
+                                                fontWeight = FontWeight.Bold,
+                                                fontStyle = androidx.compose.ui.text.font.FontStyle.Normal,
+                                            )
                                         )
-                                    )
-                                    Text(
-                                        text = captureRate,
-                                        style = TextStyle(
-                                            fontSize = 12.sp,
-                                            fontWeight = FontWeight.Normal,
-                                            fontStyle = androidx.compose.ui.text.font.FontStyle.Normal,
+                                        Text(
+                                            text = captureRate,
+                                            style = TextStyle(
+                                                fontSize = 12.sp,
+                                                fontWeight = FontWeight.Normal,
+                                                fontStyle = androidx.compose.ui.text.font.FontStyle.Normal,
+                                            )
                                         )
-                                    )
+                                    } else {
+                                        Text(
+                                            text = context.getString(R.string.capture_rate),
+                                            style = TextStyle(
+                                                fontSize = 12.sp,
+                                                fontWeight = FontWeight.Bold,
+                                                fontStyle = androidx.compose.ui.text.font.FontStyle.Normal,
+                                            ),
+                                            modifier = Modifier.shimmer()
+                                        )
+                                        Text(
+                                            text = captureRate,
+                                            style = TextStyle(
+                                                fontSize = 12.sp,
+                                                fontWeight = FontWeight.Normal,
+                                                fontStyle = androidx.compose.ui.text.font.FontStyle.Normal,
+                                            ),
+                                            modifier = Modifier.shimmer()
+                                        )
+                                    }
                                 }
                             }
                         }
@@ -523,7 +650,7 @@ fun SharedTransitionScope.PokemonDetailScreen(
             }
         }
         Spacer(modifier = Modifier.size(5.dp))
-        PokemonChart(pokemonDetail)
+        PokemonChart(pokemonDetail, pokemonColor)
     }
 }
 
@@ -532,6 +659,7 @@ private fun PokemonHabitat(
     pokemonDetail: Pokemon?,
     pokemonName: String
 ) {
+    val context = LocalContext.current
     val habitatImg = pokemonDetail?.specie?.habitat?.name?.getDrawableHabitat()
     if (habitatImg != null) {
         Box(
@@ -618,7 +746,7 @@ private fun PokemonHabitat(
                 ),
             )
             Text(
-                text = "Loading...",
+                text = context.getString(R.string.loading_three_dots),
                 modifier = Modifier
                     .padding(end = 12.dp, bottom = 12.dp)
                     .align(Alignment.BottomEnd),
@@ -648,7 +776,7 @@ private fun getStatsLabels(pokemonDetail: Pokemon?): List<String> {
     } ?: listOf()
 }
 
-private fun getStats(pokemonDetail: Pokemon?): List<Bars> {
+private fun getStats(pokemonDetail: Pokemon?, pokemonColor: String): List<Bars> {
     if (pokemonDetail != null) {
         val labels = getStatsLabels(pokemonDetail)
         return pokemonDetail.stats?.mapIndexed { index, stat ->
@@ -658,7 +786,7 @@ private fun getStats(pokemonDetail: Pokemon?): List<Bars> {
                     Bars.Data(
                         label = stat.stat.name?.uppercase(),
                         value = stat.base_stat.toDouble(),
-                        color = SolidColor(Color.Red)
+                        color = SolidColor(pokemonColor.getColorByString())
                     ),
                 ),
             )
@@ -669,7 +797,8 @@ private fun getStats(pokemonDetail: Pokemon?): List<Bars> {
 }
 
 @Composable
-private fun PokemonChart(pokemonDetail: Pokemon?) {
+private fun PokemonChart(pokemonDetail: Pokemon?, pokemonColor: String) {
+    val context = LocalContext.current
     Card(
         modifier = Modifier
             .height(300.dp)
@@ -678,7 +807,7 @@ private fun PokemonChart(pokemonDetail: Pokemon?) {
         shape = RoundedCornerShape(16.dp)
     ) {
         if (pokemonDetail != null) {
-            val stats = getStats(pokemonDetail)
+            val stats = getStats(pokemonDetail, pokemonColor)
             RowChart(
                 modifier = Modifier
                     .fillMaxSize()
@@ -712,10 +841,10 @@ private fun PokemonChart(pokemonDetail: Pokemon?) {
             while (barList.size <= 6) {
                 barList.add(
                     Bars(
-                        label = "Loading...",
+                        label = context.getString(R.string.loading_three_dots),
                         values = listOf(
                             Bars.Data(
-                                label = "Loading...",
+                                label = context.getString(R.string.loading_three_dots),
                                 value = 0.0,
                                 color = SolidColor(Color.Red)
                             ),
@@ -747,12 +876,12 @@ private fun PokemonChart(pokemonDetail: Pokemon?) {
                         textStyle = MaterialTheme.typography.labelSmall,
                         padding = 12.dp,
                         labels = listOf(
-                            "Loading...",
-                            "Loading...",
-                            "Loading...",
-                            "Loading...",
-                            "Loading...",
-                            "Loading...",
+                            context.getString(R.string.loading_three_dots),
+                            context.getString(R.string.loading_three_dots),
+                            context.getString(R.string.loading_three_dots),
+                            context.getString(R.string.loading_three_dots),
+                            context.getString(R.string.loading_three_dots),
+                            context.getString(R.string.loading_three_dots),
                         )
                     ),
                     animationSpec = spring(

@@ -5,7 +5,7 @@
     <string name="reloading">Reloading</string>
     <string name="pikachu_sad">Pikachu Sad</string>
     <string name="pikachu">Pikachu</string>
-    <string name="unknow">Unknow</string>
+    <string name="unknown">Unknown</string>
     <string name="capture_rate">Capture rate:</string>
     <string name="shape">Shape:</string>
     <string name="base_exp">Base Exp:</string>
@@ -34,6 +34,8 @@
     <string name="description">description</string>
     <string name="kg_lbs">"%1$s kg (%2$s lbs)"</string>
     <string name="m_inch">"%1$s m (%2$s″)"</string>
+    <string name="kg_lbs_loading">"… kg (… lbs)"</string>
+    <string name="m_inch_loading">"… m (…″)"</string>
     <string name="toast_baby">This is a baby pokemon!</string>
     <string name="toast_mythical">This is a Mythical pokemon!</string>
     <string name="toast_legendary">This is a legendary pokemon!</string>
@@ -55,4 +57,7 @@
     <string name="clear_search">Clear search</string>
     <string name="search_icon">Search Icon</string>
     <string name="more_options">More options</string>
+    <string name="loading_three_dots">Loading…</string>
+    <string name="three_dots">…</string>
+    <string name="no_pokemons">Hey, no Pokémons!</string>
 </resources>

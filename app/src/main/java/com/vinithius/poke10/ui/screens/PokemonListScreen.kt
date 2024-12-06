@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -60,6 +61,7 @@ import coil.compose.rememberAsyncImagePainter
 import coil.decode.GifDecoder
 import coil.decode.ImageDecoderDecoder
 import coil.request.ImageRequest
+import com.vinithius.poke10.R
 import com.vinithius.poke10.components.PokeballComponent
 import com.vinithius.poke10.components.TypeListDataBase
 import com.vinithius.poke10.datasource.database.Ability
@@ -92,41 +94,53 @@ fun SharedTransitionScope.PokemonListScreen(
     val isFavoriteFilter by viewModel.isFavoriteFilter.observeAsState(false)
 
     Column(
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier.fillMaxSize()
     ) {
         GetFilterBar(pokemonItemsBackup) {
             getFilterBarData(it, viewModel)
         }
-        LazyColumn {
-            items(
-                items = pokemonItems,
-                key = { data -> data.pokemon.id }
-            ) { pokemonData ->
-                var isVisible by remember { mutableStateOf(true) }
-                AnimatedVisibility(
-                    visible = isVisible,
-                    exit = scaleOut(animationSpec = tween(durationMillis = 300))
-                ) {
-                    PokemonListItem(
-                        viewModel = viewModel,
-                        pokemonData = pokemonData,
-                        animatedVisibilityScope = animatedVisibilityScope,
-                        onCallBackFinishAnimation = {
-                            if (isFavoriteFilter) {
-                                isVisible = false
-                                viewModel.removeItemIfNotIsFavorite()
+        if (pokemonItems.isNotEmpty()) {
+            LazyColumn {
+                items(
+                    items = pokemonItems,
+                    key = { data -> data.pokemon.id }
+                ) { pokemonData ->
+                    var isVisible by remember { mutableStateOf(true) }
+                    AnimatedVisibility(
+                        visible = isVisible,
+                        exit = scaleOut(animationSpec = tween(durationMillis = 300))
+                    ) {
+                        PokemonListItem(
+                            viewModel = viewModel,
+                            pokemonData = pokemonData,
+                            animatedVisibilityScope = animatedVisibilityScope,
+                            onCallBackFinishAnimation = {
+                                if (isFavoriteFilter) {
+                                    isVisible = false
+                                    viewModel.removeItemIfNotIsFavorite()
+                                }
+                            },
+                            onClickDetail = { id, name, color ->
+                                viewModel.setIdPokemon(id)
+                                navController.navigate("pokemonDetail/$id/$name/$color")
+                            },
+                            onClickFavorite = { pokemonFavorite ->
+                                viewModel.setFavorite(pokemonFavorite)
                             }
-                        },
-                        onClickDetail = { id, name ->
-                            viewModel.setIdPokemon(id)
-                            navController.navigate("pokemonDetail/$id/$name")
-                        },
-                        onClickFavorite = { pokemonFavorite ->
-                            viewModel.setFavorite(pokemonFavorite)
-                        }
-                    )
+                        )
+                    }
                 }
             }
+        } else {
+            Text(
+                text = context.getString(R.string.no_pokemons),
+                style = TextStyle(
+                    fontSize = 22.sp,
+                    fontWeight = FontWeight.Bold,
+                    fontStyle = androidx.compose.ui.text.font.FontStyle.Normal,
+                ),
+                modifier = Modifier.align(Alignment.CenterHorizontally)
+            )
         }
     }
 }
@@ -145,7 +159,7 @@ fun SharedTransitionScope.PokemonListItem(
     pokemonData: PokemonWithDetails,
     animatedVisibilityScope: AnimatedVisibilityScope?,
     onCallBackFinishAnimation: (() -> Unit)?,
-    onClickDetail: ((Int, String) -> Unit)?,
+    onClickDetail: ((Int, String, String) -> Unit)?,
     onClickFavorite: ((PokemonWithDetails) -> Unit)?
 ) {
     Card(
@@ -155,7 +169,7 @@ fun SharedTransitionScope.PokemonListItem(
             .clickable {
                 pokemonData.pokemon.let {
                     if (onClickDetail != null) {
-                        onClickDetail(it.id, it.name)
+                        onClickDetail(it.id, it.name, it.color)
                     }
                 }
             },
