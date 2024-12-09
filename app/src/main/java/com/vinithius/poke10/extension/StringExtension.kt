@@ -5,25 +5,13 @@ import android.graphics.Bitmap
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import android.net.Uri
-import android.util.Log
-import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.palette.graphics.Palette
 import coil.Coil
-import coil.ImageLoader
-import coil.decode.GifDecoder
-import coil.drawable.MovieDrawable
+import coil.request.ImageRequest
 import com.squareup.picasso.Picasso
 import com.vinithius.poke10.R
 import android.graphics.Color as ParseColor
-import coil.request.ImageRequest
-import coil.request.SuccessResult
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
-import java.io.InputStream
-import java.net.HttpURLConnection
-import java.net.URL
 
 /**
  * Make the first letter Uppercase.
@@ -46,6 +34,7 @@ fun String.getIdIntoUrl(): String? {
     }
     return null
 }
+
 /*
 /**
  * Get if the pokemon is favorite or not, if null, returns false.
@@ -58,7 +47,10 @@ fun String.getIsFavorite(context: Context): Boolean {
     return sharedPref.getBoolean(this, false)
 }
 */
-fun String.getDominantColorPalette(context: Context, onResult: (HashMap<String, Palette.Swatch?>) -> Unit) {
+fun String.getDominantColorPalette(
+    context: Context,
+    onResult: (HashMap<String, Palette.Swatch?>) -> Unit
+) {
     val hashMapColor = hashMapOf<String, Palette.Swatch?>()
 
     // Cria a requisição para carregar a imagem

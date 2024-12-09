@@ -1,6 +1,7 @@
 package com.vinithius.poke10.ui.screens
 
 import android.annotation.SuppressLint
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
@@ -320,6 +321,11 @@ fun SharedTransitionScope.PokemonDetailScreen(
     val context = LocalContext.current
     LaunchedEffect(Unit) {
         viewModel.getPokemonDetail()
+        viewModel.setPokemonColor(pokemonColor)
+    }
+    BackHandler {
+        viewModel.setDetailsScreen(false)
+        navController?.popBackStack()
     }
     val pokemonDetail by viewModel.pokemonDetail.observeAsState()
     val painter = viewModel.getSharedImage(pokemonId.toString())

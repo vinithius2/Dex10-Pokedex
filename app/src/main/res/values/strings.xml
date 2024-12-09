@@ -63,4 +63,5 @@
     <string name="try_again">Try again</string>
     <string name="empty_list">Empty list</string>
     <string name="dont_close_app">Loading… don\'t close app</string>
+    <string name="back">Back</string>
 </resources>

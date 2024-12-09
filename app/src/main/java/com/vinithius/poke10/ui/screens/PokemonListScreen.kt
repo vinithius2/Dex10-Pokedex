@@ -122,6 +122,7 @@ fun SharedTransitionScope.PokemonListScreen(
     val context = LocalContext.current
     LaunchedEffect(Unit) {
         viewModel.getPokemonList(context)
+        //viewModel.setPokemonColor(null)
     }
     val pokemonItems by viewModel.pokemonList.observeAsState(emptyList())
     val pokemonItemsBackup by viewModel.pokemonListBackup.observeAsState(emptyList())
@@ -214,6 +215,7 @@ fun SharedTransitionScope.PokemonListItem(
             .clickable {
                 pokemonData.pokemon.let {
                     if (onClickDetail != null) {
+                        viewModel?.setDetailsScreen(true)
                         onClickDetail(it.id, it.name, it.color)
                     }
                 }
