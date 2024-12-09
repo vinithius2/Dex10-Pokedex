@@ -65,6 +65,7 @@ import com.google.android.play.core.review.ReviewManager
 import com.google.android.play.core.review.ReviewManagerFactory
 import com.vinithius.poke10.R
 import com.vinithius.poke10.extension.getColorByString
+import com.vinithius.poke10.extension.getToolBarColorByString
 import com.vinithius.poke10.ui.screens.PokemonDetailScreen
 import com.vinithius.poke10.ui.screens.PokemonListScreen
 import com.vinithius.poke10.ui.theme.ThemePoke10
@@ -115,22 +116,14 @@ fun MainScreen(
 @Composable
 fun SetupSystemUI(viewModel: PokemonViewModel) {
     val systemUiController = rememberSystemUiController()
-    val isDetailsScreen by viewModel.isDetailsScreen.observeAsState()
+    //val isDetailsScreen by viewModel.isDetailsScreen.observeAsState()
     val color by viewModel.pokemonColor.observeAsState()
 
-    isDetailsScreen?.takeIf { it }?.run {
-        val statusBarColor = color?.getColorByString() ?: MaterialTheme.colorScheme.tertiary
-        systemUiController.setStatusBarColor(
-            color = statusBarColor,
-            darkIcons = statusBarColor.luminance() > 0.8
-        )
-    } ?: run {
-        val statusBarColor = MaterialTheme.colorScheme.tertiary
-        systemUiController.setStatusBarColor(
-            color = statusBarColor,
-            darkIcons = statusBarColor.luminance() > 0.5
-        )
-    }
+    val statusBarColor = color?.getColorByString() ?: MaterialTheme.colorScheme.tertiary
+    systemUiController.setStatusBarColor(
+        color = statusBarColor,
+        darkIcons = statusBarColor.luminance() > 0.5
+    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -145,115 +138,119 @@ private fun GetTopBar(
     val isDetailsScreen by viewModel.isDetailsScreen.observeAsState()
     val color by viewModel.pokemonColor.observeAsState()
 
-    isDetailsScreen?.takeIf { it }?.run {
-        TopAppBar(
-            title = { },
-            navigationIcon = {
-                IconButton(onClick = {
-                    viewModel.setDetailsScreen(false)
-                    navController?.popBackStack()
-                }) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = stringResource(R.string.back)
-                    )
-                }
-            },
-            modifier = Modifier.windowInsetsPadding(WindowInsets.statusBars),
-            colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                containerColor = color?.getColorByString() ?: MaterialTheme.colorScheme.primary,
-                titleContentColor = MaterialTheme.colorScheme.onPrimary,
-                actionIconContentColor = MaterialTheme.colorScheme.onPrimary,
-                scrolledContainerColor = color?.getColorByString() ?: MaterialTheme.colorScheme.primary,
-                navigationIconContentColor = MaterialTheme.colorScheme.onPrimary
-            ),
-            actions = {
-                AppMenuPageDetail(
-                    context,
-                    viewModel
-                )
-            }
-        )
-    } ?: run {
-        // Page List Pokemon
-        TopAppBar(
-            title = {
-                if (isSearchActive) {
-                    TextField(
-                        value = searchQuery,
-                        onValueChange = {
-                            searchQuery = it
-                            viewModel.getPokemonSearch(searchQuery)
-                        },
-                        placeholder = {
-                            Text(
-                                text = "${stringResource(R.string.search)}...",
-                                color = MaterialTheme.colorScheme.onSecondary
-                            )
-                        },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(bottom = 4.dp, top = 4.dp)
-                            .clip(RoundedCornerShape(40.dp)),
-                        singleLine = true,
-                        leadingIcon = {
-                            Icon(
-                                imageVector = Icons.Default.Search,
-                                contentDescription = stringResource(id = R.string.search_icon),
-                                tint = MaterialTheme.colorScheme.onSecondary
-                            )
-                        },
-                        trailingIcon = {
-                            IconButton(onClick = {
-                                searchQuery = String()
-                                viewModel.getPokemonSearch(searchQuery)
-                                isSearchActive = false
-                            }) {
-                                Icon(
-                                    imageVector = Icons.Default.Clear,
-                                    contentDescription = stringResource(id = R.string.clear_search),
-                                    tint = MaterialTheme.colorScheme.onSecondary
-                                )
-                            }
-                        },
-                        colors = TextFieldDefaults.colors(
-                            focusedTextColor = MaterialTheme.colorScheme.onSecondary,
-                            unfocusedIndicatorColor = Color.Transparent,
-                            focusedIndicatorColor = Color.Transparent,
-                            disabledIndicatorColor = Color.Transparent
-                        ),
-                    )
-                } else {
-                    Image(
-                        painter = painterResource(id = R.drawable.pokemon_logo_small),
-                        contentDescription = stringResource(id = R.string.app_name),
-                        modifier = Modifier.size(40.dp)
-                    )
-                }
-            },
-            modifier = Modifier.windowInsetsPadding(WindowInsets.statusBars),
-            colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                containerColor = MaterialTheme.colorScheme.primary,
-                titleContentColor = MaterialTheme.colorScheme.onPrimary,
-                actionIconContentColor = MaterialTheme.colorScheme.onPrimary,
-                scrolledContainerColor = MaterialTheme.colorScheme.primary,
-                navigationIconContentColor = MaterialTheme.colorScheme.onPrimary
-            ),
-            actions = {
-                if (isSearchActive.not()) {
-                    IconButton(onClick = { isSearchActive = isSearchActive.not() }) {
+    if (isDetailsScreen != null) {
+        isDetailsScreen?.takeIf { it }?.run {
+            TopAppBar(
+                title = { },
+                navigationIcon = {
+                    IconButton(onClick = {
+                        viewModel.setDetailsScreen(false)
+                        navController?.popBackStack()
+                    }) {
                         Icon(
-                            imageVector = Icons.Default.Search,
-                            contentDescription = stringResource(R.string.search)
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = stringResource(R.string.back)
                         )
                     }
+                },
+                modifier = Modifier.windowInsetsPadding(WindowInsets.statusBars),
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                    containerColor = color?.getToolBarColorByString()
+                        ?: MaterialTheme.colorScheme.primary,
+                    titleContentColor = MaterialTheme.colorScheme.onPrimary,
+                    actionIconContentColor = MaterialTheme.colorScheme.onPrimary,
+                    scrolledContainerColor = color?.getToolBarColorByString()
+                        ?: MaterialTheme.colorScheme.primary,
+                    navigationIconContentColor = MaterialTheme.colorScheme.onPrimary
+                ),
+                actions = {
+                    AppMenuPageDetail(
+                        context,
+                        viewModel
+                    )
                 }
-                AppMenuPageList(
-                    context,
-                    viewModel
-                )
-            }
-        )
+            )
+        } ?: run {
+            // Page List Pokemon
+            TopAppBar(
+                title = {
+                    if (isSearchActive) {
+                        TextField(
+                            value = searchQuery,
+                            onValueChange = {
+                                searchQuery = it
+                                viewModel.getPokemonSearch(searchQuery)
+                            },
+                            placeholder = {
+                                Text(
+                                    text = "${stringResource(R.string.search)}...",
+                                    color = MaterialTheme.colorScheme.onSecondary
+                                )
+                            },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(bottom = 4.dp, top = 4.dp)
+                                .clip(RoundedCornerShape(40.dp)),
+                            singleLine = true,
+                            leadingIcon = {
+                                Icon(
+                                    imageVector = Icons.Default.Search,
+                                    contentDescription = stringResource(id = R.string.search_icon),
+                                    tint = MaterialTheme.colorScheme.onSecondary
+                                )
+                            },
+                            trailingIcon = {
+                                IconButton(onClick = {
+                                    searchQuery = String()
+                                    viewModel.getPokemonSearch(searchQuery)
+                                    isSearchActive = false
+                                }) {
+                                    Icon(
+                                        imageVector = Icons.Default.Clear,
+                                        contentDescription = stringResource(id = R.string.clear_search),
+                                        tint = MaterialTheme.colorScheme.onSecondary
+                                    )
+                                }
+                            },
+                            colors = TextFieldDefaults.colors(
+                                focusedTextColor = MaterialTheme.colorScheme.onSecondary,
+                                unfocusedIndicatorColor = Color.Transparent,
+                                focusedIndicatorColor = Color.Transparent,
+                                disabledIndicatorColor = Color.Transparent
+                            ),
+                        )
+                    } else {
+                        Image(
+                            painter = painterResource(id = R.drawable.pokemon_logo_small),
+                            contentDescription = stringResource(id = R.string.app_name),
+                            modifier = Modifier.size(40.dp)
+                        )
+                    }
+                },
+                modifier = Modifier.windowInsetsPadding(WindowInsets.statusBars),
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    titleContentColor = MaterialTheme.colorScheme.onPrimary,
+                    actionIconContentColor = MaterialTheme.colorScheme.onPrimary,
+                    scrolledContainerColor = MaterialTheme.colorScheme.primary,
+                    navigationIconContentColor = MaterialTheme.colorScheme.onPrimary
+                ),
+                actions = {
+                    if (isSearchActive.not()) {
+                        IconButton(onClick = { isSearchActive = isSearchActive.not() }) {
+                            Icon(
+                                imageVector = Icons.Default.Search,
+                                contentDescription = stringResource(R.string.search)
+                            )
+                        }
+                    }
+                    AppMenuPageList(
+                        context,
+                        viewModel
+                    )
+                }
+            )
+        }
     }
 }
 

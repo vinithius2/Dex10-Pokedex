@@ -165,7 +165,7 @@ fun String.getDrawableIcoColor(): Color {
     return drawableMap[this] ?: Color(0xFF75525C)
 }
 
-fun String.getColorByString(): Color {
+fun String.getParseColorByString(): Color {
     return try {
         val colorMap = mapOf(
             "black" to ParseColor.BLACK,
@@ -182,5 +182,45 @@ fun String.getColorByString(): Color {
         colorMap[this]?.let { Color(it) } ?: Color(ParseColor.BLACK)
     } catch (e: IllegalArgumentException) {
         Color(ParseColor.BLACK)
+    }
+}
+
+fun String.getToolBarColorByString(): Color {
+    return try {
+        val colorMap = mapOf(
+            "black" to Color(ParseColor.BLACK),
+            "blue" to Color(ParseColor.BLUE),
+            "brown" to Color(0xFF8B4513),
+            "gray" to Color(ParseColor.GRAY),
+            "green" to Color(ParseColor.GREEN),
+            "pink" to Color(0xFFFFC0CB),
+            "purple" to Color(0xFF800080),
+            "red" to Color(ParseColor.RED),
+            "white" to Color(0xFFB0B0B0),
+            "yellow" to Color(ParseColor.YELLOW)
+        )
+        colorMap[this] ?: Color.Black
+    } catch (e: IllegalArgumentException) {
+        Color.Black
+    }
+}
+
+fun String.getColorByString(): Color {
+    return try {
+        val colorMap = mapOf(
+            "black" to Color.Black,
+            "blue" to Color(0xFF00008C),
+            "brown" to Color(0xFF8B3D05),
+            "gray" to Color(0xFF565656),
+            "green" to Color(0xFF00C400),
+            "pink" to Color(0xFFE2A5B0),
+            "purple" to Color(0xFF650067),
+            "red" to Color(0xFF770000),
+            "white" to Color(0xFF8C8C8C),
+            "yellow" to Color(0xFF817624)
+        )
+        colorMap[this] ?: Color.Black
+    } catch (e: IllegalArgumentException) {
+        Color.Black
     }
 }

@@ -76,7 +76,7 @@ import com.vinithius.poke10.datasource.database.Stat
 import com.vinithius.poke10.datasource.database.StatType
 import com.vinithius.poke10.datasource.database.Type
 import com.vinithius.poke10.extension.capitalize
-import com.vinithius.poke10.extension.getColorByString
+import com.vinithius.poke10.extension.getParseColorByString
 import com.vinithius.poke10.extension.getDrawableHabitat
 import com.vinithius.poke10.ui.viewmodel.PokemonViewModel
 import com.vinithius.poke10.ui.viewmodel.RequestStateList
@@ -122,7 +122,7 @@ fun SharedTransitionScope.PokemonListScreen(
     val context = LocalContext.current
     LaunchedEffect(Unit) {
         viewModel.getPokemonList(context)
-        //viewModel.setPokemonColor(null)
+        viewModel.setPokemonColor(null)
     }
     val pokemonItems by viewModel.pokemonList.observeAsState(emptyList())
     val pokemonItemsBackup by viewModel.pokemonListBackup.observeAsState(emptyList())
@@ -275,7 +275,7 @@ fun SharedTransitionScope.Holder(
                     val strokeWidth = 8f
                     val yPosition = (size.height - strokeWidth) + 4
                     drawLine(
-                        color = pokemonData.pokemon.color.getColorByString(),
+                        color = pokemonData.pokemon.color.getParseColorByString(),
                         start = Offset(0f, yPosition),
                         end = Offset(size.width, yPosition),
                         strokeWidth = strokeWidth
