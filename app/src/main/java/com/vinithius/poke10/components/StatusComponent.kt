@@ -1,8 +1,8 @@
 package com.vinithius.poke10.components
 
 import android.annotation.SuppressLint
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -19,17 +19,20 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.Card
-import androidx.compose.material.CircularProgressIndicator
-import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
@@ -46,6 +49,7 @@ import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -58,6 +62,8 @@ import com.airbnb.lottie.compose.rememberLottieComposition
 import com.valentinilk.shimmer.shimmer
 import com.vinithius.poke10.R
 import com.vinithius.poke10.extension.capitalize
+
+// Page list Loading
 
 @Composable
 fun LoadingPokemonList() {
@@ -74,7 +80,7 @@ fun LoadingPokemonList() {
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(8.dp),
-                    elevation = 5.dp,
+                    elevation = CardDefaults.elevatedCardElevation(5.dp),
                     shape = RoundedCornerShape(16.dp)
                 ) {
                     HolderPokemonList()
@@ -108,6 +114,7 @@ fun GetFilterLoading() {
                 "last" -> {
                     ViewHolderLast()
                 }
+
                 else -> {
                     ViewHolder(
                         label = filter,
@@ -140,7 +147,6 @@ fun ViewHolderFirst() {
 fun ViewHolder(
     label: String,
     filterMap: SnapshotStateMap<String, Boolean>?,
-    onClick: (label: String) -> Unit = {}
 ) {
     BadgedBox(
         badge = {
@@ -150,7 +156,7 @@ fun ViewHolder(
                     containerColor = Color.Red,
                     contentColor = Color.White
                 ) {
-                    androidx.compose.material3.Text(count.toString())
+                    Text(count.toString())
                 }
             }
         }
@@ -159,7 +165,6 @@ fun ViewHolder(
             modifier = Modifier
                 .clip(shape = RoundedCornerShape(8.dp))
                 .background(MaterialTheme.colorScheme.secondary)
-                .clickable { onClick.invoke(label) }
                 .padding(horizontal = 8.dp, vertical = 4.dp)
                 .shimmer(),
         ) {
@@ -167,7 +172,7 @@ fun ViewHolder(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                androidx.compose.material3.Text(
+                Text(
                     text = label.capitalize(),
                     color = MaterialTheme.colorScheme.onSecondary,
                     modifier = Modifier.padding(4.dp),
@@ -188,9 +193,7 @@ fun ViewHolder(
 }
 
 @Composable
-fun ViewHolderLast(
-    loading: Boolean = false,
-) {
+fun ViewHolderLast() {
     Box(
         modifier = Modifier
             .clip(shape = RoundedCornerShape(8.dp))
@@ -285,7 +288,7 @@ fun HolderPokemonList() {
                     )
                     Spacer(modifier = Modifier.size(5.dp))
                     Text(
-                        text = context.getString(R.string.loading),
+                        text = stringResource(R.string.loading),
                         modifier = Modifier
                             .padding(start = 8.dp)
                             .shimmer(),
@@ -414,6 +417,49 @@ private fun LoadingPokemonListPreview() {
     LoadingPokemonList()
 }
 
+// Empty list
+
+@Composable
+fun EmptyListStatus() {
+    Column(
+        modifier = Modifier.fillMaxSize()
+    ) {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Image(
+                    painter = painterResource(id = R.drawable.pokeball_03_gray),
+                    contentDescription = stringResource(R.string.empty_list),
+                    modifier = Modifier
+                        .size(100.dp),
+                    alignment = Alignment.Center
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+                Text(
+                    text = stringResource(R.string.no_pokemons),
+                    style = TextStyle(
+                        fontSize = 22.sp,
+                        fontWeight = FontWeight.Bold,
+                        fontStyle = androidx.compose.ui.text.font.FontStyle.Normal,
+                    )
+                )
+            }
+        }
+    }
+}
+
+@Preview
+@Composable
+private fun EmptyListStatusPreview() {
+    EmptyListStatus()
+}
+
+// Loading Default
+
 @Composable
 fun LoadingPokeball() {
     Column(
@@ -435,7 +481,7 @@ fun LoadingPokeball() {
                 )
                 Spacer(modifier = Modifier.height(12.dp))
                 Text(
-                    text = context.getString(R.string.loading),
+                    text = stringResource(R.string.loading),
                     style = TextStyle(
                         fontSize = 22.sp,
                         fontWeight = FontWeight.Bold,
@@ -498,7 +544,7 @@ fun LoadingProgress(
                 )
                 Spacer(modifier = Modifier.height(12.dp))
                 Text(
-                    text = context.getString(R.string.dont_close_app),
+                    text = stringResource(R.string.dont_close_app),
                     style = TextStyle(
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Light,
@@ -514,4 +560,77 @@ fun LoadingProgress(
 @Composable
 private fun LoadingProgressPreview() {
     LoadingProgress(0.7f)
+}
+
+// Error
+
+@Composable
+fun ErrorStatus(
+    msg: String,
+    e: Exception? = null,
+    callBackClick: () -> Unit = {}
+) {
+    val context = LocalContext.current
+    val composition by rememberLottieComposition(
+        LottieCompositionSpec.Asset("icon_error_animation.json")
+    )
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            LottieAnimation(
+                composition = composition,
+                modifier = Modifier.size(180.dp)
+            )
+            Spacer(modifier = Modifier.height(12.dp))
+            Text(
+                text = msg,
+                style = TextStyle(
+                    fontSize = 22.sp,
+                    fontWeight = FontWeight.Bold,
+                    fontStyle = androidx.compose.ui.text.font.FontStyle.Normal,
+                )
+            )
+            Spacer(modifier = Modifier.height(12.dp))
+            e?.message?.run {
+                Text(
+                    text = this,
+                    style = TextStyle(
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Light,
+                        fontStyle = androidx.compose.ui.text.font.FontStyle.Normal,
+                    )
+                )
+            }
+            Spacer(modifier = Modifier.height(12.dp))
+            ElevatedButton(
+                onClick = { callBackClick.invoke() },
+                modifier = Modifier.padding(16.dp),
+                colors = ButtonDefaults.elevatedButtonColors(
+                    containerColor = Color.Red,
+                    contentColor = Color.White
+                )
+            ) {
+                Text(text = stringResource(R.string.try_again))
+            }
+        }
+    }
+}
+
+@Preview
+@Composable
+private fun ErrorStatusPreview() {
+    val context = LocalContext.current
+    val exception = try {
+        throw Exception("Algo deu errado!")
+    } catch (e: Exception) {
+        e
+    }
+    ErrorStatus(
+        stringResource(R.string.is_general_error),
+        exception
+    )
 }

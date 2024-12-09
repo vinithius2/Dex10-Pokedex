@@ -2,6 +2,7 @@ package com.vinithius.poke10.datasource.repository
 
 import android.content.Context
 import android.util.Log
+import com.google.firebase.FirebaseNetworkException
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.DatabaseReference
@@ -43,11 +44,13 @@ class PokemonRepository(
         callBackLoadingFirebaseCounter: ((progress: Float) -> Unit),
         callBackLoadingFirebase: (() -> Unit),
         callBackLoading: (() -> Unit),
+        callBackError: ((e: Exception) -> Unit),
     ): List<PokemonWithDetails>? {
         insertPokemonFromFirebaseToLocal(
             context,
             callBackLoadingFirebase,
-            callBackLoadingFirebaseCounter
+            callBackLoadingFirebaseCounter,
+            callBackError
         )
         callBackLoading.invoke()
         val pokemonList = localDataSource.getPokemonListWithDetails()
@@ -61,23 +64,28 @@ class PokemonRepository(
         context: Context,
         callBackLoadingFirebase: (() -> Unit),
         callBackLoadingFirebaseCounter: ((progress: Float) -> Unit),
+        callBackError: ((e: Exception) -> Unit),
     ) {
-        val countLocal = getCountPokemonEntities()
-        // TODO: Compare the count from firebase and database for get the difference
-        if (countLocal == 0) {
-            callBackLoadingFirebase.invoke()
-            val pokemonFirebaseList = getFirebasePokemonList()
-            val maxSize = pokemonFirebaseList.size
-            var count = 0
-            pokemonFirebaseList.forEach { pokemon ->
-                val isFavorite = getFavorite(pokemon.name, context)
-                pokemon.favorite = isFavorite
-                insertPokemonCard(pokemon)
-                count += 1
-                val progress = count.toFloat() / maxSize.toFloat()
-                callBackLoadingFirebaseCounter.invoke(progress)
-                Log.i("Insert pokemon", "${pokemon.id} ${pokemon.name}")
+        try {
+            val countLocal = getCountPokemonEntities()
+            // TODO: Compare the count from firebase and database for get the difference
+            if (countLocal == 0) {
+                callBackLoadingFirebase.invoke()
+                val pokemonFirebaseList = getFirebasePokemonList(callBackError)
+                val maxSize = pokemonFirebaseList.size
+                var count = 0
+                pokemonFirebaseList.forEach { pokemon ->
+                    val isFavorite = getFavorite(pokemon.name, context)
+                    pokemon.favorite = isFavorite
+                    insertPokemonCard(pokemon)
+                    count += 1
+                    val progress = count.toFloat() / maxSize.toFloat()
+                    callBackLoadingFirebaseCounter.invoke(progress)
+                    Log.i("Insert pokemon", "${pokemon.id} ${pokemon.name}")
+                }
             }
+        } catch (e: Exception) {
+            callBackError.invoke(e)
         }
     }
 
@@ -230,27 +238,34 @@ class PokemonRepository(
     }
 
     // REMOTE - Firebase
-    private suspend fun getFirebasePokemonList(): List<Pokemon> = withContext(Dispatchers.IO) {
+    private suspend fun getFirebasePokemonList(
+        callBackError: ((e: Exception) -> Unit),
+    ): List<Pokemon> = withContext(Dispatchers.IO) {
         val pokemonList = mutableListOf<Pokemon>()
         val database: DatabaseReference = FirebaseDatabase.getInstance().getReference("pokemons")
-
-        // Use um Continuation para aguardar o resultado assíncrono
-        suspendCancellableCoroutine { continuation ->
-            database.addValueEventListener(object : ValueEventListener {
-                override fun onDataChange(dataSnapshot: DataSnapshot) {
-                    for (pokemonSnapshot in dataSnapshot.children) {
-                        val pokemonData = (pokemonSnapshot.value as HashMap<*, *>).toPokemon()
-                        pokemonList.add(pokemonData)
-                        Log.i("Firebase pokemon", pokemonData.toString())
+        try {
+            suspendCancellableCoroutine { continuation ->
+                database.addValueEventListener(object : ValueEventListener {
+                    override fun onDataChange(dataSnapshot: DataSnapshot) {
+                        for (pokemonSnapshot in dataSnapshot.children) {
+                            val pokemonData = (pokemonSnapshot.value as HashMap<*, *>).toPokemon()
+                            pokemonList.add(pokemonData)
+                            Log.i("Firebase pokemon", pokemonData.toString())
+                        }
+                        continuation.resume(pokemonList)
                     }
-                    continuation.resume(pokemonList)
-                }
 
-                override fun onCancelled(databaseError: DatabaseError) {
-                    Log.w("FirebasePokemon", "Erro ao ler os dados", databaseError.toException())
-                    continuation.resumeWith(Result.failure(databaseError.toException()))
-                }
-            })
+                    override fun onCancelled(databaseError: DatabaseError) {
+                        callBackError.invoke(databaseError.toException())
+                        Log.w("FirebasePokemon", "Erro ao ler os dados", databaseError.toException())
+                        continuation.resumeWith(Result.failure(databaseError.toException()))
+                    }
+                })
+            }
+        } catch (e: FirebaseNetworkException) {
+            throw e
+        } catch (e: Exception) {
+            throw e
         }
     }
 }

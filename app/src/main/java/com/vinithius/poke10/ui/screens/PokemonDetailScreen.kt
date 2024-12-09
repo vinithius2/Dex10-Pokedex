@@ -105,7 +105,7 @@ fun PokemonDetailScreenPreview() {
                 // weight and height
                 val weightKl = String.format("%.1f", pokemonDetail.weight?.converterIntToDouble())
                 val weightLbs = String.format("%.1f", pokemonDetail.weight?.convertPounds())
-                val resultWeight = context.getString(R.string.kg_lbs, weightKl, weightLbs)
+                val resultWeight = stringResource(R.string.kg_lbs, weightKl, weightLbs)
                 val heightM = String.format("%.1f", pokemonDetail.height?.converterIntToDouble())
                 val heightInc = String.format("%.2f", pokemonDetail.height?.convertInch())
                 val resultHeight = context.getString(R.string.m_inch, heightM, heightInc)

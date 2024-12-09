@@ -49,6 +49,7 @@ import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -61,11 +62,9 @@ import coil.compose.rememberAsyncImagePainter
 import coil.decode.GifDecoder
 import coil.decode.ImageDecoderDecoder
 import coil.request.ImageRequest
-import com.airbnb.lottie.compose.LottieAnimation
-import com.airbnb.lottie.compose.LottieCompositionSpec
-import com.airbnb.lottie.compose.rememberLottieComposition
 import com.vinithius.poke10.R
-import com.vinithius.poke10.components.LoadingPokeball
+import com.vinithius.poke10.components.EmptyListStatus
+import com.vinithius.poke10.components.ErrorStatus
 import com.vinithius.poke10.components.LoadingPokemonList
 import com.vinithius.poke10.components.LoadingProgress
 import com.vinithius.poke10.components.PokeballComponent
@@ -177,36 +176,14 @@ fun SharedTransitionScope.PokemonListScreen(
                         }
                     }
                 } else {
-                    Text(
-                        text = context.getString(R.string.no_pokemons),
-                        style = TextStyle(
-                            fontSize = 22.sp,
-                            fontWeight = FontWeight.Bold,
-                            fontStyle = androidx.compose.ui.text.font.FontStyle.Normal,
-                        ),
-                        modifier = Modifier.align(Alignment.CenterHorizontally)
-                    )
+                    EmptyListStatus()
                 }
             },
             error = {
-                val composition by rememberLottieComposition(LottieCompositionSpec.Asset("icon_error_animation.json"))
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
+                ErrorStatus(
+                    stringResource(R.string.is_general_error),
                 ) {
-                    LottieAnimation(
-                        composition = composition,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                    Text(
-                        text = context.getString(R.string.is_general_error),
-                        style = TextStyle(
-                            fontSize = 22.sp,
-                            fontWeight = FontWeight.Bold,
-                            fontStyle = androidx.compose.ui.text.font.FontStyle.Normal,
-                        ),
-                        modifier = Modifier.align(Alignment.Center)
-                    )
+                    viewModel.getPokemonList(context)
                 }
             }
         )

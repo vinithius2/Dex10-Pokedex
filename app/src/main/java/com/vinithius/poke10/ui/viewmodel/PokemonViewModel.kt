@@ -113,6 +113,9 @@ class PokemonViewModel(private val repository: PokemonRepository) : ViewModel() 
                     },
                     callBackLoading = {
                         _stateList.postValue(RequestStateList.Loading)
+                    },
+                    callBackError = { e ->
+                        _stateList.postValue(RequestStateList.Error(e))
                     }
                 ) ?: emptyList()
                 _pokemonListBackup.postValue(result)
