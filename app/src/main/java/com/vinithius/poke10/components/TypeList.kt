@@ -128,7 +128,7 @@ private fun TypeItem(typeName: String) {
 }
 
 @Composable
-private fun TypeItemShimmer() {
+fun TypeItemShimmer() {
     Box(
         modifier = Modifier
             .background(

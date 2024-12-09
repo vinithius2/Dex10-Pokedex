@@ -16,6 +16,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.valentinilk.shimmer.shimmer
 import com.vinithius.poke10.R
 import kotlinx.coroutines.delay
 
@@ -29,6 +30,7 @@ fun PokeballComponent(
         R.drawable.pokeball_02_gray,
         R.drawable.pokeball_03_gray
     ),
+    isShimmer: Boolean = false,
     onCallBackFinishAnimation: () -> Unit = {},
     onCallBack: () -> Unit = {},
 ) {
@@ -50,19 +52,34 @@ fun PokeballComponent(
             }
         }
     }
-
-    Image(
-        painter = painterResource(id = frameResources[currentFrame]),
-        contentDescription = "Pokeball animation",
-        modifier = Modifier
-            .clickable {
-                isForward = isForward.not()
-                isPlaying = true
-                onCallBack.invoke()
-            }
-            .size(30.dp)
-            .clip(CircleShape)
-    )
+    if (isShimmer) {
+        Image(
+            painter = painterResource(id = frameResources[currentFrame]),
+            contentDescription = "Pokeball animation",
+            modifier = Modifier
+                .clickable {
+                    isForward = isForward.not()
+                    isPlaying = true
+                    onCallBack.invoke()
+                }
+                .size(30.dp)
+                .clip(CircleShape)
+                .shimmer()
+        )
+    } else {
+        Image(
+            painter = painterResource(id = frameResources[currentFrame]),
+            contentDescription = "Pokeball animation",
+            modifier = Modifier
+                .clickable {
+                    isForward = isForward.not()
+                    isPlaying = true
+                    onCallBack.invoke()
+                }
+                .size(30.dp)
+                .clip(CircleShape)
+        )
+    }
 }
 
 @Preview(showBackground = true)

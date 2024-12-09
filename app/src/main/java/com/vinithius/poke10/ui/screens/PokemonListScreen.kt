@@ -61,7 +61,13 @@ import coil.compose.rememberAsyncImagePainter
 import coil.decode.GifDecoder
 import coil.decode.ImageDecoderDecoder
 import coil.request.ImageRequest
+import com.airbnb.lottie.compose.LottieAnimation
+import com.airbnb.lottie.compose.LottieCompositionSpec
+import com.airbnb.lottie.compose.rememberLottieComposition
 import com.vinithius.poke10.R
+import com.vinithius.poke10.components.LoadingPokeball
+import com.vinithius.poke10.components.LoadingPokemonList
+import com.vinithius.poke10.components.LoadingProgress
 import com.vinithius.poke10.components.PokeballComponent
 import com.vinithius.poke10.components.TypeListDataBase
 import com.vinithius.poke10.datasource.database.Ability
@@ -74,9 +80,38 @@ import com.vinithius.poke10.extension.capitalize
 import com.vinithius.poke10.extension.getColorByString
 import com.vinithius.poke10.extension.getDrawableHabitat
 import com.vinithius.poke10.ui.viewmodel.PokemonViewModel
+import com.vinithius.poke10.ui.viewmodel.RequestStateList
 import org.koin.androidx.compose.getViewModel
 
 const val URL_IMAGE = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/"
+
+@Composable
+private fun StateRequest(
+    viewModel: PokemonViewModel,
+    loadingFirebase: @Composable () -> Unit,
+    loading: @Composable () -> Unit,
+    success: @Composable () -> Unit,
+    error: @Composable () -> Unit,
+) {
+    val requestState by viewModel.stateList.observeAsState(RequestStateList.Loading)
+    when (requestState) {
+        is RequestStateList.LoadingFirebase -> {
+            loadingFirebase.invoke()
+        }
+
+        is RequestStateList.Loading -> {
+            loading.invoke()
+        }
+
+        is RequestStateList.Success -> {
+            success.invoke()
+        }
+
+        is RequestStateList.Error -> {
+            error.invoke()
+        }
+    }
+}
 
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
@@ -96,52 +131,85 @@ fun SharedTransitionScope.PokemonListScreen(
     Column(
         modifier = Modifier.fillMaxSize()
     ) {
-        GetFilterBar(pokemonItemsBackup) {
-            getFilterBarData(it, viewModel)
-        }
-        if (pokemonItems.isNotEmpty()) {
-            LazyColumn {
-                items(
-                    items = pokemonItems,
-                    key = { data -> data.pokemon.id }
-                ) { pokemonData ->
-                    var isVisible by remember { mutableStateOf(true) }
-                    AnimatedVisibility(
-                        visible = isVisible,
-                        exit = scaleOut(animationSpec = tween(durationMillis = 300))
-                    ) {
-                        PokemonListItem(
-                            viewModel = viewModel,
-                            pokemonData = pokemonData,
-                            animatedVisibilityScope = animatedVisibilityScope,
-                            onCallBackFinishAnimation = {
-                                if (isFavoriteFilter) {
-                                    isVisible = false
-                                    viewModel.removeItemIfNotIsFavorite()
-                                }
-                            },
-                            onClickDetail = { id, name, color ->
-                                viewModel.setIdPokemon(id)
-                                navController.navigate("pokemonDetail/$id/$name/$color")
-                            },
-                            onClickFavorite = { pokemonFavorite ->
-                                viewModel.setFavorite(pokemonFavorite)
+        StateRequest(
+            viewModel = viewModel,
+            loadingFirebase = {
+                val progress by viewModel.loadingPercent.observeAsState(0f)
+                LoadingProgress(progress)
+            },
+            loading = {
+                LoadingPokemonList()
+            },
+            success = {
+                GetFilterBar(pokemonItemsBackup) {
+                    getFilterBarData(it, viewModel)
+                }
+                if (pokemonItems.isNotEmpty()) {
+                    LazyColumn {
+                        items(
+                            items = pokemonItems,
+                            key = { data -> data.pokemon.id }
+                        ) { pokemonData ->
+                            var isVisible by remember { mutableStateOf(true) }
+                            AnimatedVisibility(
+                                visible = isVisible,
+                                exit = scaleOut(animationSpec = tween(durationMillis = 300))
+                            ) {
+                                PokemonListItem(
+                                    viewModel = viewModel,
+                                    pokemonData = pokemonData,
+                                    animatedVisibilityScope = animatedVisibilityScope,
+                                    onCallBackFinishAnimation = {
+                                        if (isFavoriteFilter) {
+                                            isVisible = false
+                                            viewModel.removeItemIfNotIsFavorite()
+                                        }
+                                    },
+                                    onClickDetail = { id, name, color ->
+                                        viewModel.setIdPokemon(id)
+                                        navController.navigate("pokemonDetail/$id/$name/$color")
+                                    },
+                                    onClickFavorite = { pokemonFavorite ->
+                                        viewModel.setFavorite(pokemonFavorite)
+                                    }
+                                )
                             }
-                        )
+                        }
                     }
+                } else {
+                    Text(
+                        text = context.getString(R.string.no_pokemons),
+                        style = TextStyle(
+                            fontSize = 22.sp,
+                            fontWeight = FontWeight.Bold,
+                            fontStyle = androidx.compose.ui.text.font.FontStyle.Normal,
+                        ),
+                        modifier = Modifier.align(Alignment.CenterHorizontally)
+                    )
+                }
+            },
+            error = {
+                val composition by rememberLottieComposition(LottieCompositionSpec.Asset("icon_error_animation.json"))
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    LottieAnimation(
+                        composition = composition,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    Text(
+                        text = context.getString(R.string.is_general_error),
+                        style = TextStyle(
+                            fontSize = 22.sp,
+                            fontWeight = FontWeight.Bold,
+                            fontStyle = androidx.compose.ui.text.font.FontStyle.Normal,
+                        ),
+                        modifier = Modifier.align(Alignment.Center)
+                    )
                 }
             }
-        } else {
-            Text(
-                text = context.getString(R.string.no_pokemons),
-                style = TextStyle(
-                    fontSize = 22.sp,
-                    fontWeight = FontWeight.Bold,
-                    fontStyle = androidx.compose.ui.text.font.FontStyle.Normal,
-                ),
-                modifier = Modifier.align(Alignment.CenterHorizontally)
-            )
-        }
+        )
     }
 }
 

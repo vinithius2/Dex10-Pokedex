@@ -60,4 +60,5 @@
     <string name="loading_three_dots">Loading…</string>
     <string name="three_dots">…</string>
     <string name="no_pokemons">Hey, no Pokémons!</string>
+    <string name="dont_close_app">Loading… don\'t close app</string>
 </resources>

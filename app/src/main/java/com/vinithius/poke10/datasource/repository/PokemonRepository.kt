@@ -38,8 +38,18 @@ class PokemonRepository(
     private val localDataSource: PokemonDao
 ) {
 
-    suspend fun getPokemonEntityList(context: Context): List<PokemonWithDetails>? {
-        insertPokemonFromFirebaseToLocal(context)
+    suspend fun getPokemonEntityList(
+        context: Context,
+        callBackLoadingFirebaseCounter: ((progress: Float) -> Unit),
+        callBackLoadingFirebase: (() -> Unit),
+        callBackLoading: (() -> Unit),
+    ): List<PokemonWithDetails>? {
+        insertPokemonFromFirebaseToLocal(
+            context,
+            callBackLoadingFirebase,
+            callBackLoadingFirebaseCounter
+        )
+        callBackLoading.invoke()
         val pokemonList = localDataSource.getPokemonListWithDetails()
         return pokemonList
     }
@@ -47,15 +57,25 @@ class PokemonRepository(
     /**
      * Execute once
      */
-    private suspend fun insertPokemonFromFirebaseToLocal(context: Context) {
+    private suspend fun insertPokemonFromFirebaseToLocal(
+        context: Context,
+        callBackLoadingFirebase: (() -> Unit),
+        callBackLoadingFirebaseCounter: ((progress: Float) -> Unit),
+    ) {
         val countLocal = getCountPokemonEntities()
         // TODO: Compare the count from firebase and database for get the difference
         if (countLocal == 0) {
+            callBackLoadingFirebase.invoke()
             val pokemonFirebaseList = getFirebasePokemonList()
+            val maxSize = pokemonFirebaseList.size
+            var count = 0
             pokemonFirebaseList.forEach { pokemon ->
                 val isFavorite = getFavorite(pokemon.name, context)
                 pokemon.favorite = isFavorite
                 insertPokemonCard(pokemon)
+                count += 1
+                val progress = count.toFloat() / maxSize.toFloat()
+                callBackLoadingFirebaseCounter.invoke(progress)
                 Log.i("Insert pokemon", "${pokemon.id} ${pokemon.name}")
             }
         }
@@ -184,25 +204,25 @@ class PokemonRepository(
         return countUpdate > 0
     }
 
-/*
-    fun setFavorite(name: String, context: Context?): Boolean {
-        return try {
-            val result = context?.run {
-                val sharedPreferences = getSharedPreferences(FAVORITES, Context.MODE_PRIVATE)
-                val isFavorite = sharedPreferences.getBoolean(name, false)
-                with(sharedPreferences.edit()) {
-                    putBoolean(name, isFavorite.not())
-                    apply()
+    /*
+        fun setFavorite(name: String, context: Context?): Boolean {
+            return try {
+                val result = context?.run {
+                    val sharedPreferences = getSharedPreferences(FAVORITES, Context.MODE_PRIVATE)
+                    val isFavorite = sharedPreferences.getBoolean(name, false)
+                    with(sharedPreferences.edit()) {
+                        putBoolean(name, isFavorite.not())
+                        apply()
+                    }
+                    isFavorite.not()
                 }
-                isFavorite.not()
+                result ?: false
+            } catch (e: HttpException) {
+                Log.e("Favorite", e.toString())
+                false
             }
-            result ?: false
-        } catch (e: HttpException) {
-            Log.e("Favorite", e.toString())
-            false
         }
-    }
-*/
+    */
 
     fun getFavorite(name: String, context: Context): Boolean {
         val sharedPreferences = context.getSharedPreferences(FAVORITES, Context.MODE_PRIVATE)

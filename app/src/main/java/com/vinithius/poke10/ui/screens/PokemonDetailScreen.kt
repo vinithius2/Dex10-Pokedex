@@ -43,7 +43,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -58,6 +57,8 @@ import com.vinithius.poke10.extension.converterIntToDouble
 import com.vinithius.poke10.extension.getColorByString
 import com.vinithius.poke10.extension.getDrawableHabitat
 import com.vinithius.poke10.ui.viewmodel.PokemonViewModel
+import com.vinithius.poke10.ui.viewmodel.RequestStateDetail
+import com.vinithius.poke10.ui.viewmodel.RequestStateList
 import ir.ehsannarmani.compose_charts.RowChart
 import ir.ehsannarmani.compose_charts.models.BarProperties
 import ir.ehsannarmani.compose_charts.models.Bars
@@ -282,6 +283,29 @@ fun PokemonDetailScreenPreview() {
 
 // CODE //////////////////////////////////////////////////////////////////////////////////////////
 
+@Composable
+private fun StateRequest(
+    viewModel: PokemonViewModel,
+    loading: () -> Unit,
+    success: () -> Unit,
+    error: () -> Unit,
+) {
+    val requestState by viewModel.stateList.observeAsState(RequestStateDetail.Loading)
+    when (requestState) {
+        is RequestStateList.Loading -> {
+            loading.invoke()
+        }
+
+        is RequestStateList.Success -> {
+            success.invoke()
+        }
+
+        is RequestStateList.Error -> {
+            error.invoke()
+        }
+    }
+}
+
 @SuppressLint("DefaultLocale")
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
@@ -299,6 +323,8 @@ fun SharedTransitionScope.PokemonDetailScreen(
     }
     val pokemonDetail by viewModel.pokemonDetail.observeAsState()
     val painter = viewModel.getSharedImage(pokemonId.toString())
+    val requestState by viewModel.stateDetail.observeAsState(RequestStateDetail.Loading)
+
     Column(
         modifier = Modifier
             .verticalScroll(rememberScrollState())
@@ -544,8 +570,10 @@ fun SharedTransitionScope.PokemonDetailScreen(
                         }
                         Spacer(modifier = Modifier.size(5.dp))
                         // Shape and Base Capture rate
-                        val shape = pokemonDetail?.specie?.shape?.name?.capitalize() ?: context.getString(R.string.three_dots)
-                        val captureRate = pokemonDetail?.specie?.capture_rate?.toString() ?: context.getString(R.string.three_dots)
+                        val shape = pokemonDetail?.specie?.shape?.name?.capitalize()
+                            ?: context.getString(R.string.three_dots)
+                        val captureRate = pokemonDetail?.specie?.capture_rate?.toString()
+                            ?: context.getString(R.string.three_dots)
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()

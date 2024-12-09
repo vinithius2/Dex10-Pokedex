@@ -41,9 +41,25 @@ class PokemonViewModel(private val repository: PokemonRepository) : ViewModel() 
 
     // Screens
 
+    // ENUMS
+    private val _stateDetail =
+        MutableLiveData<RequestStateDetail<List<String>>>(RequestStateDetail.Loading)
+    val stateDetail: LiveData<RequestStateDetail<List<String>>> get() = _stateDetail
+
+    private val _stateList =
+        MutableLiveData<RequestStateList<List<String>>>(RequestStateList.Loading)
+    val stateList: LiveData<RequestStateList<List<String>>> get() = _stateList
+
+    // FIM ENUMS
+
+    private val _loadingPercent = MutableLiveData<Float>()
+    val loadingPercent: LiveData<Float>
+        get() = _loadingPercent
+
     private val _pokemonListBackup = MutableLiveData<List<PokemonWithDetails>>()
     val pokemonListBackup: LiveData<List<PokemonWithDetails>>
         get() = _pokemonListBackup
+
     private val _pokemonList = MutableLiveData<List<PokemonWithDetails>>()
     val pokemonList: LiveData<List<PokemonWithDetails>>
         get() = _pokemonList
@@ -51,10 +67,6 @@ class PokemonViewModel(private val repository: PokemonRepository) : ViewModel() 
     private val _pokemonDetail = MutableLiveData<Pokemon?>()
     val pokemonDetail: LiveData<Pokemon?>
         get() = _pokemonDetail
-
-    private val _pokemonDetailLoading = MutableLiveData<Boolean>()
-    val pokemonDetailLoading: LiveData<Boolean>
-        get() = _pokemonDetailLoading
 
     private val _pokemonDetailError = MutableLiveData<Boolean>()
     val pokemonDetailError: LiveData<Boolean>
@@ -91,10 +103,23 @@ class PokemonViewModel(private val repository: PokemonRepository) : ViewModel() 
     fun getPokemonList(context: Context) {
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                val result = repository.getPokemonEntityList(context) ?: emptyList()
+                val result = repository.getPokemonEntityList(
+                    context,
+                    callBackLoadingFirebase = {
+                        _stateList.postValue(RequestStateList.LoadingFirebase)
+                    },
+                    callBackLoadingFirebaseCounter = { progress ->
+                        _loadingPercent.postValue(progress)
+                    },
+                    callBackLoading = {
+                        _stateList.postValue(RequestStateList.Loading)
+                    }
+                ) ?: emptyList()
                 _pokemonListBackup.postValue(result)
                 _pokemonList.postValue(result)
+                _stateList.postValue(RequestStateList.Success)
             } catch (e: Exception) {
+                _stateList.postValue(RequestStateList.Error(e))
                 Log.e("Error list pokemons", e.toString())
             }
         }
@@ -146,6 +171,7 @@ class PokemonViewModel(private val repository: PokemonRepository) : ViewModel() 
 
     private fun getFilterPokemon() {
         CoroutineScope(Dispatchers.IO).launch {
+            _stateList.postValue(RequestStateList.Loading)
             try {
                 val searchQuery = _searchNameFilter.value.orEmpty()
                 val isFavorite = _isFavoriteFilter.value ?: false
@@ -176,9 +202,10 @@ class PokemonViewModel(private val repository: PokemonRepository) : ViewModel() 
                 withContext(Dispatchers.Main) {
                     _pokemonList.value = filteredList ?: _pokemonListBackup.value
                 }
-
+                _stateList.postValue(RequestStateList.Success)
                 Log.d("getFilterPokemon", "Filtered list size: ${filteredList?.size}")
             } catch (e: Exception) {
+                _stateList.postValue(RequestStateList.Error(e))
                 Log.e("getFilterPokemon", "Erro ao aplicar filtros: ${e.message}", e)
             }
         }
@@ -194,7 +221,7 @@ class PokemonViewModel(private val repository: PokemonRepository) : ViewModel() 
             cleanPokemon()
             _pokemonDetailError.postValue(false)
             try {
-                _pokemonDetailLoading.postValue(true)
+                _stateDetail.postValue(RequestStateDetail.Loading)
                 val pokemon = repository.getPokemonDetail(_idPokemon)
                 pokemon?.let {
                     getPokemonEncounters(it)
@@ -202,12 +229,12 @@ class PokemonViewModel(private val repository: PokemonRepository) : ViewModel() 
                     getPokemonSpecies(it)
                     getPokemonDamageRelations(it)
                 }
+                _stateDetail.postValue(RequestStateDetail.Success)
                 _pokemonDetail.postValue(pokemon)
             } catch (e: Exception) {
-                _pokemonDetailError.postValue(true)
+                _stateDetail.postValue(RequestStateDetail.Error(e))
                 Log.e("getPokemon", e.toString())
             }
-            _pokemonDetailLoading.postValue(false)
         }
     }
 
