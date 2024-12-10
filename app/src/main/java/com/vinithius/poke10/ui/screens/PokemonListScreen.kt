@@ -141,7 +141,7 @@ fun SharedTransitionScope.PokemonListScreen(
                 LoadingPokemonList()
             },
             success = {
-                GetFilterBar(pokemonItemsBackup) {
+                GetFilterBar {
                     getFilterBarData(it, viewModel)
                 }
                 if (pokemonItems.isNotEmpty()) {

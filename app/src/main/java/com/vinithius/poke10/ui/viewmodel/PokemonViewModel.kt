@@ -2,6 +2,8 @@ package com.vinithius.poke10.ui.viewmodel
 
 import android.content.Context
 import android.util.Log
+import androidx.compose.runtime.mutableStateMapOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -63,6 +65,10 @@ class PokemonViewModel(private val repository: PokemonRepository) : ViewModel() 
     private val _pokemonList = MutableLiveData<List<PokemonWithDetails>>()
     val pokemonList: LiveData<List<PokemonWithDetails>>
         get() = _pokemonList
+
+    private val _pokemonFilterList = MutableLiveData<Map<String, SnapshotStateMap<String, Boolean>>>()
+    val pokemonFilterList: LiveData<Map<String, SnapshotStateMap<String, Boolean>>>
+        get() = _pokemonFilterList
 
     private val _pokemonDetail = MutableLiveData<Pokemon?>()
     val pokemonDetail: LiveData<Pokemon?>
@@ -143,12 +149,43 @@ class PokemonViewModel(private val repository: PokemonRepository) : ViewModel() 
                 ) ?: emptyList()
                 _pokemonListBackup.postValue(result)
                 _pokemonList.postValue(result)
+                makeFilter(result)
                 _stateList.postValue(RequestStateList.Success)
             } catch (e: Exception) {
                 _stateList.postValue(RequestStateList.Error(e))
                 Log.e("Error list pokemons", e.toString())
             }
         }
+    }
+
+    private fun makeFilter(pokemonList : List<PokemonWithDetails>) {
+        val checkboxStateMapTypes = checkboxStateMap(
+            pokemonList.flatMap { pokemon -> pokemon.types.map { it.typeName } }
+        )
+        val checkboxStateMapAbilities = checkboxStateMap(
+            pokemonList.flatMap { pokemon -> pokemon.abilities.map { it.name } }
+        )
+        val checkboxStateMapColors = checkboxStateMap(
+            pokemonList.map { it.pokemon.color }
+        )
+        val checkboxStateMapHabitats = checkboxStateMap(
+            pokemonList.map { it.pokemon.habitat }
+        )
+        val filterMap = mapOf(
+            "type" to checkboxStateMapTypes,
+            "ability" to checkboxStateMapAbilities,
+            "color" to checkboxStateMapColors,
+            "habitat" to checkboxStateMapHabitats,
+        )
+        _pokemonFilterList.postValue(filterMap)
+    }
+
+    private fun checkboxStateMap(filters: List<String>): SnapshotStateMap<String, Boolean> {
+        return mutableStateMapOf<String, Boolean>().apply {
+                filters.distinct().sorted().forEach { filter ->
+                    put(filter, false)
+                }
+            }
     }
 
     /**

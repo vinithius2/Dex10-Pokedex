@@ -35,7 +35,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateMapOf
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -52,59 +52,29 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.vinithius.poke10.R
-import com.vinithius.poke10.datasource.database.Ability
-import com.vinithius.poke10.datasource.database.PokemonEntity
-import com.vinithius.poke10.datasource.database.PokemonWithDetails
-import com.vinithius.poke10.datasource.database.Stat
-import com.vinithius.poke10.datasource.database.StatType
-import com.vinithius.poke10.datasource.database.Type
 import com.vinithius.poke10.extension.capitalize
+import com.vinithius.poke10.ui.viewmodel.PokemonViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import org.koin.androidx.compose.getViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun GetFilterBar(
-    pokemonWithDetails: List<PokemonWithDetails>,
+    viewModel: PokemonViewModel = getViewModel(),
     onCallBackFilter: (filter: Map<String, SnapshotStateMap<String, Boolean>>) -> Unit = {}
 ) {
+    val filterMap by viewModel.pokemonFilterList.observeAsState(mapOf())
     val sheetState = rememberModalBottomSheetState()
     var showBottomSheet by remember { mutableStateOf(false) }
     var labelTitle by remember { mutableStateOf(String()) }
     var loading by remember { mutableStateOf(false) }
 
-    val checkboxStateMapTypes = rememberCheckboxStateMap(
-        pokemonWithDetails.flatMap { pokemon -> pokemon.types.map { it.typeName } }
-    )
-    val checkboxStateMapAbilities = rememberCheckboxStateMap(
-        pokemonWithDetails.flatMap { pokemon -> pokemon.abilities.map { it.name } }
-    )
-    val checkboxStateMapColors = rememberCheckboxStateMap(
-        pokemonWithDetails.map { it.pokemon.color }
-    )
-    val checkboxStateMapHabitats = rememberCheckboxStateMap(
-        pokemonWithDetails.map { it.pokemon.habitat }
-    )
-    // Todo: Create filter by stats
-
-    // Mapeamento dos filtros
-    val filterMap = mapOf(
-        "type" to checkboxStateMapTypes,
-        "ability" to checkboxStateMapAbilities,
-        "color" to checkboxStateMapColors,
-        "habitat" to checkboxStateMapHabitats,
-    )
-
     val filterList = mutableListOf<String>().apply {
-        // Adiciona o primeiro item sem ação
         add("first")
-
-        // Adiciona as chaves do filterMap
         addAll(filterMap.keys)
-
-        // Adiciona o último item com ação
         add("last")
     }
 
@@ -183,17 +153,6 @@ fun GetFilterBar(
 }
 
 @Composable
-fun rememberCheckboxStateMap(filters: List<String>): SnapshotStateMap<String, Boolean> {
-    return remember(filters) {
-        mutableStateMapOf<String, Boolean>().apply {
-            filters.distinct().sorted().forEach { filter ->
-                put(filter, false)
-            }
-        }
-    }
-}
-
-@Composable
 fun ViewHolderFirst() {
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -216,7 +175,7 @@ fun ViewHolder(
 ) {
     BadgedBox(
         badge = {
-            val count = filterMap?.values?.filter { it }?.count()
+            val count = filterMap?.values?.count { it }
             count?.takeIf { it > 0 }?.run {
                 Badge(
                     containerColor = Color.Red,
@@ -324,7 +283,6 @@ fun ContentBottomSheet(
             .fillMaxSize()
             .padding(16.dp)
     ) {
-        // Conteúdo rolável
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -415,56 +373,5 @@ private fun clearAllFilter(filterMap: SnapshotStateMap<String, Boolean>) {
 @Preview
 @Composable
 fun Preview() {
-    GetFilterBar(getMockupPokemonList())
-}
-
-private fun getMockupPokemonList(): List<PokemonWithDetails> {
-    return listOf(
-        PokemonWithDetails(
-            pokemon = PokemonEntity(
-                1,
-                "bulbasaur",
-                "green",
-                "grassland",
-                true,
-                "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/showdown/1.gif",
-            ),
-            types = listOf(Type(1, "grass"), Type(2, "poison")),
-            abilities = listOf(
-                Ability(1, "overgrow", true, 10),
-                Ability(2, "chlorophyll", false, 20)
-            ),
-            stats = listOf(
-                Stat(1, StatType.HP, 10, 10),
-                Stat(2, StatType.ATTACK, 10, 10),
-                Stat(3, StatType.DEFENSE, 10, 10),
-                Stat(4, StatType.SPECIAL_ATTACK, 10, 10),
-                Stat(5, StatType.SPECIAL_DEFENSE, 10, 10),
-                Stat(6, StatType.SPEED, 10, 10),
-            )
-        ),
-        PokemonWithDetails(
-            pokemon = PokemonEntity(
-                2,
-                "pikachu",
-                "yellow",
-                "grassland",
-                false,
-                "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/showdown/1.gif",
-            ),
-            types = listOf(Type(1, "grass"), Type(2, "poison")),
-            abilities = listOf(
-                Ability(1, "overgrow", true, 11),
-                Ability(2, "chlorophyll", false, 22)
-            ),
-            stats = listOf(
-                Stat(1, StatType.HP, 11, 10),
-                Stat(2, StatType.ATTACK, 16, 10),
-                Stat(3, StatType.DEFENSE, 20, 10),
-                Stat(4, StatType.SPECIAL_ATTACK, 5, 10),
-                Stat(5, StatType.SPECIAL_DEFENSE, 90, 10),
-                Stat(6, StatType.SPEED, 5, 10),
-            )
-        ),
-    )
+    GetFilterBar()
 }
