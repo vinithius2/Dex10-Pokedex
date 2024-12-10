@@ -291,17 +291,17 @@ private fun StateRequest(
     success: () -> Unit,
     error: () -> Unit,
 ) {
-    val requestState by viewModel.stateList.observeAsState(RequestStateDetail.Loading)
+    val requestState by viewModel.stateDetail.observeAsState(RequestStateDetail.Loading)
     when (requestState) {
-        is RequestStateList.Loading -> {
+        is RequestStateDetail.Loading -> {
             loading.invoke()
         }
 
-        is RequestStateList.Success -> {
+        is RequestStateDetail.Success -> {
             success.invoke()
         }
 
-        is RequestStateList.Error -> {
+        is RequestStateDetail.Error -> {
             error.invoke()
         }
     }

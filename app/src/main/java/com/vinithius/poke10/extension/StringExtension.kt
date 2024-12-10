@@ -197,7 +197,7 @@ fun String.getToolBarColorByString(): Color {
             "purple" to Color(0xFF800080),
             "red" to Color(ParseColor.RED),
             "white" to Color(0xFFB0B0B0),
-            "yellow" to Color(ParseColor.YELLOW)
+            "yellow" to Color(0xADC2C200)
         )
         colorMap[this] ?: Color.Black
     } catch (e: IllegalArgumentException) {
@@ -217,7 +217,7 @@ fun String.getColorByString(): Color {
             "purple" to Color(0xFF650067),
             "red" to Color(0xFF770000),
             "white" to Color(0xFF8C8C8C),
-            "yellow" to Color(0xFF817624)
+            "yellow" to Color(0xFFC0B525)
         )
         colorMap[this] ?: Color.Black
     } catch (e: IllegalArgumentException) {
