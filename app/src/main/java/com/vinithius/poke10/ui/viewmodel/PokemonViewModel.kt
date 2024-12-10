@@ -72,7 +72,9 @@ class PokemonViewModel(private val repository: PokemonRepository) : ViewModel() 
     val pokemonDetailError: LiveData<Boolean>
         get() = _pokemonDetailError
 
-    private var _idPokemon: Int = 0
+    private val _idPokemon = MutableLiveData(0)
+    val idPokemon: LiveData<Int>
+        get() = _idPokemon
 
     // Pokemon images
     private val _sharedPokemonImages = MutableLiveData<Map<String, AsyncImagePainter>>()
@@ -86,13 +88,17 @@ class PokemonViewModel(private val repository: PokemonRepository) : ViewModel() 
         _pokemonColor.postValue(color)
     }
 
-    private val _isDetailsScreen = MutableLiveData(false)
-    val isDetailsScreen: LiveData<Boolean>
-        get() = _isDetailsScreen
+    private val _isDetailScreen = MutableLiveData(false)
+    val isDetailScreen: LiveData<Boolean>
+        get() = _isDetailScreen
 
     fun setDetailsScreen(isDetails: Boolean) {
-        _isDetailsScreen.postValue(isDetails)
+        _isDetailScreen.postValue(isDetails)
     }
+
+    private val _isDetailFavorite = MutableLiveData(false)
+    val isDetailFavorite: LiveData<Boolean>
+        get() = _isDetailFavorite
 
     fun updateSharedImage(pokemonId: String, imagePainter: AsyncImagePainter) {
         val currentImages = _sharedPokemonImages.value.orEmpty()
@@ -106,7 +112,7 @@ class PokemonViewModel(private val repository: PokemonRepository) : ViewModel() 
     // ### ----- SCREEN LIST POKEMON'S ----- ### //
 
     fun setIdPokemon(value: Int) {
-        _idPokemon = value
+        _idPokemon.postValue(value)
     }
 
     private fun cleanPokemon() {
@@ -118,6 +124,7 @@ class PokemonViewModel(private val repository: PokemonRepository) : ViewModel() 
      */
     fun getPokemonList(context: Context) {
         CoroutineScope(Dispatchers.IO).launch {
+            _isDetailFavorite.postValue(false)
             try {
                 val result = repository.getPokemonEntityList(
                     context,
@@ -147,17 +154,31 @@ class PokemonViewModel(private val repository: PokemonRepository) : ViewModel() 
     /**
      * Set favorite pokemon to database.
      */
-    fun setFavorite(pokemon: PokemonWithDetails) {
+    fun setFavorite(pokemonId: Int) {
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 _pokemonList.value?.map { pokemonMap ->
-                    if (pokemonMap.pokemon.id == pokemon.pokemon.id) {
-                        pokemon.pokemon.favorite = pokemon.pokemon.favorite.not()
-                        repository.setFavorite(pokemon.pokemon)
+                    if (pokemonMap.pokemon.id == pokemonId) {
+                        pokemonMap.pokemon.favorite = pokemonMap.pokemon.favorite.not()
+                        _isDetailFavorite.postValue(pokemonMap.pokemon.favorite)
+                        repository.setFavorite(pokemonMap.pokemon)
                     }
                 }
             } catch (e: Exception) {
                 Log.e("setFavorite", e.toString())
+            }
+        }
+    }
+
+    private fun getDetailFavorite() {
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val isFavorite = _pokemonList.value?.firstOrNull {
+                    it.pokemon.id == _idPokemon.value
+                }?.pokemon?.favorite
+                _isDetailFavorite.postValue(isFavorite)
+            } catch (e: Exception) {
+                Log.e("getIsFavorite", e.toString())
             }
         }
     }
@@ -241,7 +262,7 @@ class PokemonViewModel(private val repository: PokemonRepository) : ViewModel() 
             _pokemonDetailError.postValue(false)
             try {
                 _stateDetail.postValue(RequestStateDetail.Loading)
-                val pokemon = repository.getPokemonDetail(_idPokemon)
+                val pokemon = repository.getPokemonDetail(_idPokemon.value ?: 0)
                 pokemon?.let {
                     getPokemonEncounters(it)
                     getPokemonCharacteristic(it)
@@ -250,6 +271,7 @@ class PokemonViewModel(private val repository: PokemonRepository) : ViewModel() 
                 }
                 _stateDetail.postValue(RequestStateDetail.Success)
                 _pokemonDetail.postValue(pokemon)
+                getDetailFavorite()
             } catch (e: Exception) {
                 _stateDetail.postValue(RequestStateDetail.Error(e))
                 Log.e("getPokemon", e.toString())
@@ -261,7 +283,7 @@ class PokemonViewModel(private val repository: PokemonRepository) : ViewModel() 
      * Get Pokemon's Encounters.
      */
     private suspend fun getPokemonEncounters(pokemon: Pokemon) {
-        repository.getPokemonEncounters(_idPokemon)?.let { apiLocationList ->
+        repository.getPokemonEncounters(_idPokemon.value ?: 0)?.let { apiLocationList ->
             pokemon.apply { encounters = apiLocationList }
         }
     }
@@ -270,7 +292,7 @@ class PokemonViewModel(private val repository: PokemonRepository) : ViewModel() 
      * Get Pokemon's Characteristic.
      */
     private suspend fun getPokemonCharacteristic(pokemon: Pokemon) {
-        repository.getPokemonCharacteristic(_idPokemon)?.let { apiCharacteristic ->
+        repository.getPokemonCharacteristic(_idPokemon.value ?: 0)?.let { apiCharacteristic ->
             pokemon.apply { characteristic = apiCharacteristic }
         }
     }
@@ -279,7 +301,7 @@ class PokemonViewModel(private val repository: PokemonRepository) : ViewModel() 
      * Get Pokemon's Species.
      */
     private suspend fun getPokemonSpecies(pokemon: Pokemon) {
-        repository.getPokemonSpecies(_idPokemon)?.let { apiSpecie ->
+        repository.getPokemonSpecies(_idPokemon.value ?: 0)?.let { apiSpecie ->
             pokemon.apply { specie = apiSpecie }
             apiSpecie.evolution_chain?.url?.getIdIntoUrl()?.let {
                 getPokemonEvolution(pokemon, it.toInt())

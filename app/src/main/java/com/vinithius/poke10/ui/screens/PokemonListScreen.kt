@@ -170,7 +170,7 @@ fun SharedTransitionScope.PokemonListScreen(
                                         navController.navigate("pokemonDetail/$id/$name/$color")
                                     },
                                     onClickFavorite = { pokemonFavorite ->
-                                        viewModel.setFavorite(pokemonFavorite)
+                                        viewModel.setFavorite(pokemonFavorite.pokemon.id)
                                     }
                                 )
                             }

@@ -10,6 +10,7 @@ import androidx.activity.compose.setContent
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionLayout
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -25,6 +26,7 @@ import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -44,6 +46,7 @@ import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -70,6 +73,7 @@ import com.vinithius.poke10.ui.screens.PokemonDetailScreen
 import com.vinithius.poke10.ui.screens.PokemonListScreen
 import com.vinithius.poke10.ui.theme.ThemePoke10
 import com.vinithius.poke10.ui.viewmodel.PokemonViewModel
+import com.vinithius.poke10.ui.viewmodel.RequestStateDetail
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -116,9 +120,7 @@ fun MainScreen(
 @Composable
 fun SetupSystemUI(viewModel: PokemonViewModel) {
     val systemUiController = rememberSystemUiController()
-    //val isDetailsScreen by viewModel.isDetailsScreen.observeAsState()
     val color by viewModel.pokemonColor.observeAsState()
-
     val statusBarColor = color?.getColorByString() ?: MaterialTheme.colorScheme.tertiary
     systemUiController.setStatusBarColor(
         color = statusBarColor,
@@ -135,7 +137,7 @@ private fun GetTopBar(
     val context = LocalContext.current
     var searchQuery by remember { mutableStateOf("") }
     var isSearchActive by remember { mutableStateOf(false) }
-    val isDetailsScreen by viewModel.isDetailsScreen.observeAsState()
+    val isDetailsScreen by viewModel.isDetailScreen.observeAsState()
     val color by viewModel.pokemonColor.observeAsState()
 
     if (isDetailsScreen != null) {
@@ -329,16 +331,39 @@ private fun AppMenuPageDetail(
     context: Context,
     viewModel: PokemonViewModel
 ) {
-    var favoriteFilter by remember { mutableStateOf(false) }
-    IconButton(onClick = {
-        //favoriteFilter = favoriteFilter.not()
-        //viewModel.getPokemonFavoriteList(favoriteFilter)
-    }) {
-        Icon(
-            imageVector = if (favoriteFilter) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
-            contentDescription = stringResource(id = R.string.favorite),
-            tint = Color.White
-        )
+    val requestState by viewModel.stateDetail.observeAsState(RequestStateDetail.Loading)
+    val isDetailFavorite by viewModel.isDetailFavorite.observeAsState(false)
+    val idPokemon by viewModel.idPokemon.observeAsState()
+    when (requestState) {
+        is RequestStateDetail.Loading -> {
+            Box(
+                modifier = Modifier
+                    .size(70.dp)
+            ) {
+                CircularProgressIndicator(
+                    color = Color.White,
+                    modifier = Modifier
+                        .align(Alignment.Center)
+                        .size(30.dp)
+                )
+            }
+        }
+
+        is RequestStateDetail.Success -> {
+            IconButton(onClick = {
+                idPokemon?.let { viewModel.setFavorite(it) }
+            }) {
+                Icon(
+                    imageVector = if (isDetailFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                    contentDescription = stringResource(id = R.string.favorite),
+                    tint = Color.White
+                )
+            }
+        }
+
+        is RequestStateDetail.Error -> {
+            // Do nothing
+        }
     }
 }
 
