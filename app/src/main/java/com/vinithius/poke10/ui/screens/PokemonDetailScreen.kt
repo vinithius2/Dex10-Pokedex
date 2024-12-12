@@ -2,6 +2,7 @@ package com.vinithius.poke10.ui.screens
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.os.Build
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.AnimatedVisibilityScope
@@ -21,6 +22,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -55,6 +57,12 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import coil.ImageLoader
+import coil.compose.AsyncImagePainter
+import coil.compose.rememberAsyncImagePainter
+import coil.decode.GifDecoder
+import coil.decode.ImageDecoderDecoder
+import coil.request.ImageRequest
 import com.valentinilk.shimmer.shimmer
 import com.vinithius.poke10.R
 import com.vinithius.poke10.components.TypeItem
@@ -68,6 +76,7 @@ import com.vinithius.poke10.extension.convertPounds
 import com.vinithius.poke10.extension.converterIntToDouble
 import com.vinithius.poke10.extension.getColorByString
 import com.vinithius.poke10.extension.getDrawableHabitat
+import com.vinithius.poke10.extension.getListEvolutions
 import com.vinithius.poke10.ui.viewmodel.PokemonViewModel
 import com.vinithius.poke10.ui.viewmodel.RequestStateDetail
 import ir.ehsannarmani.compose_charts.RowChart
@@ -76,7 +85,6 @@ import ir.ehsannarmani.compose_charts.models.Bars
 import ir.ehsannarmani.compose_charts.models.LabelHelperProperties
 import ir.ehsannarmani.compose_charts.models.LabelProperties
 import org.koin.androidx.compose.getViewModel
-
 
 @Composable
 private fun StateRequest(
@@ -307,6 +315,7 @@ fun SharedTransitionScope.PokemonDetailScreen(
         Spacer(modifier = Modifier.size(5.dp))
         PokemonChart(viewModel, pokemonDetail, pokemonColor)
         PokemonIsABaby()
+        PokemonEvolution(pokemonDetail)
         PokemonDamage(pokemonDetail, viewModel)
         /*
         setInfo(pokemon)
@@ -793,6 +802,53 @@ private fun PokemonIsABabyPreview(
 }
 
 @Composable
+private fun PokemonEvolution(
+    pokemonDetail: Pokemon?,
+    viewModel: PokemonViewModel = getViewModel()
+) {
+    StateRequest(
+        viewModel = viewModel,
+        loading = {
+
+        },
+        success = {
+            Column(
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .padding(6.dp),
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    pokemonDetail?.evolution?.getListEvolutions()?.run {
+                        viewModel.getIdByNames(this@run)?.forEachIndexed { index, pair ->
+                            Card(
+                                modifier = Modifier
+                                    .padding(8.dp),
+                                shape = RoundedCornerShape(8.dp),
+                                elevation = CardDefaults.elevatedCardElevation(4.dp)
+                            ) {
+                                LoadGifWithCoilToEvolution(pair)
+                            }
+                            val arrowVisible =
+                                pokemonDetail.evolution?.getListEvolutions()?.size == index + 1
+                            if (arrowVisible.not()) {
+                                Image(
+                                    painter = painterResource(id = R.drawable.ic_baseline_arrow_forward_ios_24),
+                                    contentDescription = "Arrow right",
+                                    modifier = Modifier.size(25.dp)
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        error = { /* Do nothing yet */ }
+    )
+}
+
+@Composable
 private fun PokemonDamage(
     pokemonDetail: Pokemon?,
     viewModel: PokemonViewModel = getViewModel()
@@ -949,6 +1005,54 @@ private fun DefaultDamageFromToShimmer() {
 @Composable
 private fun PokemonHabitatPreview(pokemonDetail: Pokemon?) {
     PokemonDamage(pokemonDetail)
+}
+
+@Composable
+fun LoadGifWithCoilToEvolution(
+    pokemonEvolution: Pair<Int, String>,
+) {
+    val context = LocalContext.current
+    val imageLoader = ImageLoader.Builder(context)
+        .components {
+            if (Build.VERSION.SDK_INT >= 28) {
+                add(ImageDecoderDecoder.Factory())
+            } else {
+                add(GifDecoder.Factory())
+            }
+        }
+        .build()
+
+    val imageRequest = ImageRequest.Builder(context)
+        .data("$URL_IMAGE/${pokemonEvolution.first}.png")
+        .crossfade(true)
+        .error(android.R.drawable.ic_menu_report_image)
+        .build()
+
+    Box(
+        modifier = Modifier
+            .size(70.dp)
+    ) {
+        val painter = rememberAsyncImagePainter(
+            model = imageRequest,
+            imageLoader = imageLoader
+        )
+        // Loading
+        if (painter.state is AsyncImagePainter.State.Loading) {
+            androidx.compose.material.CircularProgressIndicator(
+                color = Color.White,
+                modifier = Modifier
+                    .align(Alignment.Center)
+                    .size(30.dp)
+            )
+        }
+        // Final result
+        Image(
+            painter = painter,
+            contentDescription = pokemonEvolution.second,
+            modifier = Modifier
+                .size(70.dp)
+        )
+    }
 }
 
 // MOCKUP ////////////////////////////////////////////////////////////////////////////////////////

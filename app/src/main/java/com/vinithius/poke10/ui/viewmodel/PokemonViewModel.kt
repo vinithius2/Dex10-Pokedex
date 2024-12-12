@@ -3,7 +3,6 @@ package com.vinithius.poke10.ui.viewmodel
 import android.content.Context
 import android.util.Log
 import androidx.compose.runtime.mutableStateMapOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -66,7 +65,8 @@ class PokemonViewModel(private val repository: PokemonRepository) : ViewModel() 
     val pokemonList: LiveData<List<PokemonWithDetails>>
         get() = _pokemonList
 
-    private val _pokemonFilterList = MutableLiveData<Map<String, SnapshotStateMap<String, Boolean>>>()
+    private val _pokemonFilterList =
+        MutableLiveData<Map<String, SnapshotStateMap<String, Boolean>>>()
     val pokemonFilterList: LiveData<Map<String, SnapshotStateMap<String, Boolean>>>
         get() = _pokemonFilterList
 
@@ -158,7 +158,7 @@ class PokemonViewModel(private val repository: PokemonRepository) : ViewModel() 
         }
     }
 
-    private fun makeFilter(pokemonList : List<PokemonWithDetails>) {
+    private fun makeFilter(pokemonList: List<PokemonWithDetails>) {
         val checkboxStateMapTypes = checkboxStateMap(
             pokemonList.flatMap { pokemon -> pokemon.types.map { it.typeName } }
         )
@@ -182,10 +182,10 @@ class PokemonViewModel(private val repository: PokemonRepository) : ViewModel() 
 
     private fun checkboxStateMap(filters: List<String>): SnapshotStateMap<String, Boolean> {
         return mutableStateMapOf<String, Boolean>().apply {
-                filters.distinct().sorted().forEach { filter ->
-                    put(filter, false)
-                }
+            filters.distinct().sorted().forEach { filter ->
+                put(filter, false)
             }
+        }
     }
 
     /**
@@ -367,6 +367,12 @@ class PokemonViewModel(private val repository: PokemonRepository) : ViewModel() 
             }
         }
         pokemon.damage = damageList
+    }
+
+    fun getIdByNames(pair: List<Pair<String, String>>): List<Pair<Int, String>>? {
+        val names = pair.map { it.first }
+        return _pokemonListBackup.value?.filter { it.pokemon.name in names }
+            ?.map { it.pokemon.id to it.pokemon.name }
     }
 
 }

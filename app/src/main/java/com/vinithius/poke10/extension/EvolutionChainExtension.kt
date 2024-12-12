@@ -26,8 +26,8 @@ private fun getEvolvesTo(
         chain.evolves_to?.forEach { evolve ->
             evolve.species?.let { specie ->
                 listEvolutions.add(Pair(specie.name!!, specie.url!!))
-                evolve.evolves_to?.forEach { evolves_to ->
-                    getEvolvesTo(evolves_to, listEvolutions)
+                evolve.evolves_to?.forEach { evolvesTo ->
+                    getEvolvesTo(evolvesTo, listEvolutions)
                 }
             }
         }
