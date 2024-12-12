@@ -3,12 +3,17 @@ package com.vinithius.poke10.ui.screens
 import android.annotation.SuppressLint
 import android.content.Context
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -72,222 +77,6 @@ import ir.ehsannarmani.compose_charts.models.LabelHelperProperties
 import ir.ehsannarmani.compose_charts.models.LabelProperties
 import org.koin.androidx.compose.getViewModel
 
-// PREVIEW ///////////////////////////////////////////////////////////////////////////////////////
-/*
-@SuppressLint("DefaultLocale")
-@Preview(showBackground = true)
-@Composable
-fun PokemonDetailScreenPreview() {
-    val context = LocalContext.current
-    val pokemonDetail = getMockupPokemon()
-    Card(
-        modifier = Modifier
-            .height(300.dp)
-            .padding(8.dp),
-        elevation = CardDefaults.elevatedCardElevation(5.dp),
-        shape = RoundedCornerShape(16.dp)
-    ) {
-        Column(
-            modifier = Modifier.fillMaxSize(),
-            verticalArrangement = Arrangement.SpaceBetween // Espaço entre os elementos
-        ) {
-            // Topo: Habitat e Imagem do Pokémon
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f), // Dá peso para expandir proporcionalmente
-            ) {
-                // Habitat Image
-                PokemonHabitat(pokemonDetail, "venusaur")
-                // Pokemon Image
-                Image(
-                    painter = painterResource(id = R.drawable.mockup_gif),
-                    contentDescription = "venusaur",
-                    modifier = Modifier
-                        .align(Alignment.Center)
-                        .size(180.dp)
-                        .padding(bottom = 30.dp)
-                )
-                // weight and height
-                val weightKl = String.format("%.1f", pokemonDetail.weight?.converterIntToDouble())
-                val weightLbs = String.format("%.1f", pokemonDetail.weight?.convertPounds())
-                val resultWeight = stringResource(R.string.kg_lbs, weightKl, weightLbs)
-                val heightM = String.format("%.1f", pokemonDetail.height?.converterIntToDouble())
-                val heightInc = String.format("%.2f", pokemonDetail.height?.convertInch())
-                val resultHeight = context.getString(R.string.m_inch, heightM, heightInc)
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .align(Alignment.BottomCenter) // Alinha o Row ao fundo da Box
-                        .padding(bottom = 12.dp) // Ajuste do padding na parte inferior
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 12.dp), // Espaçamento horizontal do Row
-                        horizontalArrangement = Arrangement.SpaceBetween, // Espaçamento entre os itens
-                        verticalAlignment = Alignment.CenterVertically // Alinha verticalmente os itens
-                    ) {
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            Image(
-                                painter = painterResource(id = R.drawable.height),
-                                contentDescription = "height",
-                                modifier = Modifier.size(20.dp)
-                            )
-                            Spacer(modifier = Modifier.size(2.dp))
-                            Text(
-                                text = resultWeight,
-                                style = TextStyle(
-                                    fontSize = 12.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    fontStyle = androidx.compose.ui.text.font.FontStyle.Normal,
-                                )
-                            )
-                        }
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            Image(
-                                painter = painterResource(id = R.drawable.weight),
-                                contentDescription = "height",
-                                modifier = Modifier.size(20.dp)
-                            )
-                            Spacer(modifier = Modifier.size(2.dp))
-                            Text(
-                                text = resultHeight,
-                                style = TextStyle(
-                                    fontSize = 12.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    fontStyle = androidx.compose.ui.text.font.FontStyle.Normal,
-                                )
-                            )
-                        }
-                    }
-                    Spacer(modifier = Modifier.size(5.dp))
-                    // Generation and Base Experience
-                    val generation =
-                        pokemonDetail.specie?.generation?.name?.split("-")?.last()?.uppercase()
-                            ?: "?"
-                    val baseExperience = pokemonDetail.base_experience.toString()
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 12.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            Row {
-                                Text(
-                                    text = context.getString(R.string.generation),
-                                    style = TextStyle(
-                                        fontSize = 12.sp,
-                                        fontWeight = FontWeight.Bold,
-                                        fontStyle = androidx.compose.ui.text.font.FontStyle.Normal,
-                                    )
-                                )
-                                Text(
-                                    text = generation,
-                                    style = TextStyle(
-                                        fontSize = 12.sp,
-                                        fontWeight = FontWeight.Normal,
-                                        fontStyle = androidx.compose.ui.text.font.FontStyle.Normal,
-                                    )
-                                )
-                            }
-                        }
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            Row {
-                                Text(
-                                    text = context.getString(R.string.base_exp),
-                                    style = TextStyle(
-                                        fontSize = 12.sp,
-                                        fontWeight = FontWeight.Bold,
-                                        fontStyle = androidx.compose.ui.text.font.FontStyle.Normal,
-                                    )
-                                )
-                                Text(
-                                    text = baseExperience,
-                                    style = TextStyle(
-                                        fontSize = 12.sp,
-                                        fontWeight = FontWeight.Normal,
-                                        fontStyle = androidx.compose.ui.text.font.FontStyle.Normal,
-                                    )
-                                )
-                            }
-                        }
-                    }
-                    Spacer(modifier = Modifier.size(5.dp))
-                    // Shape and Base Capture rate
-                    val shape = pokemonDetail.specie?.shape?.name?.capitalize() ?: "?"
-                    val captureRate = pokemonDetail.specie?.capture_rate?.toString() ?: "?"
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 12.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            Row {
-                                Text(
-                                    text = context.getString(R.string.shape),
-                                    style = TextStyle(
-                                        fontSize = 12.sp,
-                                        fontWeight = FontWeight.Bold,
-                                        fontStyle = androidx.compose.ui.text.font.FontStyle.Normal,
-                                    )
-                                )
-                                Text(
-                                    text = shape,
-                                    style = TextStyle(
-                                        fontSize = 12.sp,
-                                        fontWeight = FontWeight.Normal,
-                                        fontStyle = androidx.compose.ui.text.font.FontStyle.Normal,
-                                    )
-                                )
-                            }
-                        }
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            Row {
-                                Text(
-                                    text = context.getString(R.string.capture_rate),
-                                    style = TextStyle(
-                                        fontSize = 12.sp,
-                                        fontWeight = FontWeight.Bold,
-                                        fontStyle = androidx.compose.ui.text.font.FontStyle.Normal,
-                                    )
-                                )
-                                Text(
-                                    text = captureRate,
-                                    style = TextStyle(
-                                        fontSize = 12.sp,
-                                        fontWeight = FontWeight.Normal,
-                                        fontStyle = androidx.compose.ui.text.font.FontStyle.Normal,
-                                    )
-                                )
-                            }
-                        }
-                    }
-                    TypeListResponse(pokemonDetail.types!!)
-                }
-            }
-        }
-    }
-}
-*/
-
-// CODE //////////////////////////////////////////////////////////////////////////////////////////
 
 @Composable
 private fun StateRequest(
@@ -517,6 +306,7 @@ fun SharedTransitionScope.PokemonDetailScreen(
         }
         Spacer(modifier = Modifier.size(5.dp))
         PokemonChart(viewModel, pokemonDetail, pokemonColor)
+        PokemonIsABaby()
         PokemonDamage(pokemonDetail, viewModel)
         /*
         setInfo(pokemon)
@@ -945,6 +735,61 @@ private fun ChartLoadingComposable() {
             )
         )
     }
+}
+
+@Composable
+private fun PokemonIsABaby(
+    viewModel: PokemonViewModel = getViewModel()
+) {
+    val pokemonDetail by viewModel.pokemonDetail.observeAsState()
+    AnimatedVisibility(
+        visible = pokemonDetail?.specie?.is_baby ?: false,
+        enter = slideInHorizontally() + fadeIn(),
+        exit = slideOutHorizontally() + fadeOut()
+    ) {
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(8.dp),
+            shape = RoundedCornerShape(8.dp),
+            elevation = CardDefaults.elevatedCardElevation(4.dp)
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(12.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Image(
+                    painter = painterResource(id = R.drawable.pokemon_baby_egg),
+                    contentDescription = "is baby",
+                    modifier = Modifier.size(40.dp)
+                )
+                Text(
+                    text = stringResource(R.string.is_a_baby),
+                    style = TextStyle(
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold,
+                        fontStyle = androidx.compose.ui.text.font.FontStyle.Normal,
+                    )
+                )
+                Image(
+                    painter = painterResource(id = R.drawable.pokemon_baby_egg),
+                    contentDescription = "is baby",
+                    modifier = Modifier.size(40.dp)
+                )
+            }
+        }
+    }
+}
+
+@Preview
+@Composable
+private fun PokemonIsABabyPreview(
+    viewModel: PokemonViewModel = getViewModel()
+) {
+    PokemonIsABaby()
 }
 
 @Composable
