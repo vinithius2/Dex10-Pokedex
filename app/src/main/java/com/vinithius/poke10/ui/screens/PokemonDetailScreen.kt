@@ -990,31 +990,33 @@ private fun DefaultDamageFromTo(
     damageFrom: List<Type>,
     damageTo: List<Type>,
 ) {
-    Column {
+    if (damageFrom.isNotEmpty() || damageTo.isNotEmpty()) {
+        Column {
+            Spacer(modifier = Modifier.size(6.dp))
+            Text(
+                text = title,
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = FontWeight.Bold,
+            )
+            damageFrom.takeIf { it.isNotEmpty() }?.let {
+                Spacer(modifier = Modifier.size(6.dp))
+                Row {
+                    Text(stringResource(R.string.from))
+                    Spacer(modifier = Modifier.size(2.dp))
+                    TypeListResponse(damageFrom)
+                }
+            }
+            damageTo.takeIf { it.isNotEmpty() }?.let {
+                Spacer(modifier = Modifier.size(6.dp))
+                Row {
+                    Text(stringResource(R.string.to))
+                    Spacer(modifier = Modifier.size(2.dp))
+                    TypeListResponse(damageTo)
+                }
+            }
+        }
         Spacer(modifier = Modifier.size(6.dp))
-        Text(
-            text = title,
-            style = MaterialTheme.typography.bodyLarge,
-            fontWeight = FontWeight.Bold,
-        )
-        damageFrom.takeIf { it.size > 1 }?.let {
-            Spacer(modifier = Modifier.size(6.dp))
-            Row {
-                Text(stringResource(R.string.from))
-                Spacer(modifier = Modifier.size(2.dp))
-                TypeListResponse(damageFrom)
-            }
-        }
-        damageTo.takeIf { it.size > 1 }?.let {
-            Spacer(modifier = Modifier.size(6.dp))
-            Row {
-                Text(stringResource(R.string.to))
-                Spacer(modifier = Modifier.size(2.dp))
-                TypeListResponse(damageTo)
-            }
-        }
     }
-    Spacer(modifier = Modifier.size(6.dp))
 }
 
 @Preview
