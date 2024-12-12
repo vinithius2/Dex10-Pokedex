@@ -46,13 +46,17 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.valentinilk.shimmer.shimmer
 import com.vinithius.poke10.R
+import com.vinithius.poke10.components.TypeItem
 import com.vinithius.poke10.components.TypeListResponse
+import com.vinithius.poke10.datasource.mapper.fromDefaultToListType
 import com.vinithius.poke10.datasource.response.Pokemon
+import com.vinithius.poke10.datasource.response.Type
 import com.vinithius.poke10.extension.capitalize
 import com.vinithius.poke10.extension.convertPounds
 import com.vinithius.poke10.extension.converterIntToDouble
@@ -307,39 +311,6 @@ private fun StateRequest(
     }
 }
 
-@SuppressLint("DefaultLocale")
-private fun convertWeightHeight(
-    value: Int?,
-    resource: Int,
-    context: Context,
-    maskKl: String = "%.1f",
-    maskLbs: String = "%.1f",
-): String {
-    val resultKl = String.format(maskKl, value?.converterIntToDouble())
-    val resultLbs = String.format(maskLbs, value?.convertPounds())
-    return context.getString(resource, resultKl, resultLbs)
-}
-
-@Composable
-private fun DefaultSuccessComposable(title: String, value: String?) {
-    Text(
-        text = title,
-        style = TextStyle(
-            fontSize = 12.sp,
-            fontWeight = FontWeight.Bold,
-            fontStyle = androidx.compose.ui.text.font.FontStyle.Normal,
-        )
-    )
-    Text(
-        text = value ?: stringResource(R.string.three_dots),
-        style = TextStyle(
-            fontSize = 12.sp,
-            fontWeight = FontWeight.Normal,
-            fontStyle = androidx.compose.ui.text.font.FontStyle.Normal,
-        )
-    )
-}
-
 @Composable
 private fun DefaultLoadingComposable(title: String) {
     Text(
@@ -386,6 +357,7 @@ fun SharedTransitionScope.PokemonDetailScreen(
 
     Column(
         modifier = Modifier
+            .fillMaxSize()
             .verticalScroll(rememberScrollState())
     ) {
         Card(
@@ -544,7 +516,55 @@ fun SharedTransitionScope.PokemonDetailScreen(
         }
         Spacer(modifier = Modifier.size(5.dp))
         PokemonChart(viewModel, pokemonDetail, pokemonColor)
+        PokemonDamage(pokemonDetail)
+        /*
+        setInfo(pokemon)
+        setIsBaby(pokemon)
+        setEncounters(pokemon)
+        setEggGroups(pokemon)
+        setDamage(pokemon)
+        setTextEntries(pokemon)
+        setStats(pokemon)
+        setTypes(pokemon)
+        setAbilities(pokemon)
+        setEvolutions(pokemon)
+        setIconsMythicalAndLegendary(pokemon)
+        */
     }
+}
+
+
+@SuppressLint("DefaultLocale")
+private fun convertWeightHeight(
+    value: Int?,
+    resource: Int,
+    context: Context,
+    maskKl: String = "%.1f",
+    maskLbs: String = "%.1f",
+): String {
+    val resultKl = String.format(maskKl, value?.converterIntToDouble())
+    val resultLbs = String.format(maskLbs, value?.convertPounds())
+    return context.getString(resource, resultKl, resultLbs)
+}
+
+@Composable
+private fun DefaultSuccessComposable(title: String, value: String?) {
+    Text(
+        text = title,
+        style = TextStyle(
+            fontSize = 12.sp,
+            fontWeight = FontWeight.Bold,
+            fontStyle = androidx.compose.ui.text.font.FontStyle.Normal,
+        )
+    )
+    Text(
+        text = value ?: stringResource(R.string.three_dots),
+        style = TextStyle(
+            fontSize = 12.sp,
+            fontWeight = FontWeight.Normal,
+            fontStyle = androidx.compose.ui.text.font.FontStyle.Normal,
+        )
+    )
 }
 
 @Composable
@@ -924,6 +944,83 @@ private fun ChartLoadingComposable() {
             )
         )
     }
+}
+
+@Composable
+private fun PokemonDamage(pokemonDetail: Pokemon?) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth().padding(8.dp),
+        shape = RoundedCornerShape(8.dp),
+        elevation = CardDefaults.elevatedCardElevation(4.dp)
+    ) {
+        Column(
+            modifier = Modifier.fillMaxSize().padding(8.dp),
+            horizontalAlignment = Alignment.Start
+        ) {
+            pokemonDetail?.damage?.forEach {
+                Spacer(modifier = Modifier.size(12.dp))
+                Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                    TypeItem(it.type?.name ?: String())
+                }
+                Spacer(modifier = Modifier.size(12.dp))
+                DefaultDamageFromTo(
+                    stringResource(R.string.no_damage),
+                    it.damage_relations.no_damage_to.fromDefaultToListType(),
+                    it.damage_relations.no_damage_from.fromDefaultToListType()
+                )
+                DefaultDamageFromTo(
+                    stringResource(R.string.effective_damage),
+                    it.damage_relations.effective_damage_to?.fromDefaultToListType() ?: listOf(),
+                    it.damage_relations.effective_damage_from.fromDefaultToListType()
+                )
+                DefaultDamageFromTo(
+                    stringResource(R.string.ineffective_damage),
+                    it.damage_relations.ineffective_damage_to.fromDefaultToListType(),
+                    it.damage_relations.ineffective_damage_from.fromDefaultToListType()
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun DefaultDamageFromTo(
+    title: String,
+    damageFrom: List<Type>,
+    damageTo: List<Type>,
+) {
+    Column {
+        Spacer(modifier = Modifier.size(6.dp))
+        Text(
+            text = title,
+            style = MaterialTheme.typography.bodyLarge,
+            fontWeight = FontWeight.Bold,
+        )
+        damageFrom.takeIf { it.size > 1 }?.let {
+            Spacer(modifier = Modifier.size(6.dp))
+            Row {
+                Text(stringResource(R.string.from))
+                Spacer(modifier = Modifier.size(2.dp))
+                TypeListResponse(damageFrom)
+            }
+        }
+        damageTo.takeIf { it.size > 1 }?.let {
+            Spacer(modifier = Modifier.size(6.dp))
+            Row {
+                Text(stringResource(R.string.to))
+                Spacer(modifier = Modifier.size(2.dp))
+                TypeListResponse(damageTo)
+            }
+        }
+    }
+    Spacer(modifier = Modifier.size(6.dp))
+}
+
+@Preview
+@Composable
+private fun PokemonHabitatPreview(pokemonDetail: Pokemon?) {
+    PokemonDamage(pokemonDetail)
 }
 
 // MOCKUP ////////////////////////////////////////////////////////////////////////////////////////

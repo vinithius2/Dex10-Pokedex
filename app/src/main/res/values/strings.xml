@@ -64,4 +64,9 @@
     <string name="empty_list">Empty list</string>
     <string name="dont_close_app">Loading… don\'t close app</string>
     <string name="back">Back</string>
+    <string name="from">From:</string>
+    <string name="to">To:</string>
+    <string name="no_damage">No Damage</string>
+    <string name="effective_damage">Effective damage</string>
+    <string name="ineffective_damage">Ineffective damage</string>
 </resources>

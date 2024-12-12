@@ -4,7 +4,6 @@ import com.vinithius.poke10.datasource.database.Ability
 import com.vinithius.poke10.datasource.database.PokemonEntity
 import com.vinithius.poke10.datasource.database.Stat
 import com.vinithius.poke10.datasource.database.StatType
-import com.vinithius.poke10.datasource.database.Type
 import com.vinithius.poke10.datasource.response.Abilities
 import com.vinithius.poke10.datasource.response.Chain
 import com.vinithius.poke10.datasource.response.Characteristic
@@ -19,6 +18,7 @@ import com.vinithius.poke10.datasource.response.Specie
 import com.vinithius.poke10.datasource.response.Sprites
 import com.vinithius.poke10.datasource.response.Stat as StatResponse
 import com.vinithius.poke10.datasource.response.Type as TypeResponse
+import com.vinithius.poke10.datasource.database.Type as TypeEntity
 
 fun Pokemon.toEntity(): PokemonEntity {
     return PokemonEntity(
@@ -50,9 +50,9 @@ fun Pokemon.toAbilityEntities(): List<Ability>? {
     }
 }
 
-fun Pokemon.toTypeEntities(): List<Type>? {
+fun Pokemon.toTypeEntities(): List<TypeEntity>? {
     return types?.map { type ->
-        Type(typeName = type.type.name ?: String())
+        TypeEntity(typeName = type.type.name ?: String())
     }
 }
 
@@ -188,4 +188,24 @@ fun HashMap<*, *>.toPokemon(): Pokemon {
         color = this["color"].toString(),
         habitat = this["habitat"].toString(),
     )
+}
+
+fun Damage.toType(): TypeResponse {
+    val name = this.type?.name ?: String()
+    val url = this.type?.url ?: String()
+    return TypeResponse(slot = null, type = Default(name, url))
+}
+
+fun List<Damage>.fromDamageToListType(): List<TypeResponse> {
+    return this.map { it.toType() }
+}
+
+fun Default.toType(): TypeResponse {
+    val name = this.name ?: String()
+    val url = this.url ?: String()
+    return TypeResponse(slot = null, type = Default(name, url))
+}
+
+fun List<Default>.fromDefaultToListType(): List<TypeResponse> {
+    return this.map { it.toType() }
 }
