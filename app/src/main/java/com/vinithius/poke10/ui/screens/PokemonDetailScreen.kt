@@ -987,8 +987,8 @@ private fun PokemonDamage(pokemonDetail: Pokemon?) {
 @Composable
 private fun DefaultDamageFromTo(
     title: String,
-    damageFrom: List<Type>,
     damageTo: List<Type>,
+    damageFrom: List<Type>,
 ) {
     if (damageFrom.isNotEmpty() || damageTo.isNotEmpty()) {
         Column {
