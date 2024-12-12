@@ -53,6 +53,7 @@ import androidx.navigation.NavController
 import com.valentinilk.shimmer.shimmer
 import com.vinithius.poke10.R
 import com.vinithius.poke10.components.TypeItem
+import com.vinithius.poke10.components.TypeItemShimmer
 import com.vinithius.poke10.components.TypeListResponse
 import com.vinithius.poke10.datasource.mapper.fromDefaultToListType
 import com.vinithius.poke10.datasource.response.Pokemon
@@ -516,7 +517,7 @@ fun SharedTransitionScope.PokemonDetailScreen(
         }
         Spacer(modifier = Modifier.size(5.dp))
         PokemonChart(viewModel, pokemonDetail, pokemonColor)
-        PokemonDamage(pokemonDetail)
+        PokemonDamage(pokemonDetail, viewModel)
         /*
         setInfo(pokemon)
         setIsBaby(pokemon)
@@ -947,42 +948,84 @@ private fun ChartLoadingComposable() {
 }
 
 @Composable
-private fun PokemonDamage(pokemonDetail: Pokemon?) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth().padding(8.dp),
-        shape = RoundedCornerShape(8.dp),
-        elevation = CardDefaults.elevatedCardElevation(4.dp)
-    ) {
-        Column(
-            modifier = Modifier.fillMaxSize().padding(8.dp),
-            horizontalAlignment = Alignment.Start
-        ) {
-            pokemonDetail?.damage?.forEach {
-                Spacer(modifier = Modifier.size(12.dp))
-                Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                    TypeItem(it.type?.name ?: String())
+private fun PokemonDamage(
+    pokemonDetail: Pokemon?,
+    viewModel: PokemonViewModel = getViewModel()
+) {
+    StateRequest(
+        viewModel = viewModel,
+        loading = {
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(8.dp),
+                shape = RoundedCornerShape(8.dp),
+                elevation = CardDefaults.elevatedCardElevation(4.dp)
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(8.dp),
+                    horizontalAlignment = Alignment.Start
+                ) {
+                    Spacer(modifier = Modifier.size(6.dp))
+                    Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                        TypeItemShimmer()
+                    }
+                    Spacer(modifier = Modifier.size(6.dp))
+                    DefaultDamageFromToShimmer()
+                    DefaultDamageFromToShimmer()
+                    DefaultDamageFromToShimmer()
                 }
-                Spacer(modifier = Modifier.size(12.dp))
-                DefaultDamageFromTo(
-                    stringResource(R.string.no_damage),
-                    it.damage_relations.no_damage_to.fromDefaultToListType(),
-                    it.damage_relations.no_damage_from.fromDefaultToListType()
-                )
-                DefaultDamageFromTo(
-                    stringResource(R.string.effective_damage),
-                    it.damage_relations.effective_damage_to?.fromDefaultToListType() ?: listOf(),
-                    it.damage_relations.effective_damage_from.fromDefaultToListType()
-                )
-                DefaultDamageFromTo(
-                    stringResource(R.string.ineffective_damage),
-                    it.damage_relations.ineffective_damage_to.fromDefaultToListType(),
-                    it.damage_relations.ineffective_damage_from.fromDefaultToListType()
-                )
             }
-        }
-    }
+        },
+        success = {
+            pokemonDetail?.damage?.forEach {
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(8.dp),
+                    shape = RoundedCornerShape(8.dp),
+                    elevation = CardDefaults.elevatedCardElevation(4.dp)
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(8.dp),
+                        horizontalAlignment = Alignment.Start
+                    ) {
+                        Spacer(modifier = Modifier.size(6.dp))
+                        Box(
+                            modifier = Modifier.fillMaxWidth(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            TypeItem(it.type?.name ?: String())
+                        }
+                        Spacer(modifier = Modifier.size(6.dp))
+                        DefaultDamageFromTo(
+                            stringResource(R.string.no_damage),
+                            it.damage_relations.no_damage_to.fromDefaultToListType(),
+                            it.damage_relations.no_damage_from.fromDefaultToListType()
+                        )
+                        DefaultDamageFromTo(
+                            stringResource(R.string.effective_damage),
+                            it.damage_relations.effective_damage_to?.fromDefaultToListType()
+                                ?: listOf(),
+                            it.damage_relations.effective_damage_from.fromDefaultToListType()
+                        )
+                        DefaultDamageFromTo(
+                            stringResource(R.string.ineffective_damage),
+                            it.damage_relations.ineffective_damage_to.fromDefaultToListType(),
+                            it.damage_relations.ineffective_damage_from.fromDefaultToListType()
+                        )
+                    }
+                }
+            }
+        },
+        error = { /* Do nothing yet */ }
+    )
 }
+
 
 @Composable
 private fun DefaultDamageFromTo(
@@ -1017,6 +1060,44 @@ private fun DefaultDamageFromTo(
         }
         Spacer(modifier = Modifier.size(6.dp))
     }
+}
+
+@Composable
+private fun DefaultDamageFromToShimmer() {
+    Column {
+        Spacer(modifier = Modifier.size(6.dp))
+        Text(
+            text = stringResource(R.string.three_dots),
+            style = MaterialTheme.typography.bodyLarge,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.shimmer()
+        )
+        Spacer(modifier = Modifier.size(6.dp))
+        Row {
+            Text(stringResource(R.string.from))
+            Spacer(modifier = Modifier.size(2.dp))
+            TypeItemShimmer()
+            Spacer(modifier = Modifier.size(2.dp))
+            TypeItemShimmer()
+            Spacer(modifier = Modifier.size(2.dp))
+            TypeItemShimmer()
+            Spacer(modifier = Modifier.size(2.dp))
+            TypeItemShimmer()
+        }
+        Spacer(modifier = Modifier.size(6.dp))
+        Row {
+            Text(stringResource(R.string.to))
+            Spacer(modifier = Modifier.size(2.dp))
+            TypeItemShimmer()
+            Spacer(modifier = Modifier.size(2.dp))
+            TypeItemShimmer()
+            Spacer(modifier = Modifier.size(2.dp))
+            TypeItemShimmer()
+            Spacer(modifier = Modifier.size(2.dp))
+            TypeItemShimmer()
+        }
+    }
+    Spacer(modifier = Modifier.size(6.dp))
 }
 
 @Preview
