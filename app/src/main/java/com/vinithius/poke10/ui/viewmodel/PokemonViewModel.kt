@@ -94,6 +94,10 @@ class PokemonViewModel(private val repository: PokemonRepository) : ViewModel() 
         _pokemonColor.postValue(color)
     }
 
+    fun getPokemonColor(): String? {
+        return _pokemonColor.value
+    }
+
     private val _isDetailScreen = MutableLiveData(false)
     val isDetailScreen: LiveData<Boolean>
         get() = _isDetailScreen

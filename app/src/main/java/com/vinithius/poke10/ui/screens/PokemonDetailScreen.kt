@@ -3,6 +3,7 @@ package com.vinithius.poke10.ui.screens
 import android.annotation.SuppressLint
 import android.content.Context
 import android.os.Build
+import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.AnimatedVisibilityScope
@@ -17,6 +18,7 @@ import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -28,6 +30,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -806,10 +810,53 @@ private fun PokemonEvolution(
     pokemonDetail: Pokemon?,
     viewModel: PokemonViewModel = getViewModel()
 ) {
+    val context = LocalContext.current
     StateRequest(
         viewModel = viewModel,
         loading = {
-
+            Column(
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .padding(6.dp),
+            ) {
+                val listShimmer = listOf(1, 2, 3)
+                LazyRow(
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    itemsIndexed(listShimmer) { index, _ ->
+                        Card(
+                            modifier = Modifier
+                                .padding(8.dp)
+                                .shimmer(),
+                            shape = RoundedCornerShape(8.dp),
+                            elevation = CardDefaults.elevatedCardElevation(4.dp),
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(70.dp)
+                                    .shimmer()
+                            ) {
+                                CircularProgressIndicator(
+                                    color = Color.White,
+                                    modifier = Modifier
+                                        .align(Alignment.Center)
+                                        .size(30.dp)
+                                )
+                            }
+                        }
+                        val arrowVisible = listShimmer.size == index + 1
+                        if (arrowVisible.not()) {
+                            Image(
+                                painter = painterResource(id = R.drawable.ic_baseline_arrow_forward_ios_24),
+                                contentDescription = "Arrow right",
+                                modifier = Modifier
+                                    .size(25.dp)
+                                    .shimmer()
+                            )
+                        }
+                    }
+                }
+            }
         },
         success = {
             Column(
@@ -817,27 +864,47 @@ private fun PokemonEvolution(
                     .fillMaxHeight()
                     .padding(6.dp),
             ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    pokemonDetail?.evolution?.getListEvolutions()?.run {
-                        viewModel.getIdByNames(this@run)?.forEachIndexed { index, pair ->
-                            Card(
-                                modifier = Modifier
-                                    .padding(8.dp),
-                                shape = RoundedCornerShape(8.dp),
-                                elevation = CardDefaults.elevatedCardElevation(4.dp)
-                            ) {
-                                LoadGifWithCoilToEvolution(pair)
-                            }
-                            val arrowVisible =
-                                pokemonDetail.evolution?.getListEvolutions()?.size == index + 1
-                            if (arrowVisible.not()) {
-                                Image(
-                                    painter = painterResource(id = R.drawable.ic_baseline_arrow_forward_ios_24),
-                                    contentDescription = "Arrow right",
-                                    modifier = Modifier.size(25.dp)
-                                )
+                val pokemonId = pokemonDetail?.id ?: 0
+                val color = viewModel.getPokemonColor()?.getColorByString() ?: Color.Black
+                pokemonDetail?.evolution?.getListEvolutions()?.let {
+                    viewModel.getIdByNames(it)?.run {
+                        LazyRow(
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            itemsIndexed(this@run) { index, data ->
+                                Card(
+                                    modifier = if (pokemonId == data.first) {
+                                        Modifier
+                                            .padding(8.dp)
+                                            .border(
+                                                width = 1.dp,
+                                                color = color,
+                                                shape = RoundedCornerShape(8.dp)
+                                            )
+                                    } else {
+                                        Modifier.padding(8.dp)
+                                    },
+                                    shape = RoundedCornerShape(8.dp),
+                                    elevation = CardDefaults.elevatedCardElevation(4.dp),
+                                    onClick = {
+                                        Toast.makeText(
+                                            context,
+                                            data.second.capitalize(),
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                    }
+                                ) {
+                                    LoadGifWithCoilToEvolution(data)
+                                }
+                                val arrowVisible =
+                                    pokemonDetail.evolution?.getListEvolutions()?.size == index + 1
+                                if (arrowVisible.not()) {
+                                    Image(
+                                        painter = painterResource(id = R.drawable.ic_baseline_arrow_forward_ios_24),
+                                        contentDescription = "Arrow right",
+                                        modifier = Modifier.size(25.dp)
+                                    )
+                                }
                             }
                         }
                     }
@@ -870,7 +937,10 @@ private fun PokemonDamage(
                     horizontalAlignment = Alignment.Start
                 ) {
                     Spacer(modifier = Modifier.size(6.dp))
-                    Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                    Box(
+                        modifier = Modifier.fillMaxWidth(),
+                        contentAlignment = Alignment.Center
+                    ) {
                         TypeItemShimmer()
                     }
                     Spacer(modifier = Modifier.size(6.dp))
