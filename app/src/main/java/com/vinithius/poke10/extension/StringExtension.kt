@@ -1,16 +1,14 @@
 package com.vinithius.poke10.extension
 
-import android.content.Context
-import android.graphics.Bitmap
-import android.graphics.drawable.BitmapDrawable
-import android.graphics.drawable.Drawable
 import android.net.Uri
+import android.os.Build
+import android.text.Html
+import android.text.Spanned
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
-import androidx.palette.graphics.Palette
-import coil.Coil
-import coil.request.ImageRequest
-import com.squareup.picasso.Picasso
+import androidx.compose.ui.res.stringResource
 import com.vinithius.poke10.R
+import com.vinithius.poke10.datasource.response.FlavorText
 import android.graphics.Color as ParseColor
 
 /**
@@ -35,71 +33,22 @@ fun String.getIdIntoUrl(): String? {
     return null
 }
 
-/*
 /**
- * Get if the pokemon is favorite or not, if null, returns false.
+ * Extension function to format HTML text and return a Spanned.
+ * Compatible with different Android API levels.
  */
-fun String.getIsFavorite(context: Context): Boolean {
-    val sharedPref = context.getSharedPreferences(
-        PokemonListAdapter.FAVORITES,
-        Context.MODE_PRIVATE
-    )
-    return sharedPref.getBoolean(this, false)
-}
-*/
-fun String.getDominantColorPalette(
-    context: Context,
-    onResult: (HashMap<String, Palette.Swatch?>) -> Unit
-) {
-    val hashMapColor = hashMapOf<String, Palette.Swatch?>()
-
-    // Cria a requisição para carregar a imagem
-    val request = ImageRequest.Builder(context)
-        .data(this) // URL da imagem
-        .target { drawable ->
-            // Conversão para BitmapDrawable
-            val bitmap = (drawable as? BitmapDrawable)?.bitmap
-
-            // Processa o Bitmap com a Palette para extrair as cores
-            bitmap?.let { bmp ->
-                val palette = Palette.from(bmp).generate()
-                val light = palette.lightVibrantSwatch ?: palette.lightMutedSwatch
-                val dominant = palette.dominantSwatch ?: light
-                hashMapColor["dominant"] = dominant
-                hashMapColor["light"] = light
-
-                // Retorna o resultado usando o Callback
-                onResult(hashMapColor)
-            }
-        }
-        .build()
-
-    // Executa a requisição de imagem usando Coil
-    Coil.imageLoader(context).enqueue(request)
+fun String.getHtmlCompat(): Spanned {
+    return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+        Html.fromHtml(this, Html.FROM_HTML_MODE_COMPACT)
+    } else {
+        Html.fromHtml(this)
+    }
 }
 
-/**
- * Get dominant color Pallete.
- */
-fun String.getDominantColorPalleteq(): HashMap<String, Palette.Swatch?> {
-    val hashMapColor = hashMapOf<String, Palette.Swatch?>()
-    Picasso.get().load(this).into(object : com.squareup.picasso.Target {
-
-        override fun onBitmapLoaded(bitmap: Bitmap?, from: Picasso.LoadedFrom?) {
-            bitmap?.let { bitmap_to_palette ->
-                val palette = Palette.from(bitmap_to_palette).generate()
-                val light = palette.lightVibrantSwatch ?: palette.lightMutedSwatch
-                val dominant = palette.dominantSwatch ?: light
-                hashMapColor["dominant"] = dominant
-                hashMapColor["light"] = light
-            }
-        }
-
-        override fun onPrepareLoad(placeHolderDrawable: Drawable?) {}
-
-        override fun onBitmapFailed(e: Exception?, errorDrawable: Drawable?) {}
-    })
-    return hashMapColor
+@Composable
+fun List<FlavorText>?.getFlavorTextForLanguage(languageCode: String): List<String>? {
+    return this?.filter { it.language.name == languageCode }?.distinctBy { it.flavor_text }
+        ?.map { item -> "• ${item.flavor_text}" }
 }
 
 fun String.getDrawableHabitat(): Int {

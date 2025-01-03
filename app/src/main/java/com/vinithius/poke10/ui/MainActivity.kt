@@ -306,23 +306,18 @@ private fun AppMenuPageList(
     DropDownMenuRight(
         expanded = expanded,
         onDismissRequest = { expanded = false },
-        onChangelogClick = { },
-        onNightModeToggle = { },
-        isNightMode = false,
-        onShareAppClick = { },
-        onInviteFriendsClick = { },
+        onShareAppClick = {
+            shareApp(context)
+        },
         onRateAppClick = {
             requestInAppReview(context)
         },
         onSuggestionsClick = {
-            val intent =
-                Intent(
-                    Intent.ACTION_VIEW,
-                    Uri.parse("https://forms.gle/6Rbsv7voquN3AjbT8")
-                )
-            context.startActivity(intent)
+            suggestionsClick(context)
         },
-        onDonateClick = { }
+        onDonateClick = {
+            donateClick(context)
+        }
     )
 }
 
@@ -371,11 +366,7 @@ private fun AppMenuPageDetail(
 private fun DropDownMenuRight(
     expanded: Boolean,
     onDismissRequest: () -> Unit,
-    onChangelogClick: () -> Unit,
-    onNightModeToggle: (Boolean) -> Unit,
-    isNightMode: Boolean,
     onShareAppClick: () -> Unit,
-    onInviteFriendsClick: () -> Unit,
     onRateAppClick: () -> Unit,
     onSuggestionsClick: () -> Unit,
     onDonateClick: () -> Unit
@@ -384,31 +375,6 @@ private fun DropDownMenuRight(
         expanded = expanded,
         onDismissRequest = onDismissRequest
     ) {
-        // Categoria: Configurações
-        Text(
-            text = stringResource(id = R.string.settings),
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
-        )
-        DropdownMenuItem(
-            text = {
-                Text(
-                    "${stringResource(id = R.string.night_mode)} ${
-                        if (isNightMode) stringResource(
-                            id = R.string.enabled
-                        ) else stringResource(id = R.string.disabled)
-                    }"
-                )
-            },
-            onClick = { onNightModeToggle(!isNightMode) }
-        )
-        DropdownMenuItem(
-            text = { Text(stringResource(id = R.string.changelog_whats_new)) },
-            onClick = onChangelogClick
-        )
-        HorizontalDivider()
-
         // Categoria: Interação com o App
         Text(
             text = stringResource(id = R.string.interaction),
@@ -425,7 +391,6 @@ private fun DropDownMenuRight(
             onClick = onRateAppClick
         )
         HorizontalDivider()
-
         // Categoria: Feedback e Apoio
         Text(
             text = stringResource(id = R.string.feedback_and_support),
@@ -492,6 +457,26 @@ private fun GetNavHost(
     }
 }
 
+fun shareApp(context: Context) {
+    val appPackageName = context.packageName
+    val appPlayStoreLink = "https://play.google.com/store/apps/details?id=$appPackageName"
+    val shareMessage = String.format(
+        context.getString(R.string.share_app_message),
+        appPlayStoreLink
+    )
+    val shareIntent = Intent().apply {
+        action = Intent.ACTION_SEND
+        putExtra(Intent.EXTRA_TEXT, shareMessage)
+        type = "text/plain"
+    }
+    context.startActivity(
+        Intent.createChooser(
+            shareIntent,
+            context.getString(R.string.share_app_via)
+        )
+    )
+}
+
 fun requestInAppReview(context: Context) {
     val reviewManager: ReviewManager = ReviewManagerFactory.create(context)
     val requestFlow = reviewManager.requestReviewFlow()
@@ -507,6 +492,25 @@ fun requestInAppReview(context: Context) {
             exception?.printStackTrace()
         }
     }
+}
+
+fun suggestionsClick(context: Context) {
+    val intent =
+        Intent(
+            Intent.ACTION_VIEW,
+            Uri.parse("https://forms.gle/6Rbsv7voquN3AjbT8")
+        )
+    context.startActivity(intent)
+}
+
+fun donateClick(context: Context) {
+    val idButton = "48SNSQLTQ87HS"
+    val intent =
+        Intent(
+            Intent.ACTION_VIEW,
+            Uri.parse("https://www.paypal.com/donate/?hosted_button_id=$idButton")
+        )
+    context.startActivity(intent)
 }
 
 @Preview(showBackground = true)

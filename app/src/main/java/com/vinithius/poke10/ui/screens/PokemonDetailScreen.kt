@@ -3,6 +3,7 @@ package com.vinithius.poke10.ui.screens
 import android.annotation.SuppressLint
 import android.content.Context
 import android.os.Build
+import android.text.Spanned
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
@@ -32,21 +33,17 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicText
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Tab
-import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -65,7 +62,9 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -91,6 +90,8 @@ import com.vinithius.poke10.extension.convertPounds
 import com.vinithius.poke10.extension.converterIntToDouble
 import com.vinithius.poke10.extension.getColorByString
 import com.vinithius.poke10.extension.getDrawableHabitat
+import com.vinithius.poke10.extension.getFlavorTextForLanguage
+import com.vinithius.poke10.extension.getHtmlCompat
 import com.vinithius.poke10.extension.getListEvolutions
 import com.vinithius.poke10.ui.viewmodel.PokemonViewModel
 import com.vinithius.poke10.ui.viewmodel.RequestStateDetail
@@ -99,7 +100,6 @@ import ir.ehsannarmani.compose_charts.models.BarProperties
 import ir.ehsannarmani.compose_charts.models.Bars
 import ir.ehsannarmani.compose_charts.models.LabelHelperProperties
 import ir.ehsannarmani.compose_charts.models.LabelProperties
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.getViewModel
 
@@ -334,7 +334,7 @@ fun SharedTransitionScope.PokemonDetailScreen(
         PokemonIsABaby()
         PokemonEvolution(pokemonDetail)
         // Tabs
-        TabWithPagerExample(pokemonDetail, viewModel)
+        TabWithPagerExample(pokemonDetail, viewModel, pokemonColor)
         //PokemonDamage(pokemonDetail, viewModel)
         /*
         setInfo(pokemon)
@@ -348,9 +348,19 @@ fun SharedTransitionScope.PokemonDetailScreen(
 }
 
 @Composable
-fun TabWithPagerExample(pokemonDetail : Pokemon?, viewModel: PokemonViewModel = getViewModel()) {
-    val pagerState = rememberPagerState(pageCount = { 6 })
-    val tabTitles = listOf("Damage", "Encounters", "Eggs", "Abilities", "Info", "Entries")
+fun TabWithPagerExample(
+    pokemonDetail: Pokemon?,
+    viewModel: PokemonViewModel = getViewModel(),
+    pokemonColor: String
+) {
+    val tabTitles = listOf(
+        stringResource(R.string.damage),
+        stringResource(R.string.encounters),
+        stringResource(R.string.eggs),
+        stringResource(R.string.abilities),
+        stringResource(R.string.entries)
+    )
+    val pagerState = rememberPagerState(pageCount = { tabTitles.size })
     val coroutineScope = rememberCoroutineScope()
 
     LazyRow(
@@ -362,30 +372,50 @@ fun TabWithPagerExample(pokemonDetail : Pokemon?, viewModel: PokemonViewModel = 
     ) {
         items(tabTitles.size) { index ->
             val isSelected = pagerState.currentPage == index
-            val backgroundColor =
-                if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondary
-            val textColor =
-                if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSecondary
+            val color = getButtonColor(isSelected, pokemonColor)
 
-            Box(
-                contentAlignment = Alignment.Center,
-                modifier = Modifier
-                    .clip(RoundedCornerShape(16.dp)) // Borda arredondada
-                    .background(backgroundColor)
-                    .clickable {
-                        coroutineScope.launch {
-                            pagerState.animateScrollToPage(index)
-                        }
+            StateRequest(
+                viewModel = viewModel,
+                loading = {
+                    Box(
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(16.dp))
+                            .background(color.first)
+                            .padding(horizontal = 16.dp, vertical = 8.dp)
+                            .shimmer()
+                    ) {
+                        Text(
+                            text = tabTitles[index],
+                            color = color.second,
+                            fontSize = 16.sp,
+                            textAlign = TextAlign.Center
+                        )
                     }
-                    .padding(horizontal = 16.dp, vertical = 8.dp)
-            ) {
-                Text(
-                    text = tabTitles[index],
-                    color = textColor,
-                    fontSize = 16.sp,
-                    textAlign = TextAlign.Center
-                )
-            }
+                },
+                success = {
+                    Box(
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(16.dp))
+                            .background(color.first)
+                            .clickable {
+                                coroutineScope.launch {
+                                    pagerState.animateScrollToPage(index)
+                                }
+                            }
+                            .padding(horizontal = 16.dp, vertical = 8.dp)
+                    ) {
+                        Text(
+                            text = tabTitles[index],
+                            color = color.second,
+                            fontSize = 16.sp,
+                            textAlign = TextAlign.Center
+                        )
+                    }
+                },
+                error = { /* Do nothing yet */ }
+            )
         }
     }
 
@@ -399,14 +429,22 @@ fun TabWithPagerExample(pokemonDetail : Pokemon?, viewModel: PokemonViewModel = 
         ) {
             when (page) {
                 0 -> PokemonDamage(pokemonDetail, viewModel)
-                1 -> Text("Página 2", modifier = Modifier.fillMaxSize())
-                2 -> Text("Página 3", modifier = Modifier.fillMaxSize())
-                3 -> Text("Página 4", modifier = Modifier.fillMaxSize())
-                4 -> Text("Página 5", modifier = Modifier.fillMaxSize())
-                else -> Text("Página desconhecida", modifier = Modifier.fillMaxSize())
+                1 -> PokemonEncounters(pokemonDetail, pokemonColor, viewModel)
+                2 -> PokemonEggs(pokemonDetail, pokemonColor, viewModel)
+                3 -> PokemonAbilities(pokemonDetail, pokemonColor, viewModel)
+                4 -> PokemonEntries(pokemonDetail, viewModel)
             }
         }
     }
+}
+
+@Composable
+private fun getButtonColor(isSelected: Boolean, pokemonColor: String): Pair<Color, Color> {
+    val result = Pair(
+        if (isSelected) pokemonColor.getColorByString() else MaterialTheme.colorScheme.secondary,
+        if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSecondary
+    )
+    return result
 }
 
 
@@ -459,14 +497,14 @@ private fun PokemonHabitat(
 
 @Composable
 private fun PokemonHabitatSuccessComposable(pokemonDetail: Pokemon?, pokemonName: String) {
-    val habitatImg = pokemonDetail?.specie?.habitat?.name?.getDrawableHabitat()
+    val habitatImg = pokemonDetail?.specie?.habitat?.name?.getDrawableHabitat() ?: R.drawable.unknow_habitat
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .height(170.dp),
         contentAlignment = Alignment.Center
     ) {
-        habitatImg?.run {
+        habitatImg.run {
             Image(
                 painter = painterResource(id = this),
                 contentDescription = null,
@@ -988,6 +1026,37 @@ private fun PokemonEvolution(
 }
 
 @Composable
+private fun GenericBox(
+    isShimmer: Boolean = false,
+    callComponent: @Composable () -> Unit
+) {
+    val modifier = if (isShimmer) {
+        Modifier
+            .fillMaxWidth()
+            .padding(8.dp)
+            .shimmer()
+    } else {
+        Modifier
+            .fillMaxWidth()
+            .padding(8.dp)
+    }
+    Card(
+        modifier = modifier,
+        shape = RoundedCornerShape(8.dp),
+        elevation = CardDefaults.elevatedCardElevation(4.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(8.dp),
+            horizontalAlignment = Alignment.Start
+        ) {
+            callComponent.invoke()
+        }
+    }
+}
+
+@Composable
 private fun PokemonDamage(
     pokemonDetail: Pokemon?,
     viewModel: PokemonViewModel = getViewModel()
@@ -995,73 +1064,128 @@ private fun PokemonDamage(
     StateRequest(
         viewModel = viewModel,
         loading = {
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(8.dp),
-                shape = RoundedCornerShape(8.dp),
-                elevation = CardDefaults.elevatedCardElevation(4.dp)
-            ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(8.dp),
-                    horizontalAlignment = Alignment.Start
+            GenericBox(true) {
+                Spacer(modifier = Modifier.size(6.dp))
+                Box(
+                    modifier = Modifier.fillMaxWidth(),
+                    contentAlignment = Alignment.Center
                 ) {
-                    Spacer(modifier = Modifier.size(6.dp))
-                    Box(
-                        modifier = Modifier.fillMaxWidth(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        TypeItemShimmer()
+                    TypeItemShimmer()
+                }
+                Spacer(modifier = Modifier.size(6.dp))
+                DefaultDamageFromToShimmer()
+                DefaultDamageFromToShimmer()
+                DefaultDamageFromToShimmer()
+            }
+        },
+        success = {
+            if (pokemonDetail?.damage?.isNotEmpty() == true) {
+
+                Spacer(modifier = Modifier.size(10.dp))
+                Column(modifier = Modifier.fillMaxWidth()) { // Use uma Column para organizar os itens
+                    pokemonDetail.damage.forEach { damageItem ->
+                        GenericBox {
+                            Box(
+                                modifier = Modifier.fillMaxWidth(),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                TypeItem(damageItem.type?.name ?: String())
+                            }
+                            Spacer(modifier = Modifier.size(6.dp))
+                            DefaultDamageFromTo(
+                                stringResource(R.string.no_damage),
+                                damageItem.damage_relations.no_damage_to.fromDefaultToListType(),
+                                damageItem.damage_relations.no_damage_from.fromDefaultToListType()
+                            )
+                            DefaultDamageFromTo(
+                                stringResource(R.string.effective_damage),
+                                damageItem.damage_relations.effective_damage_to?.fromDefaultToListType()
+                                    ?: listOf(),
+                                damageItem.damage_relations.effective_damage_from.fromDefaultToListType()
+                            )
+                            DefaultDamageFromTo(
+                                stringResource(R.string.ineffective_damage),
+                                damageItem.damage_relations.ineffective_damage_to.fromDefaultToListType(),
+                                damageItem.damage_relations.ineffective_damage_from.fromDefaultToListType()
+                            )
+                        }
+                        Spacer(modifier = Modifier.size(6.dp))
                     }
-                    Spacer(modifier = Modifier.size(6.dp))
-                    DefaultDamageFromToShimmer()
-                    DefaultDamageFromToShimmer()
-                    DefaultDamageFromToShimmer()
+                }
+
+
+            } else {
+                Text(
+                    text = stringResource(R.string.no_data),
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(8.dp)
+                )
+            }
+        },
+        error = { /* Do nothing yet */ }
+    )
+}
+
+@Composable
+private fun PokemonEncounters(
+    pokemonDetail: Pokemon?,
+    pokemonColor: String,
+    viewModel: PokemonViewModel = getViewModel()
+) {
+    StateRequest(
+        viewModel = viewModel,
+        loading = {
+            GenericBox(true) {
+                Row(
+                    modifier = Modifier.padding(vertical = 4.dp)
+                ) {
+                    Text(
+                        text = stringResource(R.string.loading),
+                        style = MaterialTheme.typography.bodyLarge.copy(
+                            color = Color.White
+                        ),
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(pokemonColor.getColorByString())
+                            .padding(8.dp)
+                    )
                 }
             }
         },
         success = {
-            pokemonDetail?.damage?.forEach {
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(8.dp),
-                    shape = RoundedCornerShape(8.dp),
-                    elevation = CardDefaults.elevatedCardElevation(4.dp)
-                ) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(8.dp),
-                        horizontalAlignment = Alignment.Start
-                    ) {
-                        Spacer(modifier = Modifier.size(6.dp))
-                        Box(
-                            modifier = Modifier.fillMaxWidth(),
-                            contentAlignment = Alignment.Center
+            GenericBox {
+                if (pokemonDetail?.encounters?.isNotEmpty() == true) {
+                    pokemonDetail.encounters?.forEach {
+                        Row(
+                            modifier = Modifier.padding(vertical = 4.dp)
                         ) {
-                            TypeItem(it.type?.name ?: String())
+                            Text(
+                                text = it.location_area.name?.replace("-", " ")?.capitalize()
+                                    ?: "?",
+                                style = MaterialTheme.typography.bodyLarge.copy(
+                                    color = Color.White
+                                ),
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clip(RoundedCornerShape(8.dp))
+                                    .background(pokemonColor.getColorByString())
+                                    .padding(8.dp)
+                            )
                         }
-                        Spacer(modifier = Modifier.size(6.dp))
-                        DefaultDamageFromTo(
-                            stringResource(R.string.no_damage),
-                            it.damage_relations.no_damage_to.fromDefaultToListType(),
-                            it.damage_relations.no_damage_from.fromDefaultToListType()
-                        )
-                        DefaultDamageFromTo(
-                            stringResource(R.string.effective_damage),
-                            it.damage_relations.effective_damage_to?.fromDefaultToListType()
-                                ?: listOf(),
-                            it.damage_relations.effective_damage_from.fromDefaultToListType()
-                        )
-                        DefaultDamageFromTo(
-                            stringResource(R.string.ineffective_damage),
-                            it.damage_relations.ineffective_damage_to.fromDefaultToListType(),
-                            it.damage_relations.ineffective_damage_from.fromDefaultToListType()
-                        )
                     }
+                } else {
+                    Text(
+                        text = stringResource(R.string.no_data),
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(8.dp)
+                    )
                 }
             }
         },
@@ -1069,6 +1193,212 @@ private fun PokemonDamage(
     )
 }
 
+@Composable
+private fun PokemonEggs(
+    pokemonDetail: Pokemon?,
+    pokemonColor: String,
+    viewModel: PokemonViewModel = getViewModel()
+) {
+    StateRequest(
+        viewModel = viewModel,
+        loading = {
+            GenericBox(true) {
+                Row(
+                    modifier = Modifier.padding(vertical = 4.dp)
+                ) {
+                    Text(
+                        text = stringResource(R.string.loading),
+                        style = MaterialTheme.typography.bodyLarge.copy(
+                            color = Color.White
+                        ),
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(pokemonColor.getColorByString())
+                            .padding(8.dp)
+                    )
+                }
+            }
+        },
+        success = {
+            GenericBox {
+                if (pokemonDetail?.specie?.egg_groups?.isNotEmpty() == true) {
+
+                    pokemonDetail.specie?.let { specie ->
+                        specie.egg_groups?.forEach {
+                            Row(
+                                modifier = Modifier.padding(vertical = 4.dp)
+                            ) {
+                                Text(
+                                    text = it.name?.capitalize() ?: "?",
+                                    style = MaterialTheme.typography.bodyLarge.copy(
+                                        color = Color.White
+                                    ),
+                                    fontWeight = FontWeight.Bold,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clip(RoundedCornerShape(8.dp))
+                                        .background(pokemonColor.getColorByString())
+                                        .padding(8.dp)
+                                )
+                            }
+                        }
+                    }
+                } else {
+                    Text(
+                        text = stringResource(R.string.no_data),
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(8.dp)
+                    )
+                }
+            }
+        },
+        error = { /* Do nothing yet */ }
+    )
+}
+
+@Composable
+private fun PokemonAbilities(
+    pokemonDetail: Pokemon?,
+    pokemonColor: String,
+    viewModel: PokemonViewModel = getViewModel()
+) {
+    StateRequest(
+        viewModel = viewModel,
+        loading = {
+            GenericBox(true) {
+                Text(
+                    text = stringResource(R.string.about_abilities_hidden),
+                    fontWeight = FontWeight.Normal,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(modifier = Modifier.size(5.dp))
+                Row(
+                    modifier = Modifier.padding(vertical = 4.dp)
+                ) {
+                    Text(
+                        text = stringResource(R.string.loading),
+                        style = MaterialTheme.typography.bodyLarge.copy(
+                            color = Color.White
+                        ),
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(pokemonColor.getColorByString())
+                            .padding(8.dp)
+                    )
+                }
+            }
+        },
+        success = {
+            if (pokemonDetail?.abilities?.isNotEmpty() == true) {
+                GenericBox {
+                    Text(
+                        text = stringResource(R.string.about_abilities_hidden),
+                        fontWeight = FontWeight.Normal,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    Spacer(modifier = Modifier.size(5.dp))
+                    pokemonDetail?.abilities?.forEach {
+                        Row(
+                            modifier = Modifier.padding(vertical = 4.dp)
+                        ) {
+                            val text = if (it.is_hidden) {
+                                "${it.ability.name?.capitalize()} - ${stringResource(R.string.hidden)}"
+                            } else {
+                                it.ability.name?.capitalize()
+                            }
+                            Text(
+                                text = text ?: "?",
+                                style = MaterialTheme.typography.bodyLarge.copy(
+                                    color = Color.White
+                                ),
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clip(RoundedCornerShape(8.dp))
+                                    .background(pokemonColor.getColorByString())
+                                    .padding(8.dp)
+                            )
+                        }
+                    }
+                }
+            } else {
+                Text(
+                    text = stringResource(R.string.no_data),
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(8.dp)
+                )
+            }
+        },
+        error = { /* Do nothing yet */ }
+    )
+}
+
+@Composable
+private fun PokemonEntries(
+    pokemonDetail: Pokemon?,
+    viewModel: PokemonViewModel = getViewModel()
+) {
+    StateRequest(
+        viewModel = viewModel,
+        loading = {
+            GenericBox(true) {
+                Text(
+                    text = stringResource(R.string.loading),
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.Bold,
+                )
+            }
+        },
+        success = {
+            GenericBox {
+                pokemonDetail?.specie?.let { specie ->
+                    specie.flavor_text_entries?.let { flavorTextEntries ->
+                        val textList = flavorTextEntries.getFlavorTextForLanguage("en")
+                        textList?.forEach {
+                            Spacer(modifier = Modifier.size(3.dp))
+                            HtmlText(text = it)
+                            Spacer(modifier = Modifier.size(3.dp))
+                        }
+                    }
+                } ?: run {
+                    Text(
+                        text = stringResource(R.string.no_data),
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(8.dp)
+                    )
+                }
+            }
+        },
+        error = { /* Do nothing yet */ }
+    )
+}
+
+/**
+ * Adapts the HTML text for use in Compose.
+ */
+fun Spanned.toAnnotatedString(): AnnotatedString {
+    return buildAnnotatedString {
+        append(this@toAnnotatedString.toString())
+    }
+}
+
+@Composable
+fun HtmlText(text: String) {
+    val spanned = text.getHtmlCompat()
+    Text(text = spanned.toAnnotatedString())
+}
 
 @Composable
 private fun DefaultDamageFromTo(
