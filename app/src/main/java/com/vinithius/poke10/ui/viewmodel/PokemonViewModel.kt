@@ -110,6 +110,10 @@ class PokemonViewModel(private val repository: PokemonRepository) : ViewModel() 
     val isDetailFavorite: LiveData<Boolean>
         get() = _isDetailFavorite
 
+    private val _isDetailFilter = MutableLiveData(false)
+    val isDetailFilter: LiveData<Boolean>
+        get() = _isDetailFilter
+
     fun updateSharedImage(pokemonId: String, imagePainter: AsyncImagePainter) {
         val currentImages = _sharedPokemonImages.value.orEmpty()
         _sharedPokemonImages.value = currentImages + (pokemonId to imagePainter)
@@ -152,8 +156,10 @@ class PokemonViewModel(private val repository: PokemonRepository) : ViewModel() 
                     }
                 ) ?: emptyList()
                 _pokemonListBackup.postValue(result)
-                _pokemonList.postValue(result)
-                makeFilter(result)
+                if (_pokemonList.value == null) {
+                    _pokemonList.postValue(result)
+                    makeFilter(result)
+                }
                 _stateList.postValue(RequestStateList.Success)
             } catch (e: Exception) {
                 _stateList.postValue(RequestStateList.Error(e))

@@ -285,11 +285,10 @@ private fun AppMenuPageList(
     context: Context,
     viewModel: PokemonViewModel
 ) {
-    var favoriteFilter by remember { mutableStateOf(false) }
+    val favoriteFilter by viewModel.isFavoriteFilter.observeAsState(false)
     var expanded by remember { mutableStateOf(false) }
     IconButton(onClick = {
-        favoriteFilter = favoriteFilter.not()
-        viewModel.getPokemonFavoriteList(favoriteFilter)
+        viewModel.getPokemonFavoriteList(favoriteFilter.not())
     }) {
         Icon(
             imageVector = if (favoriteFilter) Icons.Default.Favorite else Icons.Default.FavoriteBorder,

@@ -125,7 +125,6 @@ fun SharedTransitionScope.PokemonListScreen(
         viewModel.setPokemonColor(null)
     }
     val pokemonItems by viewModel.pokemonList.observeAsState(emptyList())
-    val pokemonItemsBackup by viewModel.pokemonListBackup.observeAsState(emptyList())
     val isFavoriteFilter by viewModel.isFavoriteFilter.observeAsState(false)
 
     Column(
