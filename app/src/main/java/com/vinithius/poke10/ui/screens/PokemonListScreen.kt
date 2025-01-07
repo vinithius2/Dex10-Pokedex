@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -55,6 +56,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.navigation.NavController
 import coil.ImageLoader
 import coil.compose.AsyncImagePainter
@@ -62,7 +64,11 @@ import coil.compose.rememberAsyncImagePainter
 import coil.decode.GifDecoder
 import coil.decode.ImageDecoderDecoder
 import coil.request.ImageRequest
+import com.google.android.gms.ads.AdRequest
+import com.google.android.gms.ads.AdSize
+import com.google.android.gms.ads.AdView
 import com.vinithius.poke10.R
+import com.vinithius.poke10.components.AdmobBanner
 import com.vinithius.poke10.components.EmptyListStatus
 import com.vinithius.poke10.components.ErrorStatus
 import com.vinithius.poke10.components.LoadingPokemonList
@@ -112,6 +118,7 @@ private fun StateRequest(
     }
 }
 
+
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun SharedTransitionScope.PokemonListScreen(
@@ -143,6 +150,7 @@ fun SharedTransitionScope.PokemonListScreen(
                 GetFilterBar {
                     getFilterBarData(it, viewModel)
                 }
+                AdmobBanner()
                 if (pokemonItems.isNotEmpty()) {
                     LazyColumn {
                         items(

@@ -66,6 +66,7 @@ import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.google.android.gms.ads.MobileAds
 import com.google.android.play.core.review.ReviewManager
 import com.google.android.play.core.review.ReviewManagerFactory
+import com.google.firebase.remoteconfig.FirebaseRemoteConfig
 import com.vinithius.poke10.R
 import com.vinithius.poke10.extension.getColorByString
 import com.vinithius.poke10.extension.getToolBarColorByString
@@ -104,9 +105,22 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
+private fun GetAdUnitId(viewModel: PokemonViewModel = getViewModel()) {
+    val remoteConfig = FirebaseRemoteConfig.getInstance()
+    remoteConfig.fetchAndActivate()
+        .addOnCompleteListener { task ->
+            if (task.isSuccessful) {
+                val adUnitId = remoteConfig.getString("adUnitId")
+                viewModel.setAdUnitId(adUnitId)
+            }
+        }
+}
+
+@Composable
 fun MainScreen(
     viewModel: PokemonViewModel = getViewModel()
 ) {
+    GetAdUnitId()
     SetupSystemUI(viewModel)
     val navController = rememberNavController()
     Scaffold(topBar = { GetTopBar(viewModel, navController) }) { innerPadding ->

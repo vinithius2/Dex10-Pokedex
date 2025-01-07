@@ -86,6 +86,14 @@ class PokemonViewModel(private val repository: PokemonRepository) : ViewModel() 
     private val _sharedPokemonImages = MutableLiveData<Map<String, AsyncImagePainter>>()
     val sharedPokemonImages: LiveData<Map<String, AsyncImagePainter>> = _sharedPokemonImages
 
+    private val _adUnitId = MutableLiveData(String())
+    val adUnitId: LiveData<String>
+        get() = _adUnitId
+
+    fun setAdUnitId(value: String) {
+        _adUnitId.postValue(value)
+    }
+
     private val _pokemonColor = MutableLiveData(String())
     val pokemonColor: LiveData<String?>
         get() = _pokemonColor
