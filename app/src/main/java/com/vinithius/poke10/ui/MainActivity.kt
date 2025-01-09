@@ -144,6 +144,7 @@ private fun GetTopBar(
     var searchQuery by remember { mutableStateOf("") }
     var isSearchActive by remember { mutableStateOf(false) }
     val isDetailsScreen by viewModel.isDetailScreen.observeAsState()
+    val pokemonItems by viewModel.pokemonList.observeAsState(emptyList())
     val color by viewModel.pokemonColor.observeAsState()
 
     if (isDetailsScreen != null) {
@@ -244,18 +245,20 @@ private fun GetTopBar(
                     navigationIconContentColor = MaterialTheme.colorScheme.onPrimary
                 ),
                 actions = {
-                    if (isSearchActive.not()) {
-                        IconButton(onClick = { isSearchActive = isSearchActive.not() }) {
-                            Icon(
-                                imageVector = Icons.Default.Search,
-                                contentDescription = stringResource(R.string.search)
-                            )
+                    if (pokemonItems.isNotEmpty()) {
+                        if (isSearchActive.not()) {
+                            IconButton(onClick = { isSearchActive = isSearchActive.not() }) {
+                                Icon(
+                                    imageVector = Icons.Default.Search,
+                                    contentDescription = stringResource(R.string.search)
+                                )
+                            }
                         }
+                        AppMenuPageList(
+                            context,
+                            viewModel
+                        )
                     }
-                    AppMenuPageList(
-                        context,
-                        viewModel
-                    )
                 }
             )
         }
