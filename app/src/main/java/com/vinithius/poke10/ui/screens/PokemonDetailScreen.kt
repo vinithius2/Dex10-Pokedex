@@ -1,11 +1,9 @@
 package com.vinithius.poke10.ui.screens
 
 import android.annotation.SuppressLint
-import android.app.Activity
 import android.content.Context
 import android.os.Build
 import android.text.Spanned
-import android.view.WindowMetrics
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
@@ -72,7 +70,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.viewinterop.AndroidView
 import androidx.navigation.NavController
 import coil.ImageLoader
 import coil.compose.AsyncImagePainter
@@ -80,10 +77,6 @@ import coil.compose.rememberAsyncImagePainter
 import coil.decode.GifDecoder
 import coil.decode.ImageDecoderDecoder
 import coil.request.ImageRequest
-import com.google.ads.mediation.AbstractAdViewAdapter
-import com.google.android.gms.ads.AdRequest
-import com.google.android.gms.ads.AdSize
-import com.google.android.gms.ads.AdView
 import com.valentinilk.shimmer.shimmer
 import com.vinithius.poke10.R
 import com.vinithius.poke10.components.AdmobBanner
@@ -175,10 +168,8 @@ fun SharedTransitionScope.PokemonDetailScreen(
         viewModel.setDetailsScreen(false)
         navController?.popBackStack()
     }
-    val context = LocalContext.current
     val pokemonDetail by viewModel.pokemonDetail.observeAsState()
     val painter = viewModel.getSharedImage(pokemonId.toString())
-
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -498,7 +489,8 @@ private fun PokemonHabitat(
 
 @Composable
 private fun PokemonHabitatSuccessComposable(pokemonDetail: Pokemon?, pokemonName: String) {
-    val habitatImg = pokemonDetail?.specie?.habitat?.name?.getDrawableHabitat() ?: R.drawable.unknow_habitat
+    val habitatImg =
+        pokemonDetail?.specie?.habitat?.name?.getDrawableHabitat() ?: R.drawable.unknow_habitat
     Box(
         modifier = Modifier
             .fillMaxWidth()

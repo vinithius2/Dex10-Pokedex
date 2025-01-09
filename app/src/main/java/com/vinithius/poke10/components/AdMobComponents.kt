@@ -10,6 +10,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.AdSize
 import com.google.android.gms.ads.AdView
+import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.vinithius.poke10.ui.viewmodel.PokemonViewModel
 import org.koin.androidx.compose.getViewModel
 
@@ -28,6 +29,7 @@ fun AdmobBanner(viewModel: PokemonViewModel = getViewModel()) {
                     try {
                         loadAd(AdRequest.Builder().build())
                     } catch (e: IllegalStateException) {
+                        FirebaseCrashlytics.getInstance().recordException(e)
                         Log.e("AdmobBanner", "Failed to load ad: ${e.message}")
                     }
                 }
