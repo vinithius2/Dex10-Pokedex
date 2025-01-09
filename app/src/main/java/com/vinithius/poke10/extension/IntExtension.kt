@@ -1,5 +1,13 @@
 package com.vinithius.poke10.extension
 
+import android.content.Context
+import android.graphics.BitmapFactory
+import androidx.core.graphics.ColorUtils
+import androidx.palette.graphics.Palette
+import java.io.InputStream
+import java.net.HttpURLConnection
+import java.net.URL
+
 fun Int.converterIntToDouble(): Double {
     return this.toDouble().div(10)
 }
@@ -12,4 +20,17 @@ fun Int.convertPounds(): Double {
 fun Int.convertInch(): Double {
     val value = this.toDouble().div(10)
     return 39.370 * value
+}
+
+fun Int.getDominantColorFromDrawableRes(context: Context): Int? {
+    val bitmap = BitmapFactory.decodeResource(context.resources, this)
+    val palette = Palette.from(bitmap).generate()
+    return palette.dominantSwatch?.rgb
+}
+
+fun Int.getDominantColorFromDrawableResWithAlpha(context: Context, alphaPercentage: Float): Int? {
+    return getDominantColorFromDrawableRes(context)?.let {
+        val alpha = (alphaPercentage * 255).toInt()
+        ColorUtils.setAlphaComponent(it, alpha)
+    }
 }
