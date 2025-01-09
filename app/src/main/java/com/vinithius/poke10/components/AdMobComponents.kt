@@ -1,5 +1,6 @@
 package com.vinithius.poke10.components
 
+import android.util.Log
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -17,7 +18,6 @@ private val adUnitIdTeste = "ca-app-pub-3940256099942544/6300978111"
 @Composable
 fun AdmobBanner(viewModel: PokemonViewModel = getViewModel()) {
     val adUnitId by viewModel.adUnitId.observeAsState()
-
     adUnitId?.takeIf { it.isNotEmpty() }?.let { validAdUnitId ->
         AndroidView(
             modifier = Modifier.fillMaxWidth(),
@@ -25,7 +25,11 @@ fun AdmobBanner(viewModel: PokemonViewModel = getViewModel()) {
                 AdView(context).apply {
                     setAdSize(AdSize.BANNER)
                     this.adUnitId = validAdUnitId
-                    loadAd(AdRequest.Builder().build())
+                    try {
+                        loadAd(AdRequest.Builder().build())
+                    } catch (e: IllegalStateException) {
+                        Log.e("AdmobBanner", "Failed to load ad: ${e.message}")
+                    }
                 }
             }
         )

@@ -366,62 +366,29 @@ fun StatComponent(pokemonData: PokemonWithDetails) {
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(
-                text = "${pokemonData.stats[0].name.value.capitalize()}: ${pokemonData.stats[0].baseStat}",
-                style = TextStyle(
-                    fontSize = 8.sp,
-                    color = Color.White,
-                    fontWeight = FontWeight.SemiBold,
-                    fontStyle = androidx.compose.ui.text.font.FontStyle.Normal,
-                    shadow = Shadow(
-                        color = Color.Black,
-                        offset = Offset(
-                            1f,
-                            1f
-                        ),
-                        blurRadius = 1f
+            pokemonData.stats.take(3).forEachIndexed { index, stat ->
+                Text(
+                    text = "${stat.name.value.capitalize()}: ${stat.baseStat}",
+                    style = TextStyle(
+                        fontSize = 8.sp,
+                        color = Color.White,
+                        fontWeight = FontWeight.SemiBold,
+                        fontStyle = androidx.compose.ui.text.font.FontStyle.Normal,
+                        shadow = Shadow(
+                            color = Color.Black,
+                            offset = Offset(1f, 1f),
+                            blurRadius = 1f
+                        )
                     )
                 )
-            )
-            Spacer(modifier = Modifier.size(8.dp))
-            Text(
-                text = "${pokemonData.stats[1].name.value.capitalize()}: ${pokemonData.stats[1].baseStat}",
-                style = TextStyle(
-                    fontSize = 8.sp,
-                    color = Color.White,
-                    fontWeight = FontWeight.SemiBold,
-                    fontStyle = androidx.compose.ui.text.font.FontStyle.Normal,
-                    shadow = Shadow(
-                        color = Color.Black,
-                        offset = Offset(
-                            1f,
-                            1f
-                        ),
-                        blurRadius = 1f
-                    )
-                )
-            )
-            Spacer(modifier = Modifier.size(8.dp))
-            Text(
-                text = "${pokemonData.stats[2].name.value.capitalize()}: ${pokemonData.stats[2].baseStat}",
-                style = TextStyle(
-                    fontSize = 8.sp,
-                    color = Color.White,
-                    fontWeight = FontWeight.SemiBold,
-                    fontStyle = androidx.compose.ui.text.font.FontStyle.Normal,
-                    shadow = Shadow(
-                        color = Color.Black,
-                        offset = Offset(
-                            1f,
-                            1f
-                        ),
-                        blurRadius = 1f
-                    )
-                )
-            )
+                if (index < 2) {
+                    Spacer(modifier = Modifier.size(8.dp))
+                }
+            }
         }
     }
 }
+
 
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
