@@ -16,14 +16,15 @@ private val adUnitIdTeste = "ca-app-pub-3940256099942544/6300978111"
 
 @Composable
 fun AdmobBanner(viewModel: PokemonViewModel = getViewModel()) {
-    val value by viewModel.adUnitId.observeAsState()
-    if (value != null && value!!.isNotEmpty()) {
+    val adUnitId by viewModel.adUnitId.observeAsState()
+
+    adUnitId?.takeIf { it.isNotEmpty() }?.let { validAdUnitId ->
         AndroidView(
             modifier = Modifier.fillMaxWidth(),
             factory = { context ->
                 AdView(context).apply {
                     setAdSize(AdSize.BANNER)
-                    adUnitId = value!!
+                    this.adUnitId = validAdUnitId
                     loadAd(AdRequest.Builder().build())
                 }
             }
