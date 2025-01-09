@@ -3,13 +3,13 @@ package com.vinithius.poke10.extension
 import android.text.Spanned
 import androidx.core.text.HtmlCompat
 import com.vinithius.poke10.datasource.response.FlavorText
-import com.vinithius.poke10.ui.fragments.PokemonDetailFragment
 
 /**
  * Transform entries in HTML format.
  */
+/*
 fun List<FlavorText>.getHtmlCompat(): Spanned {
-    val entries = this.filter { it.language.name == PokemonDetailFragment.EN }
+    val entries = this.filter { it.language.name == PokemonDetailScreen.EN }
         .groupBy { it.flavor_text }
     var output = ""
     for ((value, versions) in entries) {
@@ -23,3 +23,4 @@ fun List<FlavorText>.getHtmlCompat(): Spanned {
     }
     return HtmlCompat.fromHtml(output, HtmlCompat.FROM_HTML_MODE_LEGACY)
 }
+*/

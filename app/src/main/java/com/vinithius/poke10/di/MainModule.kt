@@ -10,7 +10,8 @@ private val listModules by lazy {
         repositoryModule,
         repositoryDataModule,
         viewModelModule,
-        networkModule
+        networkModule,
+        databaseModule
     )
 }
 

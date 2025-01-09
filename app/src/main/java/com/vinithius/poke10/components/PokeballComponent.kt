@@ -1,78 +1,89 @@
 package com.vinithius.poke10.components
 
-import android.content.Context
-import android.graphics.drawable.AnimationDrawable
-import android.util.AttributeSet
-import android.view.LayoutInflater
-import androidx.constraintlayout.widget.ConstraintLayout
-import androidx.core.content.ContextCompat
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import com.valentinilk.shimmer.shimmer
 import com.vinithius.poke10.R
-import com.vinithius.poke10.databinding.PokeballComponentBinding
-import com.vinithius.poke10.extension.getIsFavorite
-import com.vinithius.poke10.ui.adapter.PokemonListAdapter
+import kotlinx.coroutines.delay
 
-class PokeballComponent(context: Context, attrs: AttributeSet?) : ConstraintLayout(context, attrs) {
 
-    private var pokemon_name: String = ""
-        set(value) {
-            field = value
-            getStatusImagePokeball(value)
-        }
+@Composable
+fun PokeballComponent(
+    favorite: Boolean = false,
+    frameDurationMillis: Long = 200L,
+    frameResources: List<Int> = listOf(
+        R.drawable.pokeball_01,
+        R.drawable.pokeball_02_gray,
+        R.drawable.pokeball_03_gray
+    ),
+    isShimmer: Boolean = false,
+    onCallBackFinishAnimation: () -> Unit = {},
+    onCallBack: () -> Unit = {},
+) {
+    // Initial frame
+    var currentFrame by remember { mutableIntStateOf(if (favorite) 0 else frameResources.lastIndex) }
+    // Launch
+    var isPlaying by remember { mutableStateOf(false) }
+    // Direction
+    var isForward by remember { mutableStateOf(favorite.not()) }
 
-    private val binding = PokeballComponentBinding.inflate(LayoutInflater.from(context), this, true)
-
-    /**
-     * Changes the item's Pokeball image according to the status of favorites.
-     */
-    private fun getStatusImagePokeball(name: String) {
-        val isFavorite = name.getIsFavorite(context)
-        if (isFavorite) {
-            binding.imagePokeball.background =
-                ContextCompat.getDrawable(binding.root.context, R.drawable.pokeball_01)
-        } else {
-            binding.imagePokeball.background =
-                ContextCompat.getDrawable(binding.root.context, R.drawable.pokeball_03_gray)
-        }
-    }
-
-    /**
-     * Adds the boolean values of the favorite.
-     */
-    private fun setPreferences(name: String, value: Boolean) {
-        val sharedPref =
-            context.getSharedPreferences(PokemonListAdapter.FAVORITES, Context.MODE_PRIVATE)
-        with(sharedPref.edit()) {
-            putBoolean(name, value)
-            commit()
+    LaunchedEffect(isPlaying) {
+        while (isPlaying) {
+            delay(frameDurationMillis)
+            currentFrame = (currentFrame + if (isForward) 1 else -1)
+                .coerceIn(0, frameResources.lastIndex)
+            if (currentFrame == 0 || currentFrame == frameResources.lastIndex) {
+                isPlaying = false
+                onCallBackFinishAnimation.invoke()
+            }
         }
     }
-
-    /**
-     * Makes the Pokeball anim opening or closing.
-     */
-    private fun setAnimation(id_click: Int) {
-        binding.imagePokeball.background =
-            ContextCompat.getDrawable(context, id_click)
-        val frameAnimation: AnimationDrawable =
-            binding.imagePokeball.background as AnimationDrawable
-        frameAnimation.start()
+    if (isShimmer) {
+        Image(
+            painter = painterResource(id = frameResources[currentFrame]),
+            contentDescription = "Pokeball animation",
+            modifier = Modifier
+                .clickable {
+                    isForward = isForward.not()
+                    isPlaying = true
+                    onCallBack.invoke()
+                }
+                .size(30.dp)
+                .clip(CircleShape)
+                .shimmer()
+        )
+    } else {
+        Image(
+            painter = painterResource(id = frameResources[currentFrame]),
+            contentDescription = "Pokeball animation",
+            modifier = Modifier
+                .clickable {
+                    isForward = isForward.not()
+                    isPlaying = true
+                    onCallBack.invoke()
+                }
+                .size(30.dp)
+                .clip(CircleShape)
+        )
     }
+}
 
-    /**
-     * Pokeball click callback to add as favorite or not.
-     */
-    fun clickPokeball(): Boolean {
-        val isFavorite = pokemon_name.getIsFavorite(context)
-        setPreferences(pokemon_name, !isFavorite)
-        val draw = if (isFavorite) R.drawable.animation_click_off else R.drawable.animation_click_on
-        setAnimation(draw)
-        return isFavorite
-    }
-
-    fun setData(
-        name: String
-    ) {
-        pokemon_name = name
-    }
-
+@Preview(showBackground = true)
+@Composable
+fun PokeballComponentPreview() {
+    PokeballComponent()
 }

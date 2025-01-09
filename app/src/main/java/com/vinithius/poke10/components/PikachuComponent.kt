@@ -1,27 +1,49 @@
 package com.vinithius.poke10.components
 
-import android.content.Context
-import android.util.AttributeSet
-import android.view.LayoutInflater
-import android.view.animation.Animation
-import android.view.animation.AnimationUtils
-import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.size
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.scale
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import com.vinithius.poke10.R
-import com.vinithius.poke10.databinding.PikachuSadBinding
 
-class PikachuComponent(context: Context, attrs: AttributeSet?) :
-    ConstraintLayout(context, attrs) {
+@Composable
+fun PikachuComponent() {
+    // Configuração da animação de escala
+    var animatedScale by remember { mutableStateOf(1f) }
 
-    private val binding =
-        PikachuSadBinding.inflate(LayoutInflater.from(context), this, true)
-
-
-    init {
-        val loadingScale: Animation = AnimationUtils.loadAnimation(
-            context,
-            R.anim.pikachu_error
+    // Define o valor animado de escala com um efeito de "pulsação"
+    val scale by animateFloatAsState(
+        targetValue = animatedScale,
+        animationSpec = infiniteRepeatable(
+            animation = tween(500) // Duração em ms
         )
-        binding.imageErrorPikachu.startAnimation(loadingScale)
+    )
+
+    // Inicia a animação
+    LaunchedEffect (Unit) {
+        animatedScale = 1.2f // Ajuste conforme o efeito desejado
     }
 
+    Image(
+        painter = painterResource(id = R.drawable.pikachu_sad), // Use o recurso drawable
+        contentDescription = "Pikachu Error",
+        modifier = Modifier
+            .size(100.dp)
+            .scale(scale), // Aplica a escala animada
+        alignment = Alignment.Center
+    )
+}
+
+@Preview(showBackground = true)
+@Composable
+fun PikachuComponentPreview() {
+    PikachuComponent()
 }
