@@ -319,24 +319,42 @@ class PokemonViewModel(private val repository: PokemonRepository) : ViewModel() 
      * Get all details pokemon.
      */
     fun getPokemonDetail() {
+        val id = _idPokemon.value
+        if (id == null) {
+            _stateDetail.postValue(RequestStateDetail.Error(NullPointerException("Pokemon ID is null")))
+            return
+        }
+
         CoroutineScope(Dispatchers.IO).launch {
-            cleanPokemon()
-            _pokemonDetailError.postValue(false)
+            _stateDetail.postValue(RequestStateDetail.Loading)
+
             try {
-                _stateDetail.postValue(RequestStateDetail.Loading)
-                val pokemon = repository.getPokemonDetail(_idPokemon.value ?: 0)
-                pokemon?.let {
-                    getPokemonEncounters(it)
-                    getPokemonCharacteristic(it)
-                    getPokemonSpecies(it)
-                    getPokemonDamageRelations(it)
+                val pokemon = repository.getPokemonDetail(id)
+
+                if (pokemon == null) {
+                    _stateDetail.postValue(RequestStateDetail.Error(NullPointerException("Pokemon not found")))
+                    return@launch
                 }
+
+                // Lançar as tarefas em paralelo
+                val encountersDeferred = async { getPokemonEncounters(pokemon) }
+                val characteristicDeferred = async { getPokemonCharacteristic(pokemon) }
+                val speciesDeferred = async { getPokemonSpecies(pokemon) }
+                val damageRelationsDeferred = async { getPokemonDamageRelations(pokemon) }
+
+                // Esperar todas as tarefas completarem
+                encountersDeferred.await()
+                characteristicDeferred.await()
+                speciesDeferred.await()
+                damageRelationsDeferred.await()
+
                 _stateDetail.postValue(RequestStateDetail.Success)
                 _pokemonDetail.postValue(pokemon)
                 getDetailFavorite()
+
             } catch (e: Exception) {
                 FirebaseCrashlytics.getInstance().recordException(e)
-                FirebaseCrashlytics.getInstance().setCustomKey("pokemon_id", _idPokemon.value ?: 0)
+                FirebaseCrashlytics.getInstance().setCustomKey("pokemon_id", id)
                 _stateDetail.postValue(RequestStateDetail.Error(e))
                 Log.e("getPokemon", e.toString())
             }
