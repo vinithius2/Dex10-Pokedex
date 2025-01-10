@@ -64,4 +64,4 @@ The project is simple to run, just let Gradle work and then run the project.
 
 # About the project
 
-The project uses MVVM in its architecture, coded 100% in Kotlin and uses some libraries such as Navigation, Coroutines, Koin, Retrofit, Paging 3 and among other important libraries.
+The project uses MVVM in its architecture, coded 100% in Kotlin and uses some libraries such as Coroutines, Koin, Retrofit, Compose and among other important libraries.
