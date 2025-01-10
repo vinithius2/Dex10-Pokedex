@@ -7,7 +7,9 @@ import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import coil.compose.AsyncImagePainter
+import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.vinithius.poke10.datasource.database.PokemonWithDetails
 import com.vinithius.poke10.datasource.repository.PokemonRepository
 import com.vinithius.poke10.datasource.response.Damage
@@ -15,6 +17,7 @@ import com.vinithius.poke10.datasource.response.Pokemon
 import com.vinithius.poke10.extension.getIdIntoUrl
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -170,6 +173,7 @@ class PokemonViewModel(private val repository: PokemonRepository) : ViewModel() 
                 }
                 _stateList.postValue(RequestStateList.Success)
             } catch (e: Exception) {
+                FirebaseCrashlytics.getInstance().recordException(e)
                 _stateList.postValue(RequestStateList.Error(e))
                 Log.e("Error list pokemons", e.toString())
             }
@@ -220,6 +224,7 @@ class PokemonViewModel(private val repository: PokemonRepository) : ViewModel() 
                     }
                 }
             } catch (e: Exception) {
+                FirebaseCrashlytics.getInstance().recordException(e)
                 Log.e("setFavorite", e.toString())
             }
         }
@@ -233,6 +238,7 @@ class PokemonViewModel(private val repository: PokemonRepository) : ViewModel() 
                 }?.pokemon?.favorite
                 _isDetailFavorite.postValue(isFavorite)
             } catch (e: Exception) {
+                FirebaseCrashlytics.getInstance().recordException(e)
                 Log.e("getIsFavorite", e.toString())
             }
         }
@@ -300,6 +306,7 @@ class PokemonViewModel(private val repository: PokemonRepository) : ViewModel() 
                 _stateList.postValue(RequestStateList.Success)
                 Log.d("getFilterPokemon", "Filtered list size: ${filteredList?.size}")
             } catch (e: Exception) {
+                FirebaseCrashlytics.getInstance().recordException(e)
                 _stateList.postValue(RequestStateList.Error(e))
                 Log.e("getFilterPokemon", "Erro ao aplicar filtros: ${e.message}", e)
             }
@@ -312,22 +319,42 @@ class PokemonViewModel(private val repository: PokemonRepository) : ViewModel() 
      * Get all details pokemon.
      */
     fun getPokemonDetail() {
+        val id = _idPokemon.value
+        if (id == null) {
+            _stateDetail.postValue(RequestStateDetail.Error(NullPointerException("Pokemon ID is null")))
+            return
+        }
+
         CoroutineScope(Dispatchers.IO).launch {
-            cleanPokemon()
-            _pokemonDetailError.postValue(false)
+            _stateDetail.postValue(RequestStateDetail.Loading)
+
             try {
-                _stateDetail.postValue(RequestStateDetail.Loading)
-                val pokemon = repository.getPokemonDetail(_idPokemon.value ?: 0)
-                pokemon?.let {
-                    getPokemonEncounters(it)
-                    getPokemonCharacteristic(it)
-                    getPokemonSpecies(it)
-                    getPokemonDamageRelations(it)
+                val pokemon = repository.getPokemonDetail(id)
+
+                if (pokemon == null) {
+                    _stateDetail.postValue(RequestStateDetail.Error(NullPointerException("Pokemon not found")))
+                    return@launch
                 }
+
+                // Lançar as tarefas em paralelo
+                val encountersDeferred = async { getPokemonEncounters(pokemon) }
+                val characteristicDeferred = async { getPokemonCharacteristic(pokemon) }
+                val speciesDeferred = async { getPokemonSpecies(pokemon) }
+                val damageRelationsDeferred = async { getPokemonDamageRelations(pokemon) }
+
+                // Esperar todas as tarefas completarem
+                encountersDeferred.await()
+                characteristicDeferred.await()
+                speciesDeferred.await()
+                damageRelationsDeferred.await()
+
                 _stateDetail.postValue(RequestStateDetail.Success)
                 _pokemonDetail.postValue(pokemon)
                 getDetailFavorite()
+
             } catch (e: Exception) {
+                FirebaseCrashlytics.getInstance().recordException(e)
+                FirebaseCrashlytics.getInstance().setCustomKey("pokemon_id", id)
                 _stateDetail.postValue(RequestStateDetail.Error(e))
                 Log.e("getPokemon", e.toString())
             }

@@ -3,6 +3,7 @@ package com.vinithius.poke10.datasource.repository
 import android.content.Context
 import android.util.Log
 import com.google.firebase.FirebaseNetworkException
+import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.DatabaseReference
@@ -85,6 +86,7 @@ class PokemonRepository(
                 }
             }
         } catch (e: Exception) {
+            FirebaseCrashlytics.getInstance().recordException(e)
             callBackError.invoke(e)
         }
     }
@@ -148,6 +150,7 @@ class PokemonRepository(
         return try {
             remoteDataSource.getPokemonList(limit)
         } catch (e: HttpException) {
+            FirebaseCrashlytics.getInstance().recordException(e)
             Log.e("Pokemon dataWrapper", e.toString())
             null
         }
@@ -157,6 +160,7 @@ class PokemonRepository(
         return try {
             remoteDataSource.getPokemonDetail(id)
         } catch (e: HttpException) {
+            FirebaseCrashlytics.getInstance().recordException(e)
             Log.e("Pokemon (ID: $id) ", e.toString())
             null
         }
@@ -166,6 +170,7 @@ class PokemonRepository(
         return try {
             remoteDataSource.getPokemonEncounters(id)
         } catch (e: HttpException) {
+            FirebaseCrashlytics.getInstance().recordException(e)
             Log.e("Encounters (ID: $id) ", e.toString())
             null
         }
@@ -175,6 +180,7 @@ class PokemonRepository(
         return try {
             remoteDataSource.getPokemonEvolution(id)
         } catch (e: HttpException) {
+            FirebaseCrashlytics.getInstance().recordException(e)
             Log.e("EvolutionChain (ID: $id) ", e.toString())
             null
         }
@@ -184,6 +190,7 @@ class PokemonRepository(
         return try {
             remoteDataSource.getPokemonCharacteristic(id)
         } catch (e: HttpException) {
+            FirebaseCrashlytics.getInstance().recordException(e)
             Log.e("Characteristic (ID: $id) ", e.toString())
             null
         }
@@ -193,6 +200,7 @@ class PokemonRepository(
         return try {
             remoteDataSource.getPokemonSpecies(id)
         } catch (e: HttpException) {
+            FirebaseCrashlytics.getInstance().recordException(e)
             Log.e("Specie (ID: $id) ", e.toString())
             null
         }
@@ -202,6 +210,7 @@ class PokemonRepository(
         return try {
             remoteDataSource.getPokemonDamageRelations(type)
         } catch (e: HttpException) {
+            FirebaseCrashlytics.getInstance().recordException(e)
             Log.e("Damage (Type: $type) ", e.toString())
             null
         }
@@ -263,8 +272,10 @@ class PokemonRepository(
                 })
             }
         } catch (e: FirebaseNetworkException) {
+            FirebaseCrashlytics.getInstance().recordException(e)
             throw e
         } catch (e: Exception) {
+            FirebaseCrashlytics.getInstance().recordException(e)
             throw e
         }
     }

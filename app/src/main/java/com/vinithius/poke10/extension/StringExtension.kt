@@ -7,6 +7,7 @@ import android.text.Spanned
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.vinithius.poke10.R
 import com.vinithius.poke10.datasource.response.FlavorText
 import android.graphics.Color as ParseColor
@@ -28,6 +29,7 @@ fun String.getIdIntoUrl(): String? {
             return it
         }
     } catch (e: Exception) {
+        FirebaseCrashlytics.getInstance().recordException(e)
         return null
     }
     return null
@@ -130,6 +132,7 @@ fun String.getParseColorByString(): Color {
         )
         colorMap[this]?.let { Color(it) } ?: Color(ParseColor.BLACK)
     } catch (e: IllegalArgumentException) {
+        FirebaseCrashlytics.getInstance().recordException(e)
         Color(ParseColor.BLACK)
     }
 }
@@ -150,6 +153,7 @@ fun String.getToolBarColorByString(): Color {
         )
         colorMap[this] ?: Color.Black
     } catch (e: IllegalArgumentException) {
+        FirebaseCrashlytics.getInstance().recordException(e)
         Color.Black
     }
 }
@@ -170,6 +174,7 @@ fun String.getColorByString(): Color {
         )
         colorMap[this] ?: Color.Black
     } catch (e: IllegalArgumentException) {
+        FirebaseCrashlytics.getInstance().recordException(e)
         Color.Black
     }
 }

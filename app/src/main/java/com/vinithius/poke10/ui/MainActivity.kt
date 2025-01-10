@@ -75,9 +75,6 @@ import com.vinithius.poke10.ui.screens.PokemonListScreen
 import com.vinithius.poke10.ui.theme.ThemePoke10
 import com.vinithius.poke10.ui.viewmodel.PokemonViewModel
 import com.vinithius.poke10.ui.viewmodel.RequestStateDetail
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import org.koin.androidx.compose.getViewModel
 
 class MainActivity : ComponentActivity() {
@@ -89,13 +86,8 @@ class MainActivity : ComponentActivity() {
                 MainScreen()
             }
         }
-        showAds()
-    }
-
-    private fun showAds() {
-        val backgroundScope = CoroutineScope(Dispatchers.IO)
-        backgroundScope.launch {
-            MobileAds.initialize(this@MainActivity) {}
+        MobileAds.initialize(this@MainActivity) {
+            // Do nothing
         }
     }
 
@@ -152,6 +144,7 @@ private fun GetTopBar(
     var searchQuery by remember { mutableStateOf("") }
     var isSearchActive by remember { mutableStateOf(false) }
     val isDetailsScreen by viewModel.isDetailScreen.observeAsState()
+    val pokemonItems by viewModel.pokemonList.observeAsState(emptyList())
     val color by viewModel.pokemonColor.observeAsState()
 
     if (isDetailsScreen != null) {
@@ -252,18 +245,20 @@ private fun GetTopBar(
                     navigationIconContentColor = MaterialTheme.colorScheme.onPrimary
                 ),
                 actions = {
-                    if (isSearchActive.not()) {
-                        IconButton(onClick = { isSearchActive = isSearchActive.not() }) {
-                            Icon(
-                                imageVector = Icons.Default.Search,
-                                contentDescription = stringResource(R.string.search)
-                            )
+                    if (pokemonItems.isNotEmpty()) {
+                        if (isSearchActive.not()) {
+                            IconButton(onClick = { isSearchActive = isSearchActive.not() }) {
+                                Icon(
+                                    imageVector = Icons.Default.Search,
+                                    contentDescription = stringResource(R.string.search)
+                                )
+                            }
                         }
+                        AppMenuPageList(
+                            context,
+                            viewModel
+                        )
                     }
-                    AppMenuPageList(
-                        context,
-                        viewModel
-                    )
                 }
             )
         }
