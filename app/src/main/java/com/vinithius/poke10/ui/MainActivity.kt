@@ -325,6 +325,7 @@ private fun AppMenuPageList(
     }
     DropDownMenuRight(
         expanded = expanded,
+        viewModel = viewModel,
         onDismissRequest = { expanded = false },
         onShareAppClick = {
             shareApp(context)
@@ -337,6 +338,15 @@ private fun AppMenuPageList(
         },
         onDonateClick = {
             donateClick(context)
+        },
+        onInstagranClick = { url ->
+            instagranClick(url, context)
+        },
+        onFacebookClick = { url ->
+            facebookClick(url, context)
+        },
+        onRedditClick = { url ->
+            redditClick(url, context)
         }
     )
 }
@@ -385,17 +395,20 @@ private fun AppMenuPageDetail(
 @Composable
 private fun DropDownMenuRight(
     expanded: Boolean,
+    viewModel: PokemonViewModel,
     onDismissRequest: () -> Unit,
     onShareAppClick: () -> Unit,
     onRateAppClick: () -> Unit,
     onSuggestionsClick: () -> Unit,
-    onDonateClick: () -> Unit
+    onDonateClick: () -> Unit,
+    onInstagranClick: (url : String) -> Unit,
+    onFacebookClick: (url : String) -> Unit,
+    onRedditClick: (url : String) -> Unit,
 ) {
     DropdownMenu(
         expanded = expanded,
         onDismissRequest = onDismissRequest
     ) {
-        // Categoria: Interação com o App
         Text(
             text = stringResource(id = R.string.interaction),
             style = MaterialTheme.typography.labelSmall,
@@ -411,7 +424,7 @@ private fun DropDownMenuRight(
             onClick = onRateAppClick
         )
         HorizontalDivider()
-        // Categoria: Feedback e Apoio
+        // Feedback and Support
         Text(
             text = stringResource(id = R.string.feedback_and_support),
             style = MaterialTheme.typography.labelSmall,
@@ -427,6 +440,37 @@ private fun DropDownMenuRight(
             text = { Text(stringResource(id = R.string.donate_to_developer)) },
             onClick = onDonateClick
         )
+        HorizontalDivider()
+        // Social media
+        Text(
+            text = stringResource(id = R.string.social_media),
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+        )
+        with(viewModel) {
+            val facebookUrl by facebookUrl.observeAsState()
+            val instagranUrl by instagranUrl.observeAsState()
+            val redditUrl by redditUrl.observeAsState()
+            if (instagranUrl.isNullOrEmpty().not()) {
+                DropdownMenuItem(
+                    text = { Text(stringResource(id = R.string.instagran)) },
+                    onClick = { instagranUrl?.let { onInstagranClick(it) } }
+                )
+            }
+            if (facebookUrl.isNullOrEmpty().not()) {
+                DropdownMenuItem(
+                    text = { Text(stringResource(id = R.string.facebook)) },
+                    onClick = { facebookUrl?.let { onFacebookClick(it) } }
+                )
+            }
+            if (redditUrl.isNullOrEmpty().not()) {
+                DropdownMenuItem(
+                    text = { Text(stringResource(id = R.string.reddit)) },
+                    onClick = { redditUrl?.let { onRedditClick(it) } }
+                )
+            }
+        }
     }
 }
 
@@ -515,10 +559,27 @@ fun requestInAppReview(context: Context) {
 }
 
 fun suggestionsClick(context: Context) {
+    val url = "https://forms.gle/6Rbsv7voquN3AjbT8"
+    getIntentToUrl(url, context)
+}
+
+fun instagranClick(url: String, context: Context) {
+    getIntentToUrl(url, context)
+}
+
+fun facebookClick(url: String, context: Context) {
+    getIntentToUrl(url, context)
+}
+
+fun redditClick(url: String, context: Context) {
+    getIntentToUrl(url, context)
+}
+
+fun getIntentToUrl(url: String, context: Context) {
     val intent =
         Intent(
             Intent.ACTION_VIEW,
-            Uri.parse("https://forms.gle/6Rbsv7voquN3AjbT8")
+            Uri.parse(url)
         )
     context.startActivity(intent)
 }

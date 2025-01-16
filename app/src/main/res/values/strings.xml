@@ -45,6 +45,7 @@
     <string name="donate_to_developer">Donate to Developer ❤️</string>
     <string name="suggestions_or_bugs">Suggestions or Bugs</string>
     <string name="feedback_and_support">Feedback and Support</string>
+    <string name="social_media">Social media</string>
     <string name="rate_app">Rate App ★★★★★</string>
     <string name="share_app">Share App</string>
     <string name="interaction">Interaction</string>
@@ -62,7 +63,7 @@
     <string name="no_pokemons">Hey, no Pokémons!</string>
     <string name="try_again">Try again</string>
     <string name="empty_list">Empty list</string>
-    <string name="dont_close_app">Loading… don\'t close app</string>
+    <string name="dont_close_app">Please don\'t close the app, and try not to fall asleep, okay?</string>
     <string name="back">Back</string>
     <string name="from">From:</string>
     <string name="to">To:</string>
@@ -80,4 +81,8 @@
     <string name="about_abilities_hidden">The Pokémon\'s Ability will be one of its non-hidden abilities. Hidden abilities were introduced in Generation V and are relatively rare and usually require some type of special encounter.</string>
     <string name="share_app_message">Check out Poke10! 🧡✨\nExplore all Pokémon, view stats, abilities, and battle strategies. Favorite your favorites and master type effectiveness!\n\nDownload now:\n📲 %1$s\n\nI use it and totally recommend it! 😍</string>
     <string name="share_app_via">Share app via</string>
+    <string name="instagran">Instagran</string>
+    <string name="facebook">Facebook</string>
+    <string name="reddit">Reddit</string>
+    <string name="jigglypuff_songs">Please, don\'t sleep!</string>
 </resources>
