@@ -64,7 +64,6 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.google.android.gms.ads.MobileAds
-import com.google.android.play.core.review.ReviewManager
 import com.google.android.play.core.review.ReviewManagerFactory
 import com.google.firebase.remoteconfig.FirebaseRemoteConfig
 import com.vinithius.poke10.R
@@ -401,9 +400,9 @@ private fun DropDownMenuRight(
     onRateAppClick: () -> Unit,
     onSuggestionsClick: () -> Unit,
     onDonateClick: () -> Unit,
-    onInstagranClick: (url : String) -> Unit,
-    onFacebookClick: (url : String) -> Unit,
-    onRedditClick: (url : String) -> Unit,
+    onInstagranClick: (url: String) -> Unit,
+    onFacebookClick: (url: String) -> Unit,
+    onRedditClick: (url: String) -> Unit,
 ) {
     DropdownMenu(
         expanded = expanded,
@@ -542,18 +541,10 @@ fun shareApp(context: Context) {
 }
 
 fun requestInAppReview(context: Context) {
-    val reviewManager: ReviewManager = ReviewManagerFactory.create(context)
-    val requestFlow = reviewManager.requestReviewFlow()
-    requestFlow.addOnCompleteListener { requestTask ->
-        if (requestTask.isSuccessful) {
-            val reviewInfo = requestTask.result
-            val flow = reviewManager.launchReviewFlow(context as Activity, reviewInfo)
-            flow.addOnCompleteListener { _ ->
-                // Do nothing
-            }
-        } else {
-            val exception = requestTask.exception
-            exception?.printStackTrace()
+    val reviewManager = ReviewManagerFactory.create(context.applicationContext)
+    reviewManager.requestReviewFlow().addOnCompleteListener {
+        if (it.isSuccessful) {
+            reviewManager.launchReviewFlow(context as Activity, it.result)
         }
     }
 }
