@@ -93,6 +93,7 @@ class MainActivity : ComponentActivity() {
 
     companion object {
         const val FAVORITES = "FAVORITES"
+        const val MAX_POKEMONS = "MAX_POKEMONS"
     }
 }
 
@@ -102,8 +103,18 @@ private fun GetAdUnitId(viewModel: PokemonViewModel = getViewModel()) {
     remoteConfig.fetchAndActivate()
         .addOnCompleteListener { task ->
             if (task.isSuccessful) {
-                val adUnitId = remoteConfig.getString("adUnitId")
-                viewModel.setAdUnitId(adUnitId)
+                // Ads
+                val adUnitIdList = remoteConfig.getString("adUnitId_list")
+                val adUnitIdDetails = remoteConfig.getString("adUnitId_details")
+                viewModel.setAdUnitIdList(adUnitIdList)
+                viewModel.setAdUnitIdDetails(adUnitIdDetails)
+                // Social media
+                val facebookUrl = remoteConfig.getString("facebook_url")
+                val instagranUrl = remoteConfig.getString("instagran_url")
+                val redditUrl = remoteConfig.getString("reddit_url")
+                viewModel.setFacebookUrl(facebookUrl)
+                viewModel.setInstagranUrl(instagranUrl)
+                viewModel.setRedditUrl(redditUrl)
             }
         }
 }

@@ -335,7 +335,7 @@ fun SharedTransitionScope.PokemonDetailScreen(
         PokemonIsABaby()
         PokemonEvolution(pokemonDetail)
         // Tabs
-        AdmobBanner()
+        AdmobBanner(2)
         TabWithPagerExample(pokemonDetail, viewModel, pokemonColor)
     }
 }
