@@ -131,6 +131,15 @@ class PokemonViewModel(private val repository: PokemonRepository) : ViewModel() 
         _redditUrl.postValue(value)
     }
 
+    private val _googleForm = MutableLiveData(String())
+    val googleForm: LiveData<String>
+        get() = _googleForm
+
+    fun setGoogleForm(value: String) {
+        _googleForm.postValue(value)
+    }
+
+
     // FIM - Remote config
 
     private val _pokemonColor = MutableLiveData(String())

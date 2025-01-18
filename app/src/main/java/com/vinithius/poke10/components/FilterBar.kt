@@ -45,7 +45,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -53,6 +54,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.vinithius.poke10.R
 import com.vinithius.poke10.extension.capitalize
+import com.vinithius.poke10.ui.MainActivity
 import com.vinithius.poke10.ui.viewmodel.PokemonViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -60,12 +62,21 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.getViewModel
 
+@Composable
+private fun getActivity(): MainActivity? {
+    val context = LocalContext.current
+    val activity = context as? MainActivity
+    return activity
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun GetFilterBar(
     viewModel: PokemonViewModel = getViewModel(),
     onCallBackFilter: (filter: Map<String, SnapshotStateMap<String, Boolean>>) -> Unit = {}
 ) {
+    val activity = getActivity()
+    val context = LocalContext.current
     val filterMap by viewModel.pokemonFilterList.observeAsState(mapOf())
     val sheetState = rememberModalBottomSheetState()
     var showBottomSheet by remember { mutableStateOf(false) }
@@ -75,7 +86,6 @@ fun GetFilterBar(
     val filterList = mutableListOf<String>().apply {
         add("first")
         addAll(filterMap.keys)
-        add("last")
     }
 
     LazyRow(
@@ -84,11 +94,11 @@ fun GetFilterBar(
     ) {
         itemsIndexed(filterList) { _, filter ->
             when (filter) {
-                "first" -> ViewHolderFirst()
-                "last" -> {
-                    ViewHolderLast(
+                "first" -> {
+                    ViewHolderFirst(
                         loading = loading,
                         onClick = {
+                            activity?.trackButtonClick("Menu filter: Clear All")
                             loading = true
                             filterMap.keys.toList().forEach {
                                 filterMap[it]?.let { clearMap ->
@@ -109,6 +119,7 @@ fun GetFilterBar(
                         label = filter,
                         filterMap = filterMap[filter],
                         onClick = { label ->
+                            activity?.trackButtonClick("Menu filter: $label")
                             labelTitle = label
                             showBottomSheet = showBottomSheet.not()
                         }
@@ -153,21 +164,6 @@ fun GetFilterBar(
 }
 
 @Composable
-fun ViewHolderFirst() {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        Icon(
-            painter = painterResource(R.drawable.baseline_filter_list_alt_24),
-            contentDescription = "Filter",
-            tint = MaterialTheme.colorScheme.onSecondary,
-            modifier = Modifier.padding(4.dp)
-        )
-    }
-}
-
-@Composable
 fun ViewHolder(
     label: String,
     filterMap: SnapshotStateMap<String, Boolean>?,
@@ -190,7 +186,9 @@ fun ViewHolder(
             modifier = Modifier
                 .clip(shape = RoundedCornerShape(8.dp))
                 .background(MaterialTheme.colorScheme.secondary)
-                .clickable { onClick.invoke(label) }
+                .clickable {
+                    onClick.invoke(label)
+                }
                 .padding(horizontal = 8.dp, vertical = 4.dp),
         ) {
             Row(
@@ -218,7 +216,7 @@ fun ViewHolder(
 }
 
 @Composable
-fun ViewHolderLast(
+fun ViewHolderFirst(
     loading: Boolean = false,
     onClick: () -> Unit
 ) {
@@ -238,7 +236,7 @@ fun ViewHolderLast(
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Text(
-                text = "Clear All",
+                text = stringResource(R.string.clear_all),
                 color = MaterialTheme.colorScheme.onSecondary,
                 modifier = Modifier.padding(4.dp),
                 style = TextStyle(
@@ -256,7 +254,7 @@ fun ViewHolderLast(
             } else {
                 Icon(
                     imageVector = Icons.Default.Delete,
-                    contentDescription = "Clear All",
+                    contentDescription = stringResource(R.string.clear_all),
                     tint = MaterialTheme.colorScheme.onSecondary,
                     modifier = Modifier
                         .width(20.dp)
@@ -277,7 +275,7 @@ fun ContentBottomSheet(
     onClickListener: (value: Boolean) -> Unit
 ) {
     val coroutineScope = rememberCoroutineScope()
-
+    val activity = getActivity()
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -302,6 +300,7 @@ fun ContentBottomSheet(
                 )
                 IconButton(
                     onClick = {
+                        activity?.trackButtonClick("Close bottom sheet")
                         coroutineScope.launch { sheetState.hide() }.invokeOnCompletion {
                             if (sheetState.isVisible.not()) {
                                 onClickListener.invoke(false)
@@ -311,7 +310,7 @@ fun ContentBottomSheet(
                 ) {
                     Icon(
                         imageVector = Icons.Default.KeyboardArrowDown,
-                        contentDescription = "Close",
+                        contentDescription = stringResource(R.string.close),
                         tint = MaterialTheme.colorScheme.onSecondary
                     )
                 }
@@ -334,6 +333,7 @@ fun ContentBottomSheet(
                         Checkbox(
                             checked = filterMap[filter] == true,
                             onCheckedChange = { isChecked ->
+                                activity?.trackButtonClick("$filter : $isChecked")
                                 filterMap[filter] = isChecked
                             }
                         )
@@ -353,11 +353,12 @@ fun ContentBottomSheet(
         ) {
             Button(
                 onClick = {
+                    activity?.trackButtonClick("Bottom sheet: Clear all")
                     clearAllFilter(filterMap)
                 },
                 modifier = Modifier.weight(1f)
             ) {
-                Text("Clear All")
+                Text(stringResource(R.string.clear_all))
             }
         }
     }

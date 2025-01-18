@@ -65,6 +65,7 @@ import androidx.navigation.navArgument
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.google.android.gms.ads.MobileAds
 import com.google.android.play.core.review.ReviewManagerFactory
+import com.google.firebase.analytics.FirebaseAnalytics
 import com.google.firebase.remoteconfig.FirebaseRemoteConfig
 import com.vinithius.poke10.R
 import com.vinithius.poke10.extension.getColorByString
@@ -78,6 +79,8 @@ import org.koin.androidx.compose.getViewModel
 
 class MainActivity : ComponentActivity() {
 
+    lateinit var analytics: FirebaseAnalytics
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -85,9 +88,22 @@ class MainActivity : ComponentActivity() {
                 MainScreen()
             }
         }
+        analytics = FirebaseAnalytics.getInstance(this)
         MobileAds.initialize(this@MainActivity) {
             // Do nothing
         }
+    }
+
+    fun trackButtonClick(buttonName: String) {
+        val bundle = Bundle()
+        bundle.putString(FirebaseAnalytics.Param.ITEM_NAME, buttonName)
+        analytics.logEvent("button_click", bundle)
+    }
+
+    fun trackScreenView(screenName: String) {
+        val bundle = Bundle()
+        bundle.putString(FirebaseAnalytics.Param.SCREEN_NAME, screenName)
+        analytics.logEvent(FirebaseAnalytics.Event.SCREEN_VIEW, bundle)
     }
 
     companion object {
@@ -111,9 +127,11 @@ private fun GetAdUnitId(viewModel: PokemonViewModel = getViewModel()) {
                 val facebookUrl = remoteConfig.getString("facebook_url")
                 val instagranUrl = remoteConfig.getString("instagran_url")
                 val redditUrl = remoteConfig.getString("reddit_url")
+                val googleForm = remoteConfig.getString("google_form")
                 viewModel.setFacebookUrl(facebookUrl)
                 viewModel.setInstagranUrl(instagranUrl)
                 viewModel.setRedditUrl(redditUrl)
+                viewModel.setGoogleForm(googleForm)
             }
         }
 }
@@ -151,10 +169,10 @@ private fun GetTopBar(
     navController: NavHostController?
 ) {
     val context = LocalContext.current
+    val activity = context as? MainActivity
     var searchQuery by remember { mutableStateOf("") }
     var isSearchActive by remember { mutableStateOf(false) }
     val isDetailsScreen by viewModel.isDetailScreen.observeAsState()
-    val pokemonItems by viewModel.pokemonList.observeAsState(emptyList())
     val pokemonListBackup by viewModel.pokemonListBackup.observeAsState(emptyList())
     val color by viewModel.pokemonColor.observeAsState()
 
@@ -166,6 +184,7 @@ private fun GetTopBar(
                     IconButton(onClick = {
                         viewModel.setDetailsScreen(false)
                         navController?.popBackStack()
+                        activity?.trackButtonClick("Back from detail to list")
                     }) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
@@ -258,7 +277,10 @@ private fun GetTopBar(
                 actions = {
                     if (pokemonListBackup.isNotEmpty()) {
                         if (isSearchActive.not()) {
-                            IconButton(onClick = { isSearchActive = isSearchActive.not() }) {
+                            IconButton(onClick = {
+                                activity?.trackButtonClick("Click search filter")
+                                isSearchActive = isSearchActive.not()
+                            }) {
                                 Icon(
                                     imageVector = Icons.Default.Search,
                                     contentDescription = stringResource(R.string.search)
@@ -305,9 +327,12 @@ private fun AppMenuPageList(
     context: Context,
     viewModel: PokemonViewModel
 ) {
+    val activity = context as? MainActivity
     val favoriteFilter by viewModel.isFavoriteFilter.observeAsState(false)
+    val googleForm by viewModel.googleForm.observeAsState()
     var expanded by remember { mutableStateOf(false) }
     IconButton(onClick = {
+        activity?.trackButtonClick("Menu toolbar: favorites -> ${favoriteFilter.not()}")
         viewModel.getPokemonFavoriteList(favoriteFilter.not())
     }) {
         Icon(
@@ -316,7 +341,10 @@ private fun AppMenuPageList(
             tint = Color.White
         )
     }
-    IconButton(onClick = { expanded = true }) {
+    IconButton(onClick = {
+        expanded = true
+        activity?.trackButtonClick("Menu toolbar: 3 dots")
+    }) {
         Icon(
             Icons.Default.MoreVert,
             contentDescription = stringResource(id = R.string.more_options)
@@ -327,24 +355,33 @@ private fun AppMenuPageList(
         viewModel = viewModel,
         onDismissRequest = { expanded = false },
         onShareAppClick = {
+            activity?.trackButtonClick("Menu toolbar: share app")
             shareApp(context)
         },
         onRateAppClick = {
+            activity?.trackButtonClick("Menu toolbar: rate app")
             requestInAppReview(context)
         },
         onSuggestionsClick = {
-            suggestionsClick(context)
+            googleForm?.takeIf { it.isNotEmpty() }?.run {
+                activity?.trackButtonClick("Menu toolbar: google form")
+                suggestionsClick(googleForm!!, context)
+            }
         },
         onDonateClick = {
+            activity?.trackButtonClick("Menu toolbar: donate")
             donateClick(context)
         },
         onInstagranClick = { url ->
+            activity?.trackButtonClick("Menu toolbar: instagran")
             instagranClick(url, context)
         },
         onFacebookClick = { url ->
+            activity?.trackButtonClick("Menu toolbar: facebook")
             facebookClick(url, context)
         },
         onRedditClick = { url ->
+            activity?.trackButtonClick("Menu toolbar: reddit")
             redditClick(url, context)
         }
     )
@@ -355,6 +392,7 @@ private fun AppMenuPageDetail(
     context: Context,
     viewModel: PokemonViewModel
 ) {
+    val activity = context as? MainActivity
     val requestState by viewModel.stateDetail.observeAsState(RequestStateDetail.Loading)
     val isDetailFavorite by viewModel.isDetailFavorite.observeAsState(false)
     val idPokemon by viewModel.idPokemon.observeAsState()
@@ -375,7 +413,10 @@ private fun AppMenuPageDetail(
 
         is RequestStateDetail.Success -> {
             IconButton(onClick = {
-                idPokemon?.let { viewModel.setFavorite(it) }
+                idPokemon?.let {
+                    activity?.trackButtonClick("Click favorite toolbar detail: ID -> $it")
+                    viewModel.setFavorite(it)
+                }
             }) {
                 Icon(
                     imageVector = if (isDetailFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
@@ -549,9 +590,8 @@ fun requestInAppReview(context: Context) {
     }
 }
 
-fun suggestionsClick(context: Context) {
-    val url = "https://forms.gle/6Rbsv7voquN3AjbT8"
-    getIntentToUrl(url, context)
+fun suggestionsClick(googleForm: String, context: Context) {
+    getIntentToUrl(googleForm, context)
 }
 
 fun instagranClick(url: String, context: Context) {

@@ -56,7 +56,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.layout.ContentScale
@@ -95,6 +94,7 @@ import com.vinithius.poke10.extension.getDrawableHabitat
 import com.vinithius.poke10.extension.getFlavorTextForLanguage
 import com.vinithius.poke10.extension.getHtmlCompat
 import com.vinithius.poke10.extension.getListEvolutions
+import com.vinithius.poke10.ui.MainActivity
 import com.vinithius.poke10.ui.viewmodel.PokemonViewModel
 import com.vinithius.poke10.ui.viewmodel.RequestStateDetail
 import ir.ehsannarmani.compose_charts.RowChart
@@ -150,6 +150,20 @@ private fun DefaultLoadingComposable(title: String) {
     )
 }
 
+@Composable
+private fun SetAnalyticScreenName(pokemonName: String) {
+    val context = LocalContext.current
+    val activity = context as? MainActivity
+    activity?.trackScreenView("Screen Detail: $pokemonName")
+}
+
+@Composable
+private fun getActivity(): MainActivity? {
+    val context = LocalContext.current
+    val activity = context as? MainActivity
+    return activity
+}
+
 @SuppressLint("DefaultLocale")
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
@@ -161,6 +175,7 @@ fun SharedTransitionScope.PokemonDetailScreen(
     animatedVisibilityScope: AnimatedVisibilityScope?,
     viewModel: PokemonViewModel = getViewModel()
 ) {
+    SetAnalyticScreenName(pokemonName)
     LaunchedEffect(Unit) {
         viewModel.getPokemonDetail()
         viewModel.setPokemonColor(pokemonColor)
@@ -411,7 +426,7 @@ fun TabWithPagerExample(
             )
         }
     }
-
+    val activity = getActivity()
     HorizontalPager(
         state = pagerState,
         modifier = Modifier.fillMaxSize()
@@ -421,11 +436,30 @@ fun TabWithPagerExample(
             contentAlignment = Alignment.Center
         ) {
             when (page) {
-                0 -> PokemonDamage(pokemonDetail, viewModel)
-                1 -> PokemonEncounters(pokemonDetail, pokemonColor, viewModel)
-                2 -> PokemonEggs(pokemonDetail, pokemonColor, viewModel)
-                3 -> PokemonAbilities(pokemonDetail, pokemonColor, viewModel)
-                4 -> PokemonEntries(pokemonDetail, viewModel)
+                0 -> {
+                    activity?.trackButtonClick(tabTitles[0])
+                    PokemonDamage(pokemonDetail, viewModel)
+                }
+
+                1 -> {
+                    activity?.trackButtonClick(tabTitles[1])
+                    PokemonEncounters(pokemonDetail, pokemonColor, viewModel)
+                }
+
+                2 -> {
+                    activity?.trackButtonClick(tabTitles[2])
+                    PokemonEggs(pokemonDetail, pokemonColor, viewModel)
+                }
+
+                3 -> {
+                    activity?.trackButtonClick(tabTitles[3])
+                    PokemonAbilities(pokemonDetail, pokemonColor, viewModel)
+                }
+
+                4 -> {
+                    activity?.trackButtonClick(tabTitles[4])
+                    PokemonEntries(pokemonDetail, viewModel)
+                }
             }
         }
     }
@@ -915,6 +949,7 @@ private fun PokemonEvolution(
     viewModel: PokemonViewModel = getViewModel()
 ) {
     val context = LocalContext.current
+    val activity = getActivity()
     StateRequest(
         viewModel = viewModel,
         loading = {
@@ -996,6 +1031,7 @@ private fun PokemonEvolution(
                                             data.second.capitalize(),
                                             Toast.LENGTH_SHORT
                                         ).show()
+                                        activity?.trackButtonClick("Evolution: ${data.second.capitalize()}")
                                     }
                                 ) {
                                     LoadGifWithCoilToEvolution(data)

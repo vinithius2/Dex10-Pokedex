@@ -60,6 +60,7 @@
     <string name="more_options">More options</string>
     <string name="loading_three_dots">Loading…</string>
     <string name="three_dots">…</string>
+    <string name="clear_all">Clear All</string>
     <string name="no_pokemons">Hey, no Pokémons!</string>
     <string name="try_again">Try again</string>
     <string name="empty_list">Empty list</string>

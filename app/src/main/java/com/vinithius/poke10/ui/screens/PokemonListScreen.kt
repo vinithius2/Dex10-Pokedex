@@ -79,6 +79,7 @@ import com.vinithius.poke10.datasource.database.Type
 import com.vinithius.poke10.extension.capitalize
 import com.vinithius.poke10.extension.getDrawableHabitat
 import com.vinithius.poke10.extension.getParseColorByString
+import com.vinithius.poke10.ui.MainActivity
 import com.vinithius.poke10.ui.viewmodel.PokemonViewModel
 import com.vinithius.poke10.ui.viewmodel.RequestStateList
 import org.koin.androidx.compose.getViewModel
@@ -113,6 +114,19 @@ private fun StateRequest(
     }
 }
 
+@Composable
+private fun SetAnalyticScreenName() {
+    val context = LocalContext.current
+    val activity = context as? MainActivity
+    activity?.trackScreenView("Screen list")
+}
+
+@Composable
+private fun getActivity(): MainActivity? {
+    val context = LocalContext.current
+    val activity = context as? MainActivity
+    return activity
+}
 
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
@@ -121,7 +135,9 @@ fun SharedTransitionScope.PokemonListScreen(
     animatedVisibilityScope: AnimatedVisibilityScope,
     viewModel: PokemonViewModel = getViewModel()
 ) {
+    val activity = getActivity()
     val context = LocalContext.current
+    SetAnalyticScreenName()
     LaunchedEffect(Unit) {
         viewModel.getPokemonList(context)
         viewModel.setPokemonColor(null)
@@ -168,10 +184,13 @@ fun SharedTransitionScope.PokemonListScreen(
                                         }
                                     },
                                     onClickDetail = { id, name, color ->
+                                        activity?.trackButtonClick("Click button detail: $name")
                                         viewModel.setIdPokemon(id)
                                         navController.navigate("pokemonDetail/$id/$name/$color")
                                     },
                                     onClickFavorite = { pokemonFavorite ->
+                                        pokemonFavorite.pokemon.name
+                                        activity?.trackButtonClick("Click favorite item list: ${pokemonFavorite.pokemon.name}")
                                         viewModel.setFavorite(pokemonFavorite.pokemon.id)
                                     }
                                 )
