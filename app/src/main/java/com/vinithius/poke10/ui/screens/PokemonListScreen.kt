@@ -158,9 +158,14 @@ fun SharedTransitionScope.PokemonListScreen(
                 LoadingPokemonList()
             },
             success = {
-                GetFilterBar {
-                    getFilterBarData(it, viewModel)
-                }
+                GetFilterBar(
+                    onCallBackClearFavoriteFilter = {
+                        viewModel.getPokemonFavoriteList(false)
+                    },
+                    onCallBackFilter = {
+                        getFilterBarData(it, viewModel)
+                    }
+                )
                 AdmobBanner()
                 if (pokemonItems.isNotEmpty()) {
                     LazyColumn {

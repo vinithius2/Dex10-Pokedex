@@ -73,10 +73,10 @@ private fun getActivity(): MainActivity? {
 @Composable
 fun GetFilterBar(
     viewModel: PokemonViewModel = getViewModel(),
+    onCallBackClearFavoriteFilter: () -> Unit,
     onCallBackFilter: (filter: Map<String, SnapshotStateMap<String, Boolean>>) -> Unit = {}
 ) {
     val activity = getActivity()
-    val context = LocalContext.current
     val filterMap by viewModel.pokemonFilterList.observeAsState(mapOf())
     val sheetState = rememberModalBottomSheetState()
     var showBottomSheet by remember { mutableStateOf(false) }
@@ -98,6 +98,7 @@ fun GetFilterBar(
                     ViewHolderFirst(
                         loading = loading,
                         onClick = {
+                            onCallBackClearFavoriteFilter.invoke()
                             activity?.trackButtonClick("Menu filter: Clear All")
                             loading = true
                             filterMap.keys.toList().forEach {
@@ -374,5 +375,7 @@ private fun clearAllFilter(filterMap: SnapshotStateMap<String, Boolean>) {
 @Preview
 @Composable
 fun Preview() {
-    GetFilterBar()
+    GetFilterBar(
+        onCallBackClearFavoriteFilter = {}
+    )
 }
