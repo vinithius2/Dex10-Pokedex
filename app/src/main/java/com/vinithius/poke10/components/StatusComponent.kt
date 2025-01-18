@@ -2,10 +2,6 @@ package com.vinithius.poke10.components
 
 import android.annotation.SuppressLint
 import android.os.Build
-import androidx.compose.animation.AnimatedVisibilityScope
-import androidx.compose.animation.ExperimentalSharedTransitionApi
-import androidx.compose.animation.SharedTransitionScope
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -19,7 +15,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -40,10 +35,8 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -63,25 +56,19 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import coil.Coil
 import coil.ImageLoader
-import coil.compose.AsyncImage
 import coil.compose.AsyncImagePainter
 import coil.compose.rememberAsyncImagePainter
 import coil.decode.GifDecoder
 import coil.decode.ImageDecoderDecoder
 import coil.request.ImageRequest
-import coil.size.Size
 import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.rememberLottieComposition
 import com.valentinilk.shimmer.shimmer
 import com.vinithius.poke10.R
-import com.vinithius.poke10.datasource.database.PokemonWithDetails
 import com.vinithius.poke10.extension.capitalize
-import com.vinithius.poke10.ui.screens.URL_IMAGE
-import com.vinithius.poke10.ui.viewmodel.PokemonViewModel
 
 // Page list Loading
 
@@ -122,7 +109,6 @@ fun GetFilterLoading() {
     val filterList = mutableListOf<String>().apply {
         add("first")
         addAll(filterMap.keys)
-        add("last")
     }
     LazyRow(
         horizontalArrangement = Arrangement.spacedBy(14.dp),
@@ -131,9 +117,6 @@ fun GetFilterLoading() {
         itemsIndexed(filterList) { _, filter ->
             when (filter) {
                 "first" -> ViewHolderFirst()
-                "last" -> {
-                    ViewHolderLast()
-                }
 
                 else -> {
                     ViewHolder(
@@ -143,23 +126,6 @@ fun GetFilterLoading() {
                 }
             }
         }
-    }
-}
-
-@Composable
-fun ViewHolderFirst() {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        Icon(
-            painter = painterResource(R.drawable.baseline_filter_list_alt_24),
-            contentDescription = "Filter",
-            tint = MaterialTheme.colorScheme.onSecondary,
-            modifier = Modifier
-                .padding(4.dp)
-                .shimmer()
-        )
     }
 }
 
@@ -213,7 +179,7 @@ fun ViewHolder(
 }
 
 @Composable
-fun ViewHolderLast() {
+fun ViewHolderFirst() {
     Box(
         modifier = Modifier
             .clip(shape = RoundedCornerShape(8.dp))
@@ -226,7 +192,7 @@ fun ViewHolderLast() {
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Text(
-                text = "Clear All",
+                text = stringResource(R.string.clear_all),
                 color = MaterialTheme.colorScheme.onSecondary,
                 modifier = Modifier.padding(4.dp),
                 style = TextStyle(
@@ -237,7 +203,7 @@ fun ViewHolderLast() {
             )
             Icon(
                 imageVector = Icons.Default.Delete,
-                contentDescription = "Clear All",
+                contentDescription = stringResource(R.string.clear_all),
                 tint = MaterialTheme.colorScheme.onSecondary,
                 modifier = Modifier
                     .width(20.dp)
