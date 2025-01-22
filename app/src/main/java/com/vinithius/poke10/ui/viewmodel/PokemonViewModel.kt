@@ -139,6 +139,13 @@ class PokemonViewModel(private val repository: PokemonRepository) : ViewModel() 
         _googleForm.postValue(value)
     }
 
+    private val _paypalId = MutableLiveData(String())
+    val paypalId: LiveData<String>
+        get() = _paypalId
+
+    fun setPaypalId(value: String) {
+        _paypalId.postValue(value)
+    }
 
     // FIM - Remote config
 

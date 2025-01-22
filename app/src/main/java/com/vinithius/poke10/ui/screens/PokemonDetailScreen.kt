@@ -79,7 +79,6 @@ import coil.decode.ImageDecoderDecoder
 import coil.request.ImageRequest
 import com.valentinilk.shimmer.shimmer
 import com.vinithius.poke10.R
-import com.vinithius.poke10.components.AdmobBanner
 import com.vinithius.poke10.components.TypeItem
 import com.vinithius.poke10.components.TypeItemShimmer
 import com.vinithius.poke10.components.TypeListResponse
@@ -350,7 +349,6 @@ fun SharedTransitionScope.PokemonDetailScreen(
         PokemonIsABaby()
         PokemonEvolution(pokemonDetail)
         // Tabs
-        AdmobBanner(2)
         TabWithPagerExample(pokemonDetail, viewModel, pokemonColor)
     }
 }

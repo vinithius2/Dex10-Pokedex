@@ -63,7 +63,6 @@ import coil.decode.GifDecoder
 import coil.decode.ImageDecoderDecoder
 import coil.request.ImageRequest
 import com.vinithius.poke10.R
-import com.vinithius.poke10.components.AdmobBanner
 import com.vinithius.poke10.components.EmptyListStatus
 import com.vinithius.poke10.components.ErrorStatus
 import com.vinithius.poke10.components.LoadingPokemonList
@@ -166,7 +165,6 @@ fun SharedTransitionScope.PokemonListScreen(
                         getFilterBarData(it, viewModel)
                     }
                 )
-                AdmobBanner()
                 if (pokemonItems.isNotEmpty()) {
                     LazyColumn {
                         items(

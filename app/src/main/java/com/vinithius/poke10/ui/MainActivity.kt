@@ -1,9 +1,12 @@
 package com.vinithius.poke10.ui
 
 import android.app.Activity
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -68,6 +71,7 @@ import com.google.android.play.core.review.ReviewManagerFactory
 import com.google.firebase.analytics.FirebaseAnalytics
 import com.google.firebase.remoteconfig.FirebaseRemoteConfig
 import com.vinithius.poke10.R
+import com.vinithius.poke10.components.AdmobBanner
 import com.vinithius.poke10.extension.getColorByString
 import com.vinithius.poke10.extension.getToolBarColorByString
 import com.vinithius.poke10.ui.screens.PokemonDetailScreen
@@ -91,6 +95,22 @@ class MainActivity : ComponentActivity() {
         analytics = FirebaseAnalytics.getInstance(this)
         MobileAds.initialize(this@MainActivity) {
             // Do nothing
+        }
+        pushNotification()
+    }
+
+    private fun pushNotification() {
+        // Criação do canal de notificação
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channel = NotificationChannel(
+                "default_channel",
+                "Default Channel",
+                NotificationManager.IMPORTANCE_DEFAULT
+            ).apply {
+                description = "Canal padrão para notificações"
+            }
+            val notificationManager: NotificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            notificationManager.createNotificationChannel(channel)
         }
     }
 
@@ -128,10 +148,12 @@ private fun GetAdUnitId(viewModel: PokemonViewModel = getViewModel()) {
                 val instagranUrl = remoteConfig.getString("instagran_url")
                 val redditUrl = remoteConfig.getString("reddit_url")
                 val googleForm = remoteConfig.getString("google_form")
+                val paypalId = remoteConfig.getString("paypal_id")
                 viewModel.setFacebookUrl(facebookUrl)
                 viewModel.setInstagranUrl(instagranUrl)
                 viewModel.setRedditUrl(redditUrl)
                 viewModel.setGoogleForm(googleForm)
+                viewModel.setPaypalId(paypalId)
             }
         }
 }
@@ -143,7 +165,14 @@ fun MainScreen(
     GetAdUnitId()
     SetupSystemUI(viewModel)
     val navController = rememberNavController()
-    Scaffold(topBar = { GetTopBar(viewModel, navController) }) { innerPadding ->
+    Scaffold(
+        topBar = {
+            GetTopBar(viewModel, navController)
+        },
+        bottomBar = {
+            AdmobBanner()
+        }
+    ) { innerPadding ->
         GetNavHost(
             innerPadding,
             navController
@@ -330,6 +359,7 @@ private fun AppMenuPageList(
     val activity = context as? MainActivity
     val favoriteFilter by viewModel.isFavoriteFilter.observeAsState(false)
     val googleForm by viewModel.googleForm.observeAsState()
+    val paypalId by viewModel.paypalId.observeAsState()
     var expanded by remember { mutableStateOf(false) }
     IconButton(onClick = {
         activity?.trackButtonClick("Menu toolbar: favorites -> ${favoriteFilter.not()}")
@@ -369,8 +399,10 @@ private fun AppMenuPageList(
             }
         },
         onDonateClick = {
-            activity?.trackButtonClick("Menu toolbar: donate")
-            donateClick(context)
+            paypalId?.takeIf { it.isNotEmpty() }?.run {
+                activity?.trackButtonClick("Menu toolbar: donate")
+                donateClick(paypalId!!, context)
+            }
         },
         onInstagranClick = { url ->
             activity?.trackButtonClick("Menu toolbar: instagran")
@@ -615,12 +647,11 @@ fun getIntentToUrl(url: String, context: Context) {
     context.startActivity(intent)
 }
 
-fun donateClick(context: Context) {
-    val idButton = "48SNSQLTQ87HS"
+fun donateClick(paypalId : String, context: Context) {
     val intent =
         Intent(
             Intent.ACTION_VIEW,
-            Uri.parse("https://www.paypal.com/donate/?hosted_button_id=$idButton")
+            Uri.parse("https://www.paypal.com/donate/?hosted_button_id=$paypalId")
         )
     context.startActivity(intent)
 }

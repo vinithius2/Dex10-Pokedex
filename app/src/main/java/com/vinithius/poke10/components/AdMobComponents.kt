@@ -22,10 +22,14 @@ fun AdmobBanner(typeScreen: Int = 1) {
     val adUnitId = getTypeAdUnitScreen(typeScreen)
     adUnitId?.takeIf { it.isNotEmpty() }?.let { validAdUnitId ->
         AndroidView(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth(),
             factory = { context ->
                 AdView(context).apply {
-                    setAdSize(AdSize.BANNER)
+                    // Define um tamanho adaptativo
+                    val displayMetrics = context.resources.displayMetrics
+                    val adWidth = (displayMetrics.widthPixels / displayMetrics.density).toInt()
+                    setAdSize(AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(context, adWidth))
                     this.adUnitId = validAdUnitId
                     try {
                         loadAd(AdRequest.Builder().build())
