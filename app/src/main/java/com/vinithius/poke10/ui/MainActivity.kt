@@ -1,12 +1,19 @@
 package com.vinithius.poke10.ui
 
+import android.Manifest
 import android.app.Activity
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.RequiresApi
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionLayout
 import androidx.compose.foundation.Image
@@ -64,10 +71,12 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.google.android.gms.ads.MobileAds
-import com.google.android.play.core.review.ReviewManager
 import com.google.android.play.core.review.ReviewManagerFactory
+import com.google.firebase.analytics.FirebaseAnalytics
+import com.google.firebase.installations.FirebaseInstallations
 import com.google.firebase.remoteconfig.FirebaseRemoteConfig
 import com.vinithius.poke10.R
+import com.vinithius.poke10.components.AdmobBanner
 import com.vinithius.poke10.extension.getColorByString
 import com.vinithius.poke10.extension.getToolBarColorByString
 import com.vinithius.poke10.ui.screens.PokemonDetailScreen
@@ -79,6 +88,9 @@ import org.koin.androidx.compose.getViewModel
 
 class MainActivity : ComponentActivity() {
 
+    private lateinit var analytics: FirebaseAnalytics
+
+    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -86,13 +98,70 @@ class MainActivity : ComponentActivity() {
                 MainScreen()
             }
         }
-        MobileAds.initialize(this@MainActivity) {
-            // Do nothing
+        analytics = FirebaseAnalytics.getInstance(this)
+        MobileAds.initialize(this@MainActivity)
+        requestNotificationPermission()
+        pushNotification()
+    }
+
+    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
+    private fun requestNotificationPermission() {
+        val requestPermissionLauncher = registerForActivityResult(
+            ActivityResultContracts.RequestPermission()
+        ) { isGranted ->
+            if (isGranted) {
+                Log.i("permission", "Notification permission granted")
+            } else {
+                Log.i("permission", "Notification permission denied")
+            }
         }
+        requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+    }
+
+    private fun pushNotification() {
+        // Criação do canal de notificação
+        getFID()
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channel = NotificationChannel(
+                "default_channel",
+                "Default Channel",
+                NotificationManager.IMPORTANCE_DEFAULT
+            ).apply {
+                description = "Default channel for notifications"
+            }
+            val notificationManager: NotificationManager =
+                getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            notificationManager.createNotificationChannel(channel)
+        }
+    }
+
+    private fun getFID() {
+        FirebaseInstallations.getInstance().id
+            .addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    val fid = task.result
+                    Log.i("FID", fid)
+                } else {
+                    Log.e("Error FID", task.exception?.message ?: "Error not found")
+                }
+            }
+    }
+
+    fun trackButtonClick(buttonName: String) {
+        val bundle = Bundle()
+        bundle.putString(FirebaseAnalytics.Param.ITEM_NAME, buttonName)
+        analytics.logEvent("button_click", bundle)
+    }
+
+    fun trackScreenView(screenName: String) {
+        val bundle = Bundle()
+        bundle.putString(FirebaseAnalytics.Param.SCREEN_NAME, screenName)
+        analytics.logEvent(FirebaseAnalytics.Event.SCREEN_VIEW, bundle)
     }
 
     companion object {
         const val FAVORITES = "FAVORITES"
+        const val MAX_POKEMONS = "MAX_POKEMONS"
     }
 }
 
@@ -102,8 +171,22 @@ private fun GetAdUnitId(viewModel: PokemonViewModel = getViewModel()) {
     remoteConfig.fetchAndActivate()
         .addOnCompleteListener { task ->
             if (task.isSuccessful) {
-                val adUnitId = remoteConfig.getString("adUnitId")
-                viewModel.setAdUnitId(adUnitId)
+                // Ads
+                val adUnitIdList = remoteConfig.getString("adUnitId_list")
+                val adUnitIdDetails = remoteConfig.getString("adUnitId_details")
+                viewModel.setAdUnitIdList(adUnitIdList)
+                viewModel.setAdUnitIdDetails(adUnitIdDetails)
+                // Social media
+                val facebookUrl = remoteConfig.getString("facebook_url")
+                val instagranUrl = remoteConfig.getString("instagran_url")
+                val redditUrl = remoteConfig.getString("reddit_url")
+                val googleForm = remoteConfig.getString("google_form")
+                val paypalId = remoteConfig.getString("paypal_id")
+                viewModel.setFacebookUrl(facebookUrl)
+                viewModel.setInstagranUrl(instagranUrl)
+                viewModel.setRedditUrl(redditUrl)
+                viewModel.setGoogleForm(googleForm)
+                viewModel.setPaypalId(paypalId)
             }
         }
 }
@@ -115,7 +198,14 @@ fun MainScreen(
     GetAdUnitId()
     SetupSystemUI(viewModel)
     val navController = rememberNavController()
-    Scaffold(topBar = { GetTopBar(viewModel, navController) }) { innerPadding ->
+    Scaffold(
+        topBar = {
+            GetTopBar(viewModel, navController)
+        },
+        bottomBar = {
+            AdmobBanner()
+        }
+    ) { innerPadding ->
         GetNavHost(
             innerPadding,
             navController
@@ -141,10 +231,11 @@ private fun GetTopBar(
     navController: NavHostController?
 ) {
     val context = LocalContext.current
+    val activity = context as? MainActivity
     var searchQuery by remember { mutableStateOf("") }
     var isSearchActive by remember { mutableStateOf(false) }
     val isDetailsScreen by viewModel.isDetailScreen.observeAsState()
-    val pokemonItems by viewModel.pokemonList.observeAsState(emptyList())
+    val pokemonListBackup by viewModel.pokemonListBackup.observeAsState(emptyList())
     val color by viewModel.pokemonColor.observeAsState()
 
     if (isDetailsScreen != null) {
@@ -155,6 +246,7 @@ private fun GetTopBar(
                     IconButton(onClick = {
                         viewModel.setDetailsScreen(false)
                         navController?.popBackStack()
+                        activity?.trackButtonClick("Back from detail to list")
                     }) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
@@ -245,9 +337,12 @@ private fun GetTopBar(
                     navigationIconContentColor = MaterialTheme.colorScheme.onPrimary
                 ),
                 actions = {
-                    if (pokemonItems.isNotEmpty()) {
+                    if (pokemonListBackup.isNotEmpty()) {
                         if (isSearchActive.not()) {
-                            IconButton(onClick = { isSearchActive = isSearchActive.not() }) {
+                            IconButton(onClick = {
+                                activity?.trackButtonClick("Click search filter")
+                                isSearchActive = isSearchActive.not()
+                            }) {
                                 Icon(
                                     imageVector = Icons.Default.Search,
                                     contentDescription = stringResource(R.string.search)
@@ -294,9 +389,13 @@ private fun AppMenuPageList(
     context: Context,
     viewModel: PokemonViewModel
 ) {
+    val activity = context as? MainActivity
     val favoriteFilter by viewModel.isFavoriteFilter.observeAsState(false)
+    val googleForm by viewModel.googleForm.observeAsState()
+    val paypalId by viewModel.paypalId.observeAsState()
     var expanded by remember { mutableStateOf(false) }
     IconButton(onClick = {
+        activity?.trackButtonClick("Menu toolbar: favorites -> ${favoriteFilter.not()}")
         viewModel.getPokemonFavoriteList(favoriteFilter.not())
     }) {
         Icon(
@@ -305,7 +404,10 @@ private fun AppMenuPageList(
             tint = Color.White
         )
     }
-    IconButton(onClick = { expanded = true }) {
+    IconButton(onClick = {
+        expanded = true
+        activity?.trackButtonClick("Menu toolbar: 3 dots")
+    }) {
         Icon(
             Icons.Default.MoreVert,
             contentDescription = stringResource(id = R.string.more_options)
@@ -313,18 +415,39 @@ private fun AppMenuPageList(
     }
     DropDownMenuRight(
         expanded = expanded,
+        viewModel = viewModel,
         onDismissRequest = { expanded = false },
         onShareAppClick = {
+            activity?.trackButtonClick("Menu toolbar: share app")
             shareApp(context)
         },
         onRateAppClick = {
+            activity?.trackButtonClick("Menu toolbar: rate app")
             requestInAppReview(context)
         },
         onSuggestionsClick = {
-            suggestionsClick(context)
+            googleForm?.takeIf { it.isNotEmpty() }?.run {
+                activity?.trackButtonClick("Menu toolbar: google form")
+                suggestionsClick(googleForm!!, context)
+            }
         },
         onDonateClick = {
-            donateClick(context)
+            paypalId?.takeIf { it.isNotEmpty() }?.run {
+                activity?.trackButtonClick("Menu toolbar: donate")
+                donateClick(paypalId!!, context)
+            }
+        },
+        onInstagranClick = { url ->
+            activity?.trackButtonClick("Menu toolbar: instagran")
+            instagranClick(url, context)
+        },
+        onFacebookClick = { url ->
+            activity?.trackButtonClick("Menu toolbar: facebook")
+            facebookClick(url, context)
+        },
+        onRedditClick = { url ->
+            activity?.trackButtonClick("Menu toolbar: reddit")
+            redditClick(url, context)
         }
     )
 }
@@ -334,6 +457,7 @@ private fun AppMenuPageDetail(
     context: Context,
     viewModel: PokemonViewModel
 ) {
+    val activity = context as? MainActivity
     val requestState by viewModel.stateDetail.observeAsState(RequestStateDetail.Loading)
     val isDetailFavorite by viewModel.isDetailFavorite.observeAsState(false)
     val idPokemon by viewModel.idPokemon.observeAsState()
@@ -354,7 +478,10 @@ private fun AppMenuPageDetail(
 
         is RequestStateDetail.Success -> {
             IconButton(onClick = {
-                idPokemon?.let { viewModel.setFavorite(it) }
+                idPokemon?.let {
+                    activity?.trackButtonClick("Click favorite toolbar detail: ID -> $it")
+                    viewModel.setFavorite(it)
+                }
             }) {
                 Icon(
                     imageVector = if (isDetailFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
@@ -373,17 +500,20 @@ private fun AppMenuPageDetail(
 @Composable
 private fun DropDownMenuRight(
     expanded: Boolean,
+    viewModel: PokemonViewModel,
     onDismissRequest: () -> Unit,
     onShareAppClick: () -> Unit,
     onRateAppClick: () -> Unit,
     onSuggestionsClick: () -> Unit,
-    onDonateClick: () -> Unit
+    onDonateClick: () -> Unit,
+    onInstagranClick: (url: String) -> Unit,
+    onFacebookClick: (url: String) -> Unit,
+    onRedditClick: (url: String) -> Unit,
 ) {
     DropdownMenu(
         expanded = expanded,
         onDismissRequest = onDismissRequest
     ) {
-        // Categoria: Interação com o App
         Text(
             text = stringResource(id = R.string.interaction),
             style = MaterialTheme.typography.labelSmall,
@@ -399,7 +529,7 @@ private fun DropDownMenuRight(
             onClick = onRateAppClick
         )
         HorizontalDivider()
-        // Categoria: Feedback e Apoio
+        // Feedback and Support
         Text(
             text = stringResource(id = R.string.feedback_and_support),
             style = MaterialTheme.typography.labelSmall,
@@ -415,6 +545,37 @@ private fun DropDownMenuRight(
             text = { Text(stringResource(id = R.string.donate_to_developer)) },
             onClick = onDonateClick
         )
+        HorizontalDivider()
+        // Social media
+        Text(
+            text = stringResource(id = R.string.social_media),
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+        )
+        with(viewModel) {
+            val facebookUrl by facebookUrl.observeAsState()
+            val instagranUrl by instagranUrl.observeAsState()
+            val redditUrl by redditUrl.observeAsState()
+            if (instagranUrl.isNullOrEmpty().not()) {
+                DropdownMenuItem(
+                    text = { Text(stringResource(id = R.string.instagran)) },
+                    onClick = { instagranUrl?.let { onInstagranClick(it) } }
+                )
+            }
+            if (facebookUrl.isNullOrEmpty().not()) {
+                DropdownMenuItem(
+                    text = { Text(stringResource(id = R.string.facebook)) },
+                    onClick = { facebookUrl?.let { onFacebookClick(it) } }
+                )
+            }
+            if (redditUrl.isNullOrEmpty().not()) {
+                DropdownMenuItem(
+                    text = { Text(stringResource(id = R.string.reddit)) },
+                    onClick = { redditUrl?.let { onRedditClick(it) } }
+                )
+            }
+        }
     }
 }
 
@@ -486,37 +647,44 @@ fun shareApp(context: Context) {
 }
 
 fun requestInAppReview(context: Context) {
-    val reviewManager: ReviewManager = ReviewManagerFactory.create(context)
-    val requestFlow = reviewManager.requestReviewFlow()
-    requestFlow.addOnCompleteListener { requestTask ->
-        if (requestTask.isSuccessful) {
-            val reviewInfo = requestTask.result
-            val flow = reviewManager.launchReviewFlow(context as Activity, reviewInfo)
-            flow.addOnCompleteListener { _ ->
-                // Do nothing
-            }
-        } else {
-            val exception = requestTask.exception
-            exception?.printStackTrace()
+    val reviewManager = ReviewManagerFactory.create(context.applicationContext)
+    reviewManager.requestReviewFlow().addOnCompleteListener {
+        if (it.isSuccessful) {
+            reviewManager.launchReviewFlow(context as Activity, it.result)
         }
     }
 }
 
-fun suggestionsClick(context: Context) {
+fun suggestionsClick(googleForm: String, context: Context) {
+    getIntentToUrl(googleForm, context)
+}
+
+fun instagranClick(url: String, context: Context) {
+    getIntentToUrl(url, context)
+}
+
+fun facebookClick(url: String, context: Context) {
+    getIntentToUrl(url, context)
+}
+
+fun redditClick(url: String, context: Context) {
+    getIntentToUrl(url, context)
+}
+
+fun getIntentToUrl(url: String, context: Context) {
     val intent =
         Intent(
             Intent.ACTION_VIEW,
-            Uri.parse("https://forms.gle/6Rbsv7voquN3AjbT8")
+            Uri.parse(url)
         )
     context.startActivity(intent)
 }
 
-fun donateClick(context: Context) {
-    val idButton = "48SNSQLTQ87HS"
+fun donateClick(paypalId: String, context: Context) {
     val intent =
         Intent(
             Intent.ACTION_VIEW,
-            Uri.parse("https://www.paypal.com/donate/?hosted_button_id=$idButton")
+            Uri.parse("https://www.paypal.com/donate/?hosted_button_id=$paypalId")
         )
     context.startActivity(intent)
 }

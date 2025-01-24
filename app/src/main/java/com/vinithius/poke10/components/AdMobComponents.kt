@@ -18,15 +18,18 @@ import org.koin.androidx.compose.getViewModel
 private val adUnitIdTeste = "ca-app-pub-3940256099942544/6300978111"
 
 @Composable
-fun AdmobBanner(viewModel: PokemonViewModel = getViewModel()) {
-    val adUnitId =
-        if (BuildConfig.DEBUG) adUnitIdTeste else viewModel.adUnitId.observeAsState().value
+fun AdmobBanner(typeScreen: Int = 1) {
+    val adUnitId = getTypeAdUnitScreen(typeScreen)
     adUnitId?.takeIf { it.isNotEmpty() }?.let { validAdUnitId ->
         AndroidView(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth(),
             factory = { context ->
                 AdView(context).apply {
-                    setAdSize(AdSize.BANNER)
+                    // Define um tamanho adaptativo
+                    val displayMetrics = context.resources.displayMetrics
+                    val adWidth = (displayMetrics.widthPixels / displayMetrics.density).toInt()
+                    setAdSize(AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(context, adWidth))
                     this.adUnitId = validAdUnitId
                     try {
                         loadAd(AdRequest.Builder().build())
@@ -37,5 +40,23 @@ fun AdmobBanner(viewModel: PokemonViewModel = getViewModel()) {
                 }
             }
         )
+    }
+}
+
+@Composable
+private fun getTypeAdUnitScreen(
+    typeScreen: Int,
+    viewModel: PokemonViewModel = getViewModel()
+): String? {
+    return if (BuildConfig.DEBUG) {
+        adUnitIdTeste
+    } else {
+        when (typeScreen) {
+            // Screen List
+            1 -> viewModel.adUnitIdList.observeAsState().value
+            // Detail List
+            2 -> viewModel.adUnitIdDetails.observeAsState().value
+            else -> null
+        }
     }
 }
