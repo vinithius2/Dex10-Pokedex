@@ -80,6 +80,8 @@ dependencies {
     implementation "androidx.compose.foundation:foundation-layout"
     implementation "androidx.compose.runtime:runtime-livedata"
     implementation 'com.google.firebase:firebase-messaging:24.1.0'
+    implementation 'com.google.firebase:firebase-installations'
+
     // Choose one of the following:
     // Material Design 3
     implementation 'androidx.compose.material3:material3'

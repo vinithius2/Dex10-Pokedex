@@ -1,5 +1,6 @@
 package com.vinithius.poke10.ui
 
+import android.Manifest
 import android.app.Activity
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -8,8 +9,11 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.RequiresApi
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionLayout
 import androidx.compose.foundation.Image
@@ -69,6 +73,7 @@ import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.google.android.gms.ads.MobileAds
 import com.google.android.play.core.review.ReviewManagerFactory
 import com.google.firebase.analytics.FirebaseAnalytics
+import com.google.firebase.installations.FirebaseInstallations
 import com.google.firebase.remoteconfig.FirebaseRemoteConfig
 import com.vinithius.poke10.R
 import com.vinithius.poke10.components.AdmobBanner
@@ -83,8 +88,9 @@ import org.koin.androidx.compose.getViewModel
 
 class MainActivity : ComponentActivity() {
 
-    lateinit var analytics: FirebaseAnalytics
+    private lateinit var analytics: FirebaseAnalytics
 
+    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -93,25 +99,52 @@ class MainActivity : ComponentActivity() {
             }
         }
         analytics = FirebaseAnalytics.getInstance(this)
-        MobileAds.initialize(this@MainActivity) {
-            // Do nothing
-        }
+        MobileAds.initialize(this@MainActivity)
+        requestNotificationPermission()
         pushNotification()
+    }
+
+    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
+    private fun requestNotificationPermission() {
+        val requestPermissionLauncher = registerForActivityResult(
+            ActivityResultContracts.RequestPermission()
+        ) { isGranted ->
+            if (isGranted) {
+                Log.i("permission", "Notification permission granted")
+            } else {
+                Log.i("permission", "Notification permission denied")
+            }
+        }
+        requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
     }
 
     private fun pushNotification() {
         // Criação do canal de notificação
+        getFID()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
                 "default_channel",
                 "Default Channel",
                 NotificationManager.IMPORTANCE_DEFAULT
             ).apply {
-                description = "Canal padrão para notificações"
+                description = "Default channel for notifications"
             }
-            val notificationManager: NotificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            val notificationManager: NotificationManager =
+                getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             notificationManager.createNotificationChannel(channel)
         }
+    }
+
+    private fun getFID() {
+        FirebaseInstallations.getInstance().id
+            .addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    val fid = task.result
+                    Log.i("FID", fid)
+                } else {
+                    Log.e("Error FID", task.exception?.message ?: "Error not found")
+                }
+            }
     }
 
     fun trackButtonClick(buttonName: String) {
@@ -647,7 +680,7 @@ fun getIntentToUrl(url: String, context: Context) {
     context.startActivity(intent)
 }
 
-fun donateClick(paypalId : String, context: Context) {
+fun donateClick(paypalId: String, context: Context) {
     val intent =
         Intent(
             Intent.ACTION_VIEW,
