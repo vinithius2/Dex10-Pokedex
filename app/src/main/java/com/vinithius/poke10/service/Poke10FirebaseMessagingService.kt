@@ -31,7 +31,7 @@ class Poke10FirebaseMessagingService : FirebaseMessagingService() {
             PendingIntent.FLAG_ONE_SHOT or PendingIntent.FLAG_IMMUTABLE)
 
         val notificationBuilder = NotificationCompat.Builder(this, "default_channel")
-            .setSmallIcon(R.drawable.ic_notification)
+            .setSmallIcon(R.drawable.ic_notification_poke10)
             .setContentTitle(title)
             .setContentText(messageBody)
             .setAutoCancel(true)
