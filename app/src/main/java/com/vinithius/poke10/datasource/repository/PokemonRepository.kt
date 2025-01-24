@@ -28,6 +28,7 @@ import com.vinithius.poke10.datasource.response.Pokemon
 import com.vinithius.poke10.datasource.response.PokemonDataWrapper
 import com.vinithius.poke10.datasource.response.Specie
 import com.vinithius.poke10.ui.MainActivity.Companion.FAVORITES
+import com.vinithius.poke10.ui.MainActivity.Companion.MAX_POKEMONS
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
@@ -69,18 +70,19 @@ class PokemonRepository(
     ) {
         try {
             val countLocal = getCountPokemonEntities()
-            // TODO: Compare the count from firebase and database for get the difference
-            if (countLocal == 0) {
+            var maxPokemonsSize = getCountMaxPokemon(context)
+            if (maxPokemonsSize == 0 || countLocal < maxPokemonsSize) {
                 callBackLoadingFirebase.invoke()
                 val pokemonFirebaseList = getFirebasePokemonList(callBackError)
-                val maxSize = pokemonFirebaseList.size
+                maxPokemonsSize = pokemonFirebaseList.size
+                setCountMaxPokemon(maxPokemonsSize, context)
                 var count = 0
                 pokemonFirebaseList.forEach { pokemon ->
                     val isFavorite = getFavorite(pokemon.name, context)
                     pokemon.favorite = isFavorite
                     insertPokemonCard(pokemon)
                     count += 1
-                    val progress = count.toFloat() / maxSize.toFloat()
+                    val progress = count.toFloat() / maxPokemonsSize.toFloat()
                     callBackLoadingFirebaseCounter.invoke(progress)
                     Log.i("Insert pokemon", "${pokemon.id} ${pokemon.name}")
                 }
@@ -90,6 +92,26 @@ class PokemonRepository(
             callBackError.invoke(e)
         }
     }
+
+    private fun setCountMaxPokemon(count: Int, context: Context?) {
+        context?.let { ctx ->
+            val sharedPreferences = ctx.getSharedPreferences(MAX_POKEMONS, Context.MODE_PRIVATE)
+            with(sharedPreferences.edit()) {
+                putInt(MAX_POKEMONS, count)
+                apply()
+            }
+        } ?: run {
+            Log.e("setCountMaxPokemon", "Context is null")
+        }
+    }
+
+    private fun getCountMaxPokemon(context: Context?): Int {
+        return context?.let { ctx ->
+            val sharedPreferences = ctx.getSharedPreferences(MAX_POKEMONS, Context.MODE_PRIVATE)
+            sharedPreferences.getInt(MAX_POKEMONS, 0)
+        } ?: 0
+    }
+
 
     // LOCAL - DATABSE
 
@@ -221,27 +243,7 @@ class PokemonRepository(
         return countUpdate > 0
     }
 
-    /*
-        fun setFavorite(name: String, context: Context?): Boolean {
-            return try {
-                val result = context?.run {
-                    val sharedPreferences = getSharedPreferences(FAVORITES, Context.MODE_PRIVATE)
-                    val isFavorite = sharedPreferences.getBoolean(name, false)
-                    with(sharedPreferences.edit()) {
-                        putBoolean(name, isFavorite.not())
-                        apply()
-                    }
-                    isFavorite.not()
-                }
-                result ?: false
-            } catch (e: HttpException) {
-                Log.e("Favorite", e.toString())
-                false
-            }
-        }
-    */
-
-    fun getFavorite(name: String, context: Context): Boolean {
+    private fun getFavorite(name: String, context: Context): Boolean {
         val sharedPreferences = context.getSharedPreferences(FAVORITES, Context.MODE_PRIVATE)
         return sharedPreferences.getBoolean(name, false)
     }
@@ -266,7 +268,11 @@ class PokemonRepository(
 
                     override fun onCancelled(databaseError: DatabaseError) {
                         callBackError.invoke(databaseError.toException())
-                        Log.w("FirebasePokemon", "Erro ao ler os dados", databaseError.toException())
+                        Log.w(
+                            "FirebasePokemon",
+                            "Erro ao ler os dados",
+                            databaseError.toException()
+                        )
                         continuation.resumeWith(Result.failure(databaseError.toException()))
                     }
                 })

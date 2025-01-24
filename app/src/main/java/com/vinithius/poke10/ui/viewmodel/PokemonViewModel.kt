@@ -89,13 +89,65 @@ class PokemonViewModel(private val repository: PokemonRepository) : ViewModel() 
     private val _sharedPokemonImages = MutableLiveData<Map<String, AsyncImagePainter>>()
     val sharedPokemonImages: LiveData<Map<String, AsyncImagePainter>> = _sharedPokemonImages
 
-    private val _adUnitId = MutableLiveData(String())
-    val adUnitId: LiveData<String>
-        get() = _adUnitId
+    // Remote config
 
-    fun setAdUnitId(value: String) {
-        _adUnitId.postValue(value)
+    private val _adUnitIdList = MutableLiveData(String())
+    val adUnitIdList: LiveData<String>
+        get() = _adUnitIdList
+
+    fun setAdUnitIdList(value: String) {
+        _adUnitIdList.postValue(value)
     }
+
+    private val _adUnitIdDetails = MutableLiveData(String())
+    val adUnitIdDetails: LiveData<String>
+        get() = _adUnitIdDetails
+
+    fun setAdUnitIdDetails(value: String) {
+        _adUnitIdDetails.postValue(value)
+    }
+
+    private val _facebookUrl = MutableLiveData(String())
+    val facebookUrl: LiveData<String>
+        get() = _facebookUrl
+
+    fun setFacebookUrl(value: String) {
+        _facebookUrl.postValue(value)
+    }
+
+    private val _instagranUrl = MutableLiveData(String())
+    val instagranUrl: LiveData<String>
+        get() = _instagranUrl
+
+    fun setInstagranUrl(value: String) {
+        _instagranUrl.postValue(value)
+    }
+
+    private val _redditUrl = MutableLiveData(String())
+    val redditUrl: LiveData<String>
+        get() = _redditUrl
+
+    fun setRedditUrl(value: String) {
+        _redditUrl.postValue(value)
+    }
+
+    private val _googleForm = MutableLiveData(String())
+    val googleForm: LiveData<String>
+        get() = _googleForm
+
+    fun setGoogleForm(value: String) {
+        _googleForm.postValue(value)
+    }
+
+    private val _paypalId = MutableLiveData(String())
+    val paypalId: LiveData<String>
+        get() = _paypalId
+
+    fun setPaypalId(value: String) {
+        _paypalId.postValue(value)
+    }
+
+    // FIM - Remote config
 
     private val _pokemonColor = MutableLiveData(String())
     val pokemonColor: LiveData<String?>

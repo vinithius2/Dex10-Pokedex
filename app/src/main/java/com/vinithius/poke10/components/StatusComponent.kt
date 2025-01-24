@@ -1,6 +1,7 @@
 package com.vinithius.poke10.components
 
 import android.annotation.SuppressLint
+import android.os.Build
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -55,6 +56,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.ImageLoader
+import coil.compose.AsyncImagePainter
+import coil.compose.rememberAsyncImagePainter
+import coil.decode.GifDecoder
+import coil.decode.ImageDecoderDecoder
+import coil.request.ImageRequest
 import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.LottieConstants
@@ -102,7 +109,6 @@ fun GetFilterLoading() {
     val filterList = mutableListOf<String>().apply {
         add("first")
         addAll(filterMap.keys)
-        add("last")
     }
     LazyRow(
         horizontalArrangement = Arrangement.spacedBy(14.dp),
@@ -111,9 +117,6 @@ fun GetFilterLoading() {
         itemsIndexed(filterList) { _, filter ->
             when (filter) {
                 "first" -> ViewHolderFirst()
-                "last" -> {
-                    ViewHolderLast()
-                }
 
                 else -> {
                     ViewHolder(
@@ -123,23 +126,6 @@ fun GetFilterLoading() {
                 }
             }
         }
-    }
-}
-
-@Composable
-fun ViewHolderFirst() {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        Icon(
-            painter = painterResource(R.drawable.baseline_filter_list_alt_24),
-            contentDescription = "Filter",
-            tint = MaterialTheme.colorScheme.onSecondary,
-            modifier = Modifier
-                .padding(4.dp)
-                .shimmer()
-        )
     }
 }
 
@@ -193,7 +179,7 @@ fun ViewHolder(
 }
 
 @Composable
-fun ViewHolderLast() {
+fun ViewHolderFirst() {
     Box(
         modifier = Modifier
             .clip(shape = RoundedCornerShape(8.dp))
@@ -206,7 +192,7 @@ fun ViewHolderLast() {
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Text(
-                text = "Clear All",
+                text = stringResource(R.string.clear_all),
                 color = MaterialTheme.colorScheme.onSecondary,
                 modifier = Modifier.padding(4.dp),
                 style = TextStyle(
@@ -217,7 +203,7 @@ fun ViewHolderLast() {
             )
             Icon(
                 imageVector = Icons.Default.Delete,
-                contentDescription = "Clear All",
+                contentDescription = stringResource(R.string.clear_all),
                 tint = MaterialTheme.colorScheme.onSecondary,
                 modifier = Modifier
                     .width(20.dp)
@@ -503,7 +489,6 @@ private fun LoadingPokeballPreview() {
 fun LoadingProgress(
     progress: Float
 ) {
-    val context = LocalContext.current
     Column(
         modifier = Modifier.fillMaxSize()
     ) {
@@ -512,16 +497,12 @@ fun LoadingProgress(
         )
         Box(
             modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center // Centraliza o Column no Box
+            contentAlignment = Alignment.Center
         ) {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                LottieAnimation(
-                    composition = composition,
-                    iterations = LottieConstants.IterateForever,
-                    modifier = Modifier.size(80.dp)
-                )
+                LoadGifWithCoil()
                 Spacer(modifier = Modifier.height(12.dp))
                 LinearProgressIndicator(
                     progress = { progress },
@@ -542,17 +523,73 @@ fun LoadingProgress(
                         fontStyle = androidx.compose.ui.text.font.FontStyle.Normal,
                     )
                 )
+                Text(
+                    text = stringResource(R.string.loading),
+                    style = TextStyle(
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Light,
+                        fontStyle = androidx.compose.ui.text.font.FontStyle.Normal
+                    )
+                )
                 Spacer(modifier = Modifier.height(12.dp))
                 Text(
                     text = stringResource(R.string.dont_close_app),
                     style = TextStyle(
                         fontSize = 12.sp,
-                        fontWeight = FontWeight.Light,
-                        fontStyle = androidx.compose.ui.text.font.FontStyle.Normal,
+                        fontWeight = FontWeight.Normal,
+                        fontStyle = androidx.compose.ui.text.font.FontStyle.Normal
                     )
                 )
             }
         }
+    }
+}
+
+@Composable
+fun LoadGifWithCoil() {
+    val context = LocalContext.current
+    val imageLoader = ImageLoader.Builder(context)
+        .components {
+            if (Build.VERSION.SDK_INT >= 28) {
+                add(ImageDecoderDecoder.Factory())
+            } else {
+                add(GifDecoder.Factory())
+            }
+        }
+        .build()
+
+    val imageRequest = ImageRequest.Builder(context)
+        .data(R.drawable.jigglypuff_songs)
+        .crossfade(true)
+        .error(android.R.drawable.ic_menu_report_image)
+        .build()
+
+    Box(
+        modifier = Modifier
+            .size(70.dp)
+    ) {
+
+        val painter = rememberAsyncImagePainter(
+            model = imageRequest,
+            imageLoader = imageLoader
+        )
+
+        // Loading
+        if (painter.state is AsyncImagePainter.State.Loading) {
+            androidx.compose.material.CircularProgressIndicator(
+                color = Color.White,
+                modifier = Modifier
+                    .align(Alignment.Center)
+                    .size(30.dp)
+            )
+        }
+        // Final result
+        Image(
+            painter = painter,
+            contentDescription = "TESTE",
+            modifier = Modifier
+                .size(70.dp)
+        )
     }
 }
 
