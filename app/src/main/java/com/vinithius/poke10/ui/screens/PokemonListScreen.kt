@@ -23,6 +23,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Card
@@ -34,6 +35,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.snapshots.SnapshotStateMap
@@ -138,9 +140,12 @@ fun SharedTransitionScope.PokemonListScreen(
     val context = LocalContext.current
     SetAnalyticScreenName()
     LaunchedEffect(Unit) {
-        viewModel.getPokemonList(context)
+        if (viewModel.pokemonList.value == null || viewModel.pokemonList.value?.isEmpty() == true) {
+            viewModel.getPokemonList(context)
+        }
         viewModel.setPokemonColor(null)
     }
+    val listState = rememberSaveable(saver = LazyListState.Saver) { LazyListState() }
     val pokemonItems by viewModel.pokemonList.observeAsState(emptyList())
     val isFavoriteFilter by viewModel.isFavoriteFilter.observeAsState(false)
 
@@ -166,7 +171,7 @@ fun SharedTransitionScope.PokemonListScreen(
                     }
                 )
                 if (pokemonItems.isNotEmpty()) {
-                    LazyColumn {
+                    LazyColumn(state = listState) {
                         items(
                             items = pokemonItems,
                             key = { data -> data.pokemon.id }
@@ -189,7 +194,7 @@ fun SharedTransitionScope.PokemonListScreen(
                                     onClickDetail = { id, name, color ->
                                         activity?.trackButtonClick("Click button detail: $name")
                                         viewModel.setIdPokemon(id)
-                                        navController.navigate("pokemonDetail/$id/$name/$color")
+                                        navController.navigate("pokemonDetail/$id/$name/$color/${true}")
                                     },
                                     onClickFavorite = { pokemonFavorite ->
                                         pokemonFavorite.pokemon.name

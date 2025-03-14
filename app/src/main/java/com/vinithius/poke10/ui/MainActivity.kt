@@ -599,17 +599,19 @@ private fun GetNavHost(
                 )
             }
             composable(
-                route = "pokemonDetail/{pokemonId}/{pokemonName}/{pokemonColor}",
+                route = "pokemonDetail/{pokemonId}/{pokemonName}/{pokemonColor}/{fromListScreen}",
                 arguments = listOf(
                     navArgument("pokemonId") { type = NavType.StringType },
                     navArgument("pokemonName") { type = NavType.StringType },
-                    navArgument("pokemonColor") { type = NavType.StringType }
+                    navArgument("pokemonColor") { type = NavType.StringType },
+                    navArgument("fromListScreen") { type = NavType.BoolType }
                 )
             ) { backStackEntry ->
 
                 val pokemonId = backStackEntry.arguments?.getString("pokemonId")?.toIntOrNull()
                 val pokemonName = backStackEntry.arguments?.getString("pokemonName")
                 val pokemonColor = backStackEntry.arguments?.getString("pokemonColor")
+                val fromListScreen = backStackEntry.arguments?.getBoolean("fromListScreen") ?: true
 
                 if (pokemonId != null && pokemonName != null && pokemonColor != null) {
                     PokemonDetailScreen(
@@ -617,6 +619,7 @@ private fun GetNavHost(
                         pokemonId,
                         pokemonName,
                         pokemonColor,
+                        fromListScreen,
                         this
                     )
                 }

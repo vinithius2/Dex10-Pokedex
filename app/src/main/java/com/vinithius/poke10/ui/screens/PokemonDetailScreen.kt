@@ -85,6 +85,7 @@ import com.vinithius.poke10.components.TypeListResponse
 import com.vinithius.poke10.datasource.mapper.fromDefaultToListType
 import com.vinithius.poke10.datasource.response.Pokemon
 import com.vinithius.poke10.datasource.response.Type
+import com.vinithius.poke10.extension.SpriteItem
 import com.vinithius.poke10.extension.capitalize
 import com.vinithius.poke10.extension.convertPounds
 import com.vinithius.poke10.extension.converterIntToDouble
@@ -93,6 +94,7 @@ import com.vinithius.poke10.extension.getDrawableHabitat
 import com.vinithius.poke10.extension.getFlavorTextForLanguage
 import com.vinithius.poke10.extension.getHtmlCompat
 import com.vinithius.poke10.extension.getListEvolutions
+import com.vinithius.poke10.extension.getSpriteItems
 import com.vinithius.poke10.ui.MainActivity
 import com.vinithius.poke10.ui.viewmodel.PokemonViewModel
 import com.vinithius.poke10.ui.viewmodel.RequestStateDetail
@@ -171,6 +173,7 @@ fun SharedTransitionScope.PokemonDetailScreen(
     pokemonId: Int,
     pokemonName: String,
     pokemonColor: String,
+    fromListScreen: Boolean,
     animatedVisibilityScope: AnimatedVisibilityScope?,
     viewModel: PokemonViewModel = getViewModel()
 ) {
@@ -345,9 +348,10 @@ fun SharedTransitionScope.PokemonDetailScreen(
             }
         }
         Spacer(modifier = Modifier.size(5.dp))
+        PokemonArts(viewModel, pokemonDetail)
         PokemonChart(viewModel, pokemonDetail, pokemonColor)
         PokemonIsABaby()
-        PokemonEvolution(pokemonDetail)
+        PokemonEvolution(navController, pokemonDetail)
         // Tabs
         TabWithPagerExample(pokemonDetail, viewModel, pokemonColor)
     }
@@ -746,6 +750,93 @@ private fun DefaultFirstCardData(
 }
 
 @Composable
+private fun PokemonArts(
+    viewModel: PokemonViewModel,
+    pokemonDetail: Pokemon?,
+) {
+    val context = LocalContext.current
+    val activity = getActivity()
+    StateRequest(
+        viewModel = viewModel,
+        loading = {
+            Column(
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .padding(6.dp)
+                    .shimmer(),
+            ) {
+                pokemonDetail?.getSpriteItems(context)?.let { sprites ->
+                    LazyRow(
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        itemsIndexed(sprites) { index, data ->
+                            Card(
+                                modifier = Modifier.padding(8.dp),
+                                shape = RoundedCornerShape(8.dp),
+                                elevation = CardDefaults.elevatedCardElevation(4.dp),
+                                onClick = {
+                                    Toast.makeText(
+                                        context,
+                                        "Abrir dialog",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                    activity?.trackButtonClick("Art: ${data.title}")
+                                }
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(70.dp)
+                                        .shimmer()
+                                ) {
+                                    CircularProgressIndicator(
+                                        color = Color.White,
+                                        modifier = Modifier
+                                            .align(Alignment.Center)
+                                            .size(30.dp)
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        success = {
+            Column(
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .padding(6.dp),
+            ) {
+                pokemonDetail?.getSpriteItems(context)?.let { sprites ->
+                    LazyRow(
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        itemsIndexed(sprites) { index, data ->
+                            Card(
+                                modifier = Modifier.padding(8.dp),
+                                shape = RoundedCornerShape(8.dp),
+                                elevation = CardDefaults.elevatedCardElevation(4.dp),
+                                onClick = {
+                                    Toast.makeText(
+                                        context,
+                                        "Abrir dialog",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                    activity?.trackButtonClick("Art: ${data.title}")
+                                }
+                            ) {
+                                LoadGifWithCoilToSprite(data)
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        error = { /* Do nothing yet */ }
+    )
+}
+
+@Composable
 private fun PokemonChart(
     viewModel: PokemonViewModel,
     pokemonDetail: Pokemon?,
@@ -943,6 +1034,7 @@ private fun PokemonIsABabyPreview(
 
 @Composable
 private fun PokemonEvolution(
+    navController: NavController?,
     pokemonDetail: Pokemon?,
     viewModel: PokemonViewModel = getViewModel()
 ) {
@@ -1024,11 +1116,25 @@ private fun PokemonEvolution(
                                     shape = RoundedCornerShape(8.dp),
                                     elevation = CardDefaults.elevatedCardElevation(4.dp),
                                     onClick = {
+                                        /*
+                                        // AINDA POR FAZER!!!
+                                        if (pokemonId != data.first) {
+                                            viewModel.pokemonList.value?.find { item ->
+                                                item.pokemon.name == data.second
+                                            }?.run {
+                                                val id = this.pokemon.id
+                                                val name = this.pokemon.name
+                                                val colorPokemon = this.pokemon.color
+                                                navController?.navigate("pokemonDetail/$id/$name/$colorPokemon/${false}")
+                                            }
+                                        }
+                                        */
                                         Toast.makeText(
                                             context,
                                             data.second.capitalize(),
                                             Toast.LENGTH_SHORT
                                         ).show()
+
                                         activity?.trackButtonClick("Evolution: ${data.second.capitalize()}")
                                     }
                                 ) {
@@ -1505,6 +1611,54 @@ private fun DefaultDamageFromToShimmer() {
 @Composable
 private fun PokemonHabitatPreview(pokemonDetail: Pokemon?) {
     PokemonDamage(pokemonDetail)
+}
+
+@Composable
+fun LoadGifWithCoilToSprite(
+    sprite: SpriteItem,
+) {
+    val context = LocalContext.current
+    val imageLoader = ImageLoader.Builder(context)
+        .components {
+            if (Build.VERSION.SDK_INT >= 28) {
+                add(ImageDecoderDecoder.Factory())
+            } else {
+                add(GifDecoder.Factory())
+            }
+        }
+        .build()
+
+    val imageRequest = ImageRequest.Builder(context)
+        .data(sprite.url)
+        .crossfade(true)
+        .error(android.R.drawable.ic_menu_report_image)
+        .build()
+
+    Box(
+        modifier = Modifier
+            .size(70.dp)
+    ) {
+        val painter = rememberAsyncImagePainter(
+            model = imageRequest,
+            imageLoader = imageLoader
+        )
+        // Loading
+        if (painter.state is AsyncImagePainter.State.Loading) {
+            androidx.compose.material.CircularProgressIndicator(
+                color = Color.White,
+                modifier = Modifier
+                    .align(Alignment.Center)
+                    .size(30.dp)
+            )
+        }
+        // Final result
+        Image(
+            painter = painter,
+            contentDescription = sprite.title,
+            modifier = Modifier
+                .size(70.dp)
+        )
+    }
 }
 
 @Composable

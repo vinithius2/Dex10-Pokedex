@@ -123,7 +123,15 @@ class PokemonRepository(
         return localDataSource.getCountPokemons()
     }
 
-    suspend fun getPokemonWithDetails(id: Int): PokemonWithDetails? {
+    suspend fun getPokemonWithDetailsByName(name: String): PokemonWithDetails? {
+        return localDataSource.getPokemonWithDetailsByName(name)
+    }
+
+    suspend fun getPokemonWithDetailsByListName(pokemonNames: List<String>): List<PokemonWithDetails> {
+        return localDataSource.getPokemonWithDetailsByListName(pokemonNames)
+    }
+
+    suspend fun getPokemonWithDetailsById(id: Int): PokemonWithDetails? {
         return localDataSource.getPokemonWithDetailsById(id)
     }
 

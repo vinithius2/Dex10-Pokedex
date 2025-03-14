@@ -60,6 +60,10 @@ class PokemonViewModel(private val repository: PokemonRepository) : ViewModel() 
     val loadingPercent: LiveData<Float>
         get() = _loadingPercent
 
+    private val _pokemonListEvolutionNames = MutableLiveData<List<PokemonWithDetails>>()
+    val pokemonListEvolutionNames: LiveData<List<PokemonWithDetails>>
+        get() = _pokemonListEvolutionNames
+
     private val _pokemonListBackup = MutableLiveData<List<PokemonWithDetails>>()
     val pokemonListBackup: LiveData<List<PokemonWithDetails>>
         get() = _pokemonListBackup
@@ -194,6 +198,13 @@ class PokemonViewModel(private val repository: PokemonRepository) : ViewModel() 
 
     private fun cleanPokemon() {
         _pokemonDetail.postValue(null)
+    }
+
+    fun getPokemonWithDetailsByListName(names : List<String>) {
+        CoroutineScope(Dispatchers.IO).launch {
+            val result = repository.getPokemonWithDetailsByListName(names)
+            _pokemonListEvolutionNames.postValue(result)
+        }
     }
 
     /**

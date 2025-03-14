@@ -50,6 +50,10 @@ interface PokemonDao {
     @Query("SELECT * FROM pokemon WHERE name = :pokemonName")
     suspend fun getPokemonWithDetailsByName(pokemonName: String): PokemonWithDetails?
 
+    @Transaction
+    @Query("SELECT * FROM pokemon WHERE name IN (:pokemonNames)")
+    suspend fun getPokemonWithDetailsByListName(pokemonNames: List<String>): List<PokemonWithDetails>
+
     @Query("SELECT * FROM stat WHERE id = :id")
     suspend fun getStatById(id: Int): Stat?
 
