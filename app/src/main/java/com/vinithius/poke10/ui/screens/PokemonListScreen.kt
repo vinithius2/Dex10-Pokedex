@@ -8,10 +8,12 @@ import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionLayout
 import androidx.compose.animation.SharedTransitionScope
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -24,7 +26,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Card
 import androidx.compose.material.CircularProgressIndicator
@@ -83,6 +85,7 @@ import com.vinithius.poke10.extension.getParseColorByString
 import com.vinithius.poke10.ui.MainActivity
 import com.vinithius.poke10.ui.viewmodel.PokemonViewModel
 import com.vinithius.poke10.ui.viewmodel.RequestStateList
+import kotlinx.coroutines.delay
 import org.koin.androidx.compose.getViewModel
 
 const val URL_IMAGE = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/"
@@ -172,10 +175,10 @@ fun SharedTransitionScope.PokemonListScreen(
                 )
                 if (pokemonItems.isNotEmpty()) {
                     LazyColumn(state = listState) {
-                        items(
+                        itemsIndexed(
                             items = pokemonItems,
-                            key = { data -> data.pokemon.id }
-                        ) { pokemonData ->
+                            key = { _, data -> data.pokemon.id }
+                        ) { index, pokemonData ->
                             var isVisible by remember { mutableStateOf(true) }
                             AnimatedVisibility(
                                 visible = isVisible,
@@ -191,10 +194,11 @@ fun SharedTransitionScope.PokemonListScreen(
                                             viewModel.removeItemIfNotIsFavorite()
                                         }
                                     },
-                                    onClickDetail = { id, name, color ->
+                                    choiceOfTheDayStatus = index == 0,
+                                    onClickDetail = { id, name, color, choiceOfTheDayStatus ->
                                         activity?.trackButtonClick("Click button detail: $name")
                                         viewModel.setIdPokemon(id)
-                                        navController.navigate("pokemonDetail/$id/$name/$color/${true}")
+                                        navController.navigate("pokemonDetail/$id/$name/$color/$choiceOfTheDayStatus")
                                     },
                                     onClickFavorite = { pokemonFavorite ->
                                         pokemonFavorite.pokemon.name
@@ -233,8 +237,9 @@ fun SharedTransitionScope.PokemonListItem(
     viewModel: PokemonViewModel?,
     pokemonData: PokemonWithDetails,
     animatedVisibilityScope: AnimatedVisibilityScope?,
+    choiceOfTheDayStatus: Boolean = false,
     onCallBackFinishAnimation: (() -> Unit)?,
-    onClickDetail: ((Int, String, String) -> Unit)?,
+    onClickDetail: ((Int, String, String, Boolean) -> Unit)?,
     onClickFavorite: ((PokemonWithDetails) -> Unit)?
 ) {
     Card(
@@ -245,7 +250,7 @@ fun SharedTransitionScope.PokemonListItem(
                 pokemonData.pokemon.let {
                     if (onClickDetail != null) {
                         viewModel?.setDetailsScreen(true)
-                        onClickDetail(it.id, it.name, it.color)
+                        onClickDetail(it.id, it.name, it.color, choiceOfTheDayStatus)
                     }
                 }
             },
@@ -256,6 +261,7 @@ fun SharedTransitionScope.PokemonListItem(
             viewModel,
             pokemonData,
             animatedVisibilityScope,
+            choiceOfTheDayStatus,
             onClickFavorite,
             onCallBackFinishAnimation
         )
@@ -269,12 +275,39 @@ fun SharedTransitionScope.Holder(
     viewModel: PokemonViewModel?,
     pokemonData: PokemonWithDetails,
     animatedVisibilityScope: AnimatedVisibilityScope?,
+    choiceOfTheDayStatus: Boolean = false,
     onClickFavorite: ((PokemonWithDetails) -> Unit)?,
     onCallBackFinishAnimation: (() -> Unit)?,
 ) {
-    Box(
-        Modifier.background(Color.White)
-    ) {
+    val initialcolor = Color.White
+    val finalcolor = Color.Transparent
+    val durationAnimation = 1000
+
+    var isCorFinal by remember { mutableStateOf(true) }
+
+    LaunchedEffect(Unit) {
+        while (true) {
+            delay(durationAnimation.toLong())
+            isCorFinal = !isCorFinal
+        }
+    }
+
+    val corAnimada by animateColorAsState(
+        targetValue = if (isCorFinal) finalcolor else initialcolor,
+        animationSpec = tween(durationMillis = durationAnimation),
+        label = "Border Color Animation"
+    )
+
+    val modifier = if (choiceOfTheDayStatus) {
+        Modifier
+            .background(Color.White)
+            .border(width = 2.dp, color = corAnimada, shape = RoundedCornerShape(16.dp))
+    } else {
+        Modifier
+            .background(Color.White)
+    }
+
+    Box(modifier = modifier) {
         Image(
             painter = painterResource(id = pokemonData.pokemon.habitat.getDrawableHabitat()),
             contentDescription = null,
@@ -320,9 +353,13 @@ fun SharedTransitionScope.Holder(
                         .weight(1f)
                         .align(Alignment.CenterVertically)
                 ) {
-                    val numberPokemon = String.format("Nº%03d", pokemonData.pokemon.id)
+                    var result = String.format("Nº%03d", pokemonData.pokemon.id)
+                    if (choiceOfTheDayStatus) {
+                        val choiceOfTheDay = stringResource(R.string.choice_of_the_day)
+                        result = "$result ($choiceOfTheDay)"
+                    }
                     Text(
-                        text = numberPokemon,
+                        text = result,
                         color = Color.White,
                         modifier = Modifier.padding(start = 8.dp),
                         style = TextStyle(
@@ -380,7 +417,6 @@ fun SharedTransitionScope.Holder(
                 }
             }
         }
-
     }
 }
 
@@ -500,6 +536,7 @@ fun PokemonListScreenPreview() {
                 null,
                 setMockupPokemon(),
                 null,
+                false,
                 null,
                 null,
                 null
