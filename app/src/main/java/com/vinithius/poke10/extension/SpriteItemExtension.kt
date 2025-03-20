@@ -50,7 +50,6 @@ fun SpriteItem.LoadGifWithCoilToSprite(
     }
 }
 
-
 @Composable
 private fun LoadGifWithCoilToSpriteNoSupportZoom(
     context: Context,
