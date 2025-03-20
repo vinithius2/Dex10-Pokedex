@@ -40,17 +40,25 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -70,6 +78,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
 import androidx.navigation.NavController
 import coil.ImageLoader
 import coil.compose.AsyncImagePainter
@@ -85,6 +94,7 @@ import com.vinithius.poke10.components.TypeListResponse
 import com.vinithius.poke10.datasource.mapper.fromDefaultToListType
 import com.vinithius.poke10.datasource.response.Pokemon
 import com.vinithius.poke10.datasource.response.Type
+import com.vinithius.poke10.extension.LoadGifWithCoilToSprite
 import com.vinithius.poke10.extension.SpriteItem
 import com.vinithius.poke10.extension.capitalize
 import com.vinithius.poke10.extension.convertPounds
@@ -754,8 +764,10 @@ private fun PokemonArts(
     viewModel: PokemonViewModel,
     pokemonDetail: Pokemon?,
 ) {
+    var dataBottomSheet: SpriteItem? by remember { mutableStateOf(null) }
     val context = LocalContext.current
     val activity = getActivity()
+    var showBottomSheet by remember { mutableStateOf(false) }
     StateRequest(
         viewModel = viewModel,
         loading = {
@@ -765,22 +777,18 @@ private fun PokemonArts(
                     .padding(6.dp)
                     .shimmer(),
             ) {
-                pokemonDetail?.getSpriteItems(context)?.let { sprites ->
+                val itemsLoading = listOf(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13)
+                itemsLoading.let { sprites ->
                     LazyRow(
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        itemsIndexed(sprites) { index, data ->
+                        itemsIndexed(sprites) { _, _ ->
                             Card(
                                 modifier = Modifier.padding(8.dp),
                                 shape = RoundedCornerShape(8.dp),
                                 elevation = CardDefaults.elevatedCardElevation(4.dp),
                                 onClick = {
-                                    Toast.makeText(
-                                        context,
-                                        "Abrir dialog",
-                                        Toast.LENGTH_SHORT
-                                    ).show()
-                                    activity?.trackButtonClick("Art: ${data.title}")
+                                    // Do nothing
                                 }
                             ) {
                                 Box(
@@ -811,21 +819,18 @@ private fun PokemonArts(
                     LazyRow(
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        itemsIndexed(sprites) { index, data ->
+                        itemsIndexed(sprites) { _, data ->
                             Card(
                                 modifier = Modifier.padding(8.dp),
                                 shape = RoundedCornerShape(8.dp),
                                 elevation = CardDefaults.elevatedCardElevation(4.dp),
                                 onClick = {
-                                    Toast.makeText(
-                                        context,
-                                        "Abrir dialog",
-                                        Toast.LENGTH_SHORT
-                                    ).show()
+                                    showBottomSheet = showBottomSheet.not()
+                                    dataBottomSheet = data
                                     activity?.trackButtonClick("Art: ${data.title}")
                                 }
                             ) {
-                                LoadGifWithCoilToSprite(data)
+                                data.LoadGifWithCoilToSprite(context, false)
                             }
                         }
                     }
@@ -834,6 +839,57 @@ private fun PokemonArts(
         },
         error = { /* Do nothing yet */ }
     )
+
+    if (showBottomSheet) {
+        Dialog(onDismissRequest = { showBottomSheet = false }) {
+            Surface(
+                shape = RoundedCornerShape(16.dp),
+                color = Color.LightGray,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .fillMaxHeight(0.8f)
+            ) {
+                dataBottomSheet?.let { data ->
+                    Column(
+                        modifier = Modifier.fillMaxSize()
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Spacer(modifier = Modifier.weight(1f))
+
+                            Text(
+                                text = data.title.capitalize(),
+                                style = MaterialTheme.typography.bodyLarge,
+                                fontWeight = FontWeight.Bold,
+                                textAlign = TextAlign.Center
+                            )
+
+                            Box(modifier = Modifier.weight(1f)) {
+                                IconButton(
+                                    onClick = {
+                                        showBottomSheet = false
+                                        activity?.trackButtonClick("Close dialog image detail")
+                                    },
+                                    modifier = Modifier.align(Alignment.CenterEnd)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Close,
+                                        contentDescription = stringResource(R.string.close),
+                                        tint = MaterialTheme.colorScheme.onSecondary
+                                    )
+                                }
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(16.dp))
+                        data.LoadGifWithCoilToSprite(context, true)
+                    }
+                }
+            }
+        }
+    }
 }
 
 @Composable
@@ -1611,54 +1667,6 @@ private fun DefaultDamageFromToShimmer() {
 @Composable
 private fun PokemonHabitatPreview(pokemonDetail: Pokemon?) {
     PokemonDamage(pokemonDetail)
-}
-
-@Composable
-fun LoadGifWithCoilToSprite(
-    sprite: SpriteItem,
-) {
-    val context = LocalContext.current
-    val imageLoader = ImageLoader.Builder(context)
-        .components {
-            if (Build.VERSION.SDK_INT >= 28) {
-                add(ImageDecoderDecoder.Factory())
-            } else {
-                add(GifDecoder.Factory())
-            }
-        }
-        .build()
-
-    val imageRequest = ImageRequest.Builder(context)
-        .data(sprite.url)
-        .crossfade(true)
-        .error(android.R.drawable.ic_menu_report_image)
-        .build()
-
-    Box(
-        modifier = Modifier
-            .size(70.dp)
-    ) {
-        val painter = rememberAsyncImagePainter(
-            model = imageRequest,
-            imageLoader = imageLoader
-        )
-        // Loading
-        if (painter.state is AsyncImagePainter.State.Loading) {
-            androidx.compose.material.CircularProgressIndicator(
-                color = Color.White,
-                modifier = Modifier
-                    .align(Alignment.Center)
-                    .size(30.dp)
-            )
-        }
-        // Final result
-        Image(
-            painter = painter,
-            contentDescription = sprite.title,
-            modifier = Modifier
-                .size(70.dp)
-        )
-    }
 }
 
 @Composable
