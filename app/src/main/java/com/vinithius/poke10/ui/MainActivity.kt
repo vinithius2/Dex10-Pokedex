@@ -48,6 +48,7 @@ import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
@@ -76,7 +77,8 @@ import com.google.firebase.analytics.FirebaseAnalytics
 import com.google.firebase.installations.FirebaseInstallations
 import com.google.firebase.remoteconfig.FirebaseRemoteConfig
 import com.vinithius.poke10.R
-import com.vinithius.poke10.components.AdmobBanner
+import com.vinithius.poke10.admobbanners.AdmobBanner
+import com.vinithius.poke10.admobbanners.AdManagerInterstitial
 import com.vinithius.poke10.extension.getColorByString
 import com.vinithius.poke10.extension.getToolBarColorByString
 import com.vinithius.poke10.ui.screens.PokemonDetailScreen
@@ -95,7 +97,9 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             ThemePoke10 {
-                MainScreen()
+                MainScreen(
+                    activity = this@MainActivity
+                )
             }
         }
         analytics = FirebaseAnalytics.getInstance(this)
@@ -174,8 +178,12 @@ private fun GetAdUnitId(viewModel: PokemonViewModel = getViewModel()) {
                 // Ads
                 val adUnitIdList = remoteConfig.getString("adUnitId_list")
                 val adUnitIdDetails = remoteConfig.getString("adUnitId_details")
+                val adUnitIdChoiceOfTheDay = remoteConfig.getString("adUnitId_choiceOfTheDay")
+                val adUnitIdChoiceOfTheDayPremiado = remoteConfig.getString("adUnitId_choiceOfTheDay_premiado")
                 viewModel.setAdUnitIdList(adUnitIdList)
                 viewModel.setAdUnitIdDetails(adUnitIdDetails)
+                viewModel.setAdUnitIdChoiceOfTheDay(adUnitIdChoiceOfTheDay)
+                viewModel.setAdUnitIdChoiceOfTheDayPremiado(adUnitIdChoiceOfTheDayPremiado)
                 // Social media
                 val facebookUrl = remoteConfig.getString("facebook_url")
                 val instagranUrl = remoteConfig.getString("instagran_url")
@@ -193,9 +201,11 @@ private fun GetAdUnitId(viewModel: PokemonViewModel = getViewModel()) {
 
 @Composable
 fun MainScreen(
+    activity: MainActivity,
     viewModel: PokemonViewModel = getViewModel()
 ) {
     GetAdUnitId()
+    SetInterstitialAdManager(activity)
     SetupSystemUI(viewModel)
     val navController = rememberNavController()
     Scaffold(
@@ -212,6 +222,33 @@ fun MainScreen(
         )
     }
 }
+
+@Composable
+fun SetInterstitialAdManager(
+    activity: MainActivity,
+    viewModel: PokemonViewModel = getViewModel()
+) {
+    val isShowing by viewModel.adUnitIdChoiceOfTheDayPremiadoShow.observeAsState(false)
+    val context = LocalContext.current
+
+    // Estado para saber se o anúncio intersticial está carregado
+    var isAdLoaded by remember { mutableStateOf(false) }
+    // Instância do gerenciador de intersticial
+    val adManagerInterstitial = remember { AdManagerInterstitial(context) }
+
+    LaunchedEffect(Unit) {
+        adManagerInterstitial.loadAd(
+            onAdLoaded = {
+                isAdLoaded = true
+            }
+        )
+    }
+
+    if (isShowing && isAdLoaded) {
+        adManagerInterstitial.showAd(activity)
+    }
+}
+
 
 @Composable
 fun SetupSystemUI(viewModel: PokemonViewModel) {

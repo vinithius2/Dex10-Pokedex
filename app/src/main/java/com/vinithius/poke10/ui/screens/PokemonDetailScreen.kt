@@ -202,6 +202,10 @@ fun SharedTransitionScope.PokemonDetailScreen(
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
     ) {
+
+        ChoiceOfTheDay(choiceOfTheDayStatus)
+        viewModel.setAdUnitIdChoiceOfTheDayPremiadoShow(choiceOfTheDayStatus)
+
         Card(
             modifier = Modifier
                 .height(320.dp)
@@ -351,10 +355,6 @@ fun SharedTransitionScope.PokemonDetailScreen(
                             modifier = Modifier.padding(top = 10.dp)
                         ) {
                             TypeListResponse(pokemonDetail?.types ?: listOf())
-                        }
-
-                        if (choiceOfTheDayStatus) {
-                            // Choice of the day
                         }
                     }
                 }
@@ -760,6 +760,52 @@ private fun DefaultFirstCardData(
         success = { DefaultSuccessComposable(title, value) },
         error = { /* Do nothing yet */ }
     )
+}
+
+@Composable
+private fun ChoiceOfTheDay(
+    choiceOfTheDayStatus: Boolean
+) {
+    AnimatedVisibility(
+        visible = choiceOfTheDayStatus,
+        enter = slideInHorizontally() + fadeIn(),
+        exit = slideOutHorizontally() + fadeOut()
+    ) {
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(8.dp),
+            shape = RoundedCornerShape(8.dp),
+            elevation = CardDefaults.elevatedCardElevation(4.dp)
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(12.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Image(
+                    painter = painterResource(id = R.drawable.pokeball_01),
+                    contentDescription = "is baby",
+                    modifier = Modifier.size(40.dp)
+                )
+                Text(
+                    text = stringResource(R.string.choice_of_the_day),
+                    style = TextStyle(
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold,
+                        fontStyle = androidx.compose.ui.text.font.FontStyle.Normal,
+                    )
+                )
+                Image(
+                    painter = painterResource(id = R.drawable.pokeball_01),
+                    contentDescription = "is baby",
+                    modifier = Modifier.size(40.dp)
+                )
+            }
+        }
+    }
 }
 
 @Composable

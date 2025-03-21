@@ -2,6 +2,7 @@ package com.vinithius.poke10.ui.screens
 
 import GetFilterBar
 import android.annotation.SuppressLint
+import android.content.Context
 import android.os.Build
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.AnimatedVisibilityScope
@@ -151,6 +152,7 @@ fun SharedTransitionScope.PokemonListScreen(
     val listState = rememberSaveable(saver = LazyListState.Saver) { LazyListState() }
     val pokemonItems by viewModel.pokemonList.observeAsState(emptyList())
     val isFavoriteFilter by viewModel.isFavoriteFilter.observeAsState(false)
+    val sharedPreferences = context.getSharedPreferences("pokemon_prefs", Context.MODE_PRIVATE)
 
     Column(
         modifier = Modifier.fillMaxSize()
@@ -174,12 +176,14 @@ fun SharedTransitionScope.PokemonListScreen(
                     }
                 )
                 if (pokemonItems.isNotEmpty()) {
+                    val pokemonOfTheDayName = sharedPreferences.getString("pokemon_of_the_day", null)
                     LazyColumn(state = listState) {
                         itemsIndexed(
                             items = pokemonItems,
                             key = { _, data -> data.pokemon.id }
-                        ) { index, pokemonData ->
+                        ) { _, pokemonData ->
                             var isVisible by remember { mutableStateOf(true) }
+                            val choiceOfTheDay = pokemonOfTheDayName == pokemonData.pokemon.name
                             AnimatedVisibility(
                                 visible = isVisible,
                                 exit = scaleOut(animationSpec = tween(durationMillis = 300))
@@ -194,7 +198,7 @@ fun SharedTransitionScope.PokemonListScreen(
                                             viewModel.removeItemIfNotIsFavorite()
                                         }
                                     },
-                                    choiceOfTheDayStatus = index == 0,
+                                    choiceOfTheDayStatus = choiceOfTheDay,
                                     onClickDetail = { id, name, color, choiceOfTheDayStatus ->
                                         activity?.trackButtonClick("Click button detail: $name")
                                         viewModel.setIdPokemon(id)
@@ -301,7 +305,7 @@ fun SharedTransitionScope.Holder(
     val modifier = if (choiceOfTheDayStatus) {
         Modifier
             .background(Color.White)
-            .border(width = 2.dp, color = corAnimada, shape = RoundedCornerShape(16.dp))
+            .border(width = 3.dp, color = corAnimada, shape = RoundedCornerShape(16.dp))
     } else {
         Modifier
             .background(Color.White)

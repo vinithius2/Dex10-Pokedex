@@ -113,6 +113,30 @@ class PokemonViewModel(private val repository: PokemonRepository) : ViewModel() 
         _adUnitIdDetails.postValue(value)
     }
 
+    private val _adUnitIdChoiceOfTheDay = MutableLiveData(String())
+    val adUnitIdChoiceOfTheDay: LiveData<String>
+        get() = _adUnitIdChoiceOfTheDay
+
+    fun setAdUnitIdChoiceOfTheDay(value: String) {
+        _adUnitIdChoiceOfTheDay.postValue(value)
+    }
+
+    private val _adUnitIdChoiceOfTheDayPremiado = MutableLiveData(String())
+    val adUnitIdChoiceOfTheDayPremiado: LiveData<String>
+        get() = _adUnitIdChoiceOfTheDayPremiado
+
+    fun setAdUnitIdChoiceOfTheDayPremiado(value: String) {
+        _adUnitIdChoiceOfTheDayPremiado.postValue(value)
+    }
+
+    private val _adUnitIdChoiceOfTheDayPremiadoShow = MutableLiveData(false)
+    val adUnitIdChoiceOfTheDayPremiadoShow: LiveData<Boolean>
+        get() = _adUnitIdChoiceOfTheDayPremiadoShow
+
+    fun setAdUnitIdChoiceOfTheDayPremiadoShow(value: Boolean) {
+        _adUnitIdChoiceOfTheDayPremiadoShow.postValue(value)
+    }
+
     private val _facebookUrl = MutableLiveData(String())
     val facebookUrl: LiveData<String>
         get() = _facebookUrl
