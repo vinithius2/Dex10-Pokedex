@@ -76,9 +76,10 @@ import com.google.android.play.core.review.ReviewManagerFactory
 import com.google.firebase.analytics.FirebaseAnalytics
 import com.google.firebase.installations.FirebaseInstallations
 import com.google.firebase.remoteconfig.FirebaseRemoteConfig
+import com.vinithius.poke10.BuildConfig
 import com.vinithius.poke10.R
-import com.vinithius.poke10.admobbanners.AdmobBanner
 import com.vinithius.poke10.admobbanners.AdManagerInterstitial
+import com.vinithius.poke10.admobbanners.AdmobBanner
 import com.vinithius.poke10.extension.getColorByString
 import com.vinithius.poke10.extension.getToolBarColorByString
 import com.vinithius.poke10.ui.screens.PokemonDetailScreen
@@ -179,7 +180,8 @@ private fun GetAdUnitId(viewModel: PokemonViewModel = getViewModel()) {
                 val adUnitIdList = remoteConfig.getString("adUnitId_list")
                 val adUnitIdDetails = remoteConfig.getString("adUnitId_details")
                 val adUnitIdChoiceOfTheDay = remoteConfig.getString("adUnitId_choiceOfTheDay")
-                val adUnitIdChoiceOfTheDayPremiado = remoteConfig.getString("adUnitId_choiceOfTheDay_premiado")
+                val adUnitIdChoiceOfTheDayPremiado =
+                    remoteConfig.getString("adUnitId_choiceOfTheDay_premiado")
                 viewModel.setAdUnitIdList(adUnitIdList)
                 viewModel.setAdUnitIdDetails(adUnitIdDetails)
                 viewModel.setAdUnitIdChoiceOfTheDay(adUnitIdChoiceOfTheDay)
@@ -231,17 +233,22 @@ fun SetInterstitialAdManager(
     val isShowing by viewModel.adUnitIdChoiceOfTheDayPremiadoShow.observeAsState(false)
     val context = LocalContext.current
 
-    // Estado para saber se o anúncio intersticial está carregado
     var isAdLoaded by remember { mutableStateOf(false) }
-    // Instância do gerenciador de intersticial
     val adManagerInterstitial = remember { AdManagerInterstitial(context) }
 
-    LaunchedEffect(Unit) {
-        adManagerInterstitial.loadAd(
-            onAdLoaded = {
-                isAdLoaded = true
-            }
-        )
+    val adUnitIdChoiceOfTheDay by viewModel.adUnitIdChoiceOfTheDay.observeAsState()
+    val adUnitIdChoiceOfTheDayTest = "ca-app-pub-3940256099942544/1033173712"
+
+    LaunchedEffect(adUnitIdChoiceOfTheDay) {
+        if (adUnitIdChoiceOfTheDay.isNullOrEmpty().not()) {
+            adManagerInterstitial.adUnitId =
+                if (BuildConfig.DEBUG) adUnitIdChoiceOfTheDayTest else adUnitIdChoiceOfTheDay!!
+            adManagerInterstitial.loadAd(
+                onAdLoaded = {
+                    isAdLoaded = true
+                }
+            )
+        }
     }
 
     if (isShowing && isAdLoaded) {
@@ -648,7 +655,8 @@ private fun GetNavHost(
                 val pokemonId = backStackEntry.arguments?.getString("pokemonId")?.toIntOrNull()
                 val pokemonName = backStackEntry.arguments?.getString("pokemonName")
                 val pokemonColor = backStackEntry.arguments?.getString("pokemonColor")
-                val choiceOfTheDayStatus = backStackEntry.arguments?.getBoolean("choiceOfTheDayStatus") ?: true
+                val choiceOfTheDayStatus =
+                    backStackEntry.arguments?.getBoolean("choiceOfTheDayStatus") ?: true
 
                 if (pokemonId != null && pokemonName != null && pokemonColor != null) {
                     PokemonDetailScreen(

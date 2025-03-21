@@ -56,10 +56,6 @@ private fun getTypeAdUnitScreen(
             1 -> viewModel.adUnitIdList.observeAsState().value
             // Detail List
             2 -> viewModel.adUnitIdDetails.observeAsState().value
-            // Choice Of The Day (Intersticial)
-            3 -> viewModel.adUnitIdChoiceOfTheDay.observeAsState().value
-            // Choice Of The Day (Premiado)
-            4 -> viewModel.adUnitIdChoiceOfTheDayPremiado.observeAsState().value
             else -> null
         }
     }
