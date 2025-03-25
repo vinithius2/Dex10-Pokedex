@@ -33,6 +33,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.pager.HorizontalPager
@@ -57,12 +58,14 @@ import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.layout.ContentScale
@@ -182,7 +185,6 @@ fun SharedTransitionScope.PokemonDetailScreen(
     pokemonId: Int,
     pokemonName: String,
     pokemonColor: String,
-    choiceOfTheDayStatus: Boolean,
     animatedVisibilityScope: AnimatedVisibilityScope?,
     viewModel: PokemonViewModel = getViewModel()
 ) {
@@ -195,7 +197,15 @@ fun SharedTransitionScope.PokemonDetailScreen(
         viewModel.setDetailsScreen(false)
         navController?.popBackStack()
     }
+    val context = LocalContext.current
+    val sharedPreferences = context.getSharedPreferences("pokemon_prefs", Context.MODE_PRIVATE)
+    val hidePokemonOfTheDay = sharedPreferences.getBoolean("hide_pokemon_of_the_day", true)
+    val isRewarded = sharedPreferences.getBoolean("is_rewarded", true)
+    // Observes
     val pokemonDetail by viewModel.pokemonDetail.observeAsState()
+    val choiceOfTheDayStatus by viewModel.choiceOfTheDay.observeAsState(false)
+    val hidePokemonOfTheDayTrigger by viewModel.hidePokemonOfTheDay.observeAsState(false)
+    var noWhiteImage by remember { mutableStateOf(false) }
     val painter = viewModel.getSharedImage(pokemonId.toString())
     Column(
         modifier = Modifier
@@ -204,7 +214,11 @@ fun SharedTransitionScope.PokemonDetailScreen(
     ) {
 
         ChoiceOfTheDay(choiceOfTheDayStatus)
-        viewModel.setAdUnitIdChoiceOfTheDayPremiadoShow(choiceOfTheDayStatus)
+        if (isRewarded) {
+            viewModel.adUnitIdChoiceOfTheDayRewardedShow(choiceOfTheDayStatus)
+        } else {
+            viewModel.adUnitIdChoiceOfTheDayInterstitialShow(choiceOfTheDayStatus)
+        }
 
         Card(
             modifier = Modifier
@@ -240,7 +254,8 @@ fun SharedTransitionScope.PokemonDetailScreen(
                                     boundsTransform = { _, _ ->
                                         tween(durationMillis = 1000)
                                     }
-                                )
+                                ),
+                            colorFilter = if (hidePokemonOfTheDayTrigger && choiceOfTheDayStatus) ColorFilter.tint(Color.White) else null
                         )
                     } else {
                         CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))

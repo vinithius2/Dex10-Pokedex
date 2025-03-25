@@ -79,6 +79,7 @@ import com.google.firebase.remoteconfig.FirebaseRemoteConfig
 import com.vinithius.poke10.BuildConfig
 import com.vinithius.poke10.R
 import com.vinithius.poke10.admobbanners.AdManagerInterstitial
+import com.vinithius.poke10.admobbanners.AdManagerRewarded
 import com.vinithius.poke10.admobbanners.AdmobBanner
 import com.vinithius.poke10.extension.getColorByString
 import com.vinithius.poke10.extension.getToolBarColorByString
@@ -177,21 +178,29 @@ private fun GetAdUnitId(viewModel: PokemonViewModel = getViewModel()) {
         .addOnCompleteListener { task ->
             if (task.isSuccessful) {
                 // Ads
+
                 val adUnitIdList = remoteConfig.getString("adUnitId_list")
                 val adUnitIdDetails = remoteConfig.getString("adUnitId_details")
-                val adUnitIdChoiceOfTheDay = remoteConfig.getString("adUnitId_choiceOfTheDay")
-                val adUnitIdChoiceOfTheDayPremiado =
-                    remoteConfig.getString("adUnitId_choiceOfTheDay_premiado")
+                val isRewarded = remoteConfig.getBoolean("isRewarded")
+                val adUnitIdChoiceOfTheDayInterstitial =
+                    remoteConfig.getString("adUnitId_choiceOfTheDay_interstitial")
+                val adUnitIdChoiceOfTheDayRewarded =
+                    remoteConfig.getString("adUnitId_choiceOfTheDay_rewarded")
+
                 viewModel.setAdUnitIdList(adUnitIdList)
                 viewModel.setAdUnitIdDetails(adUnitIdDetails)
-                viewModel.setAdUnitIdChoiceOfTheDay(adUnitIdChoiceOfTheDay)
-                viewModel.setAdUnitIdChoiceOfTheDayPremiado(adUnitIdChoiceOfTheDayPremiado)
+                viewModel.setIsRewarded(isRewarded)
+                viewModel.setAdUnitIdChoiceOfTheDayInterstitial(adUnitIdChoiceOfTheDayInterstitial)
+                viewModel.setAdUnitIdChoiceOfTheDayRewarded(adUnitIdChoiceOfTheDayRewarded)
+
                 // Social media
+
                 val facebookUrl = remoteConfig.getString("facebook_url")
                 val instagranUrl = remoteConfig.getString("instagran_url")
                 val redditUrl = remoteConfig.getString("reddit_url")
                 val googleForm = remoteConfig.getString("google_form")
                 val paypalId = remoteConfig.getString("paypal_id")
+
                 viewModel.setFacebookUrl(facebookUrl)
                 viewModel.setInstagranUrl(instagranUrl)
                 viewModel.setRedditUrl(redditUrl)
@@ -207,7 +216,7 @@ fun MainScreen(
     viewModel: PokemonViewModel = getViewModel()
 ) {
     GetAdUnitId()
-    SetInterstitialAdManager(activity)
+    SetInterstitialOrRewardedAdManager(activity)
     SetupSystemUI(viewModel)
     val navController = rememberNavController()
     Scaffold(
@@ -226,36 +235,120 @@ fun MainScreen(
 }
 
 @Composable
-fun SetInterstitialAdManager(
+fun SetInterstitialOrRewardedAdManager(
     activity: MainActivity,
     viewModel: PokemonViewModel = getViewModel()
 ) {
-    val isShowing by viewModel.adUnitIdChoiceOfTheDayPremiadoShow.observeAsState(false)
     val context = LocalContext.current
+    val sharedPreferences = context.getSharedPreferences("pokemon_prefs", Context.MODE_PRIVATE)
+    val isRewarded by viewModel.isRewarded.observeAsState(true)
 
-    var isAdLoaded by remember { mutableStateOf(false) }
-    val adManagerInterstitial = remember { AdManagerInterstitial(context) }
-
-    val adUnitIdChoiceOfTheDay by viewModel.adUnitIdChoiceOfTheDay.observeAsState()
-    val adUnitIdChoiceOfTheDayTest = "ca-app-pub-3940256099942544/1033173712"
-
-    LaunchedEffect(adUnitIdChoiceOfTheDay) {
-        if (adUnitIdChoiceOfTheDay.isNullOrEmpty().not()) {
-            adManagerInterstitial.adUnitId =
-                if (BuildConfig.DEBUG) adUnitIdChoiceOfTheDayTest else adUnitIdChoiceOfTheDay!!
-            adManagerInterstitial.loadAd(
-                onAdLoaded = {
-                    isAdLoaded = true
-                }
-            )
+    if (isRewarded) {
+        with(sharedPreferences.edit()) {
+            putBoolean("is_rewarded", true)
+            apply()
         }
-    }
 
-    if (isShowing && isAdLoaded) {
-        adManagerInterstitial.showAd(activity)
+        val adManagerRewarded = remember { AdManagerRewarded(context) }
+        val adUnitId by viewModel.adUnitIdChoiceOfTheDayRewarded.observeAsState()
+        val isShowingRewarded by viewModel.choiceOfTheDayRewardedShow.observeAsState(false)
+        val isAdLoadedRewarded by viewModel.isAdLoadedRewarded.observeAsState(false)
+
+        LaunchedEffect(adUnitId) {
+            adUnitId?.let {
+                getRewarded(it, adManagerRewarded) {
+                    viewModel.setIsAdLoadedRewarded(true)
+                }
+            }
+        }
+
+        LaunchedEffect(isShowingRewarded, isAdLoadedRewarded) {
+            if (isShowingRewarded && isAdLoadedRewarded) {
+                adManagerRewarded.showAd(activity) {
+                    with(sharedPreferences.edit()) {
+                        putBoolean("hide_pokemon_of_the_day", false)
+                        apply()
+                    }
+                    viewModel.setHidePokemonOfTheDay(false)
+                }
+                viewModel.adUnitIdChoiceOfTheDayRewardedShow(false)
+            }
+        }
+    } else {
+        with(sharedPreferences.edit()) {
+            putBoolean("is_rewarded", false)
+            apply()
+        }
+
+        val adManagerInterstitial = remember { AdManagerInterstitial(context) }
+        val adUnitId by viewModel.adUnitIdChoiceOfTheDayInterstitial.observeAsState()
+        val isShowingInterstitial by viewModel.choiceOfTheDayInterstitialShow.observeAsState(false)
+        val isAdLoadedInterstitial by viewModel.isAdLoadedInterstitial.observeAsState(false)
+
+        LaunchedEffect(adUnitId) {
+            adUnitId?.let {
+                getInterstitial(it, adManagerInterstitial) {
+                    viewModel.setIsAdLoadedInterstitial(true)
+                }
+            }
+        }
+
+        LaunchedEffect(isShowingInterstitial, isAdLoadedInterstitial) {
+            if (isShowingInterstitial && isAdLoadedInterstitial) {
+                adManagerInterstitial.showAd(activity)
+                with(sharedPreferences.edit()) {
+                    putBoolean("hide_pokemon_of_the_day", false)
+                    apply()
+                }
+                with(viewModel) {
+                    viewModel.setHidePokemonOfTheDay(false)
+                    adUnitIdChoiceOfTheDayInterstitialShow(false)
+                }
+            }
+        }
     }
 }
 
+private fun getRewarded(
+    adUnitIdChoiceOfTheDayRewarded: String?,
+    adManagerRewarded: AdManagerRewarded,
+    adUnitIdChoiceOfTheDayTestRewarded: String = "ca-app-pub-3940256099942544/5224354917", // Test
+    callbackOnAdLoaded: () -> Unit,
+) {
+    if (adUnitIdChoiceOfTheDayRewarded.isNullOrEmpty().not()) {
+        adManagerRewarded.adUnitId =
+            if (BuildConfig.DEBUG) {
+                adUnitIdChoiceOfTheDayTestRewarded
+            } else {
+                adUnitIdChoiceOfTheDayRewarded!!
+            }
+        adManagerRewarded.loadAd(
+            onAdLoaded = {
+                callbackOnAdLoaded.invoke()
+            }
+        )
+    }
+}
+
+private fun getInterstitial(
+    adUnitIdChoiceOfTheDayInterstitial: String?,
+    adManagerInterstitial: AdManagerInterstitial,
+    adUnitIdChoiceOfTheDayTestInterstitial: String = "ca-app-pub-3940256099942544/1033173712", // Test
+    callbackOnAdLoaded: () -> Unit,
+) {
+    if (adUnitIdChoiceOfTheDayInterstitial.isNullOrEmpty().not()) {
+        adManagerInterstitial.adUnitId = if (BuildConfig.DEBUG) {
+            adUnitIdChoiceOfTheDayTestInterstitial
+        } else {
+            adUnitIdChoiceOfTheDayInterstitial!!
+        }
+        adManagerInterstitial.loadAd(
+            onAdLoaded = {
+                callbackOnAdLoaded.invoke()
+            }
+        )
+    }
+}
 
 @Composable
 fun SetupSystemUI(viewModel: PokemonViewModel) {
@@ -643,20 +736,17 @@ private fun GetNavHost(
                 )
             }
             composable(
-                route = "pokemonDetail/{pokemonId}/{pokemonName}/{pokemonColor}/{choiceOfTheDayStatus}",
+                route = "pokemonDetail/{pokemonId}/{pokemonName}/{pokemonColor}",
                 arguments = listOf(
                     navArgument("pokemonId") { type = NavType.StringType },
                     navArgument("pokemonName") { type = NavType.StringType },
                     navArgument("pokemonColor") { type = NavType.StringType },
-                    navArgument("choiceOfTheDayStatus") { type = NavType.BoolType }
                 )
             ) { backStackEntry ->
 
                 val pokemonId = backStackEntry.arguments?.getString("pokemonId")?.toIntOrNull()
                 val pokemonName = backStackEntry.arguments?.getString("pokemonName")
                 val pokemonColor = backStackEntry.arguments?.getString("pokemonColor")
-                val choiceOfTheDayStatus =
-                    backStackEntry.arguments?.getBoolean("choiceOfTheDayStatus") ?: true
 
                 if (pokemonId != null && pokemonName != null && pokemonColor != null) {
                     PokemonDetailScreen(
@@ -664,7 +754,6 @@ private fun GetNavHost(
                         pokemonId,
                         pokemonName,
                         pokemonColor,
-                        choiceOfTheDayStatus,
                         this
                     )
                 }

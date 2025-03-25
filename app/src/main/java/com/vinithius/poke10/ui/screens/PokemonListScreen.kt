@@ -9,7 +9,6 @@ import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionLayout
 import androidx.compose.animation.SharedTransitionScope
-import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.Image
@@ -50,6 +49,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -86,7 +86,6 @@ import com.vinithius.poke10.extension.getParseColorByString
 import com.vinithius.poke10.ui.MainActivity
 import com.vinithius.poke10.ui.viewmodel.PokemonViewModel
 import com.vinithius.poke10.ui.viewmodel.RequestStateList
-import kotlinx.coroutines.delay
 import org.koin.androidx.compose.getViewModel
 
 const val URL_IMAGE = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/"
@@ -176,7 +175,8 @@ fun SharedTransitionScope.PokemonListScreen(
                     }
                 )
                 if (pokemonItems.isNotEmpty()) {
-                    val pokemonOfTheDayName = sharedPreferences.getString("pokemon_of_the_day", null)
+                    val pokemonOfTheDayName =
+                        sharedPreferences.getString("pokemon_of_the_day", null)
                     LazyColumn(state = listState) {
                         itemsIndexed(
                             items = pokemonItems,
@@ -202,7 +202,8 @@ fun SharedTransitionScope.PokemonListScreen(
                                     onClickDetail = { id, name, color, choiceOfTheDayStatus ->
                                         activity?.trackButtonClick("Click button detail: $name")
                                         viewModel.setIdPokemon(id)
-                                        navController.navigate("pokemonDetail/$id/$name/$color/$choiceOfTheDayStatus")
+                                        viewModel.setChoiceOfTheDay(choiceOfTheDayStatus)
+                                        navController.navigate("pokemonDetail/$id/$name/$color")
                                     },
                                     onClickFavorite = { pokemonFavorite ->
                                         pokemonFavorite.pokemon.name
@@ -283,37 +284,26 @@ fun SharedTransitionScope.Holder(
     onClickFavorite: ((PokemonWithDetails) -> Unit)?,
     onCallBackFinishAnimation: (() -> Unit)?,
 ) {
-    val initialcolor = Color.White
-    val finalcolor = Color.Transparent
-    val durationAnimation = 1000
 
-    var isCorFinal by remember { mutableStateOf(true) }
+    val context = LocalContext.current
+    val sharedPreferences = context.getSharedPreferences("pokemon_prefs", Context.MODE_PRIVATE)
+    var hidePokemonOfTheDay = sharedPreferences.getBoolean("hide_pokemon_of_the_day", true)
 
-    LaunchedEffect(Unit) {
-        while (true) {
-            delay(durationAnimation.toLong())
-            isCorFinal = !isCorFinal
-        }
-    }
+    // Normal
+    var habitat = pokemonData.pokemon.habitat.getDrawableHabitat()
+    var modifier = Modifier.background(Color.White)
 
-    val corAnimada by animateColorAsState(
-        targetValue = if (isCorFinal) finalcolor else initialcolor,
-        animationSpec = tween(durationMillis = durationAnimation),
-        label = "Border Color Animation"
-    )
-
-    val modifier = if (choiceOfTheDayStatus) {
-        Modifier
+    if (choiceOfTheDayStatus && hidePokemonOfTheDay) {
+        // Hide
+        habitat = R.drawable.unknow_habitat
+        modifier = Modifier
             .background(Color.White)
-            .border(width = 3.dp, color = corAnimada, shape = RoundedCornerShape(16.dp))
-    } else {
-        Modifier
-            .background(Color.White)
+            .border(width = 3.dp, color = Color.White, shape = RoundedCornerShape(16.dp))
     }
 
     Box(modifier = modifier) {
         Image(
-            painter = painterResource(id = pokemonData.pokemon.habitat.getDrawableHabitat()),
+            painter = painterResource(id = habitat),
             contentDescription = null,
             contentScale = ContentScale.Crop,
             modifier = Modifier
@@ -358,6 +348,11 @@ fun SharedTransitionScope.Holder(
                         .align(Alignment.CenterVertically)
                 ) {
                     var result = String.format("Nº%03d", pokemonData.pokemon.id)
+                    var name = pokemonData.pokemon.name.capitalize()
+                    if (choiceOfTheDayStatus && hidePokemonOfTheDay) {
+                        result = "Nº???"
+                        name = "??????"
+                    }
                     if (choiceOfTheDayStatus) {
                         val choiceOfTheDay = stringResource(R.string.choice_of_the_day)
                         result = "$result ($choiceOfTheDay)"
@@ -382,7 +377,7 @@ fun SharedTransitionScope.Holder(
                     )
                     Spacer(modifier = Modifier.size(5.dp))
                     Text(
-                        text = pokemonData.pokemon.name.capitalize(),
+                        text = name,
                         modifier = Modifier.padding(start = 8.dp),
                         color = Color.White,
                         style = TextStyle(
@@ -400,16 +395,24 @@ fun SharedTransitionScope.Holder(
                         ),
                     )
                     Spacer(modifier = Modifier.size(5.dp))
-                    StatComponent(pokemonData)
+                    StatComponent(pokemonData, choiceOfTheDayStatus, hidePokemonOfTheDay)
                     Spacer(modifier = Modifier.size(5.dp))
-                    TypeListDataBase(pokemonData.types)
+                    TypeListDataBase(pokemonData.types, choiceOfTheDayStatus, hidePokemonOfTheDay)
                 }
-                LoadGifWithCoil(viewModel, pokemonData, animatedVisibilityScope)
+                LoadGifWithCoil(
+                    viewModel,
+                    pokemonData,
+                    animatedVisibilityScope,
+                    choiceOfTheDayStatus,
+                    hidePokemonOfTheDay
+                )
                 Column(
                     modifier = Modifier.align(Alignment.CenterVertically)
                 ) {
                     PokeballComponent(
                         favorite = pokemonData.pokemon.favorite,
+                        choiceOfTheDayStatus = choiceOfTheDayStatus,
+                        hidePokemonOfTheDay = hidePokemonOfTheDay,
                         onCallBackFinishAnimation = {
                             onCallBackFinishAnimation?.invoke()
                         }
@@ -418,6 +421,7 @@ fun SharedTransitionScope.Holder(
                             onClickFavorite(pokemonData)
                         }
                     }
+
                 }
             }
         }
@@ -425,7 +429,11 @@ fun SharedTransitionScope.Holder(
 }
 
 @Composable
-fun StatComponent(pokemonData: PokemonWithDetails) {
+fun StatComponent(
+    pokemonData: PokemonWithDetails,
+    choiceOfTheDayStatus: Boolean = false,
+    hidePokemonOfTheDay: Boolean = false
+) {
     Column(
         modifier = Modifier.padding(start = 8.dp)
     ) {
@@ -434,8 +442,12 @@ fun StatComponent(pokemonData: PokemonWithDetails) {
             verticalAlignment = Alignment.CenterVertically
         ) {
             pokemonData.stats.take(3).forEachIndexed { index, stat ->
+                var result = "${stat.name.value.capitalize()}: ${stat.baseStat}"
+                if (hidePokemonOfTheDay && choiceOfTheDayStatus) {
+                    result = "${stat.name.value.capitalize()}: ??"
+                }
                 Text(
-                    text = "${stat.name.value.capitalize()}: ${stat.baseStat}",
+                    text = result,
                     style = TextStyle(
                         fontSize = 8.sp,
                         color = Color.White,
@@ -456,13 +468,14 @@ fun StatComponent(pokemonData: PokemonWithDetails) {
     }
 }
 
-
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun SharedTransitionScope.LoadGifWithCoil(
     viewModel: PokemonViewModel?,
     pokemonData: PokemonWithDetails,
     animatedVisibilityScope: AnimatedVisibilityScope?,
+    choiceOfTheDayStatus: Boolean = false,
+    hidePokemonOfTheDay: Boolean = false
 ) {
     val context = LocalContext.current
     val imageLoader = ImageLoader.Builder(context)
@@ -485,7 +498,6 @@ fun SharedTransitionScope.LoadGifWithCoil(
         modifier = Modifier
             .size(70.dp)
     ) {
-
         val painter = rememberAsyncImagePainter(
             model = imageRequest,
             imageLoader = imageLoader
@@ -523,7 +535,8 @@ fun SharedTransitionScope.LoadGifWithCoil(
                     boundsTransform = { _, _ ->
                         tween(durationMillis = 1000)
                     }
-                )
+                ),
+            colorFilter = if (hidePokemonOfTheDay && choiceOfTheDayStatus) ColorFilter.tint(Color.White) else null
         )
     }
 }

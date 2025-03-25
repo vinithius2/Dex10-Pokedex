@@ -113,29 +113,89 @@ class PokemonViewModel(private val repository: PokemonRepository) : ViewModel() 
         _adUnitIdDetails.postValue(value)
     }
 
-    private val _adUnitIdChoiceOfTheDay = MutableLiveData(String())
-    val adUnitIdChoiceOfTheDay: LiveData<String>
-        get() = _adUnitIdChoiceOfTheDay
+    // Is Rewarded
 
-    fun setAdUnitIdChoiceOfTheDay(value: String) {
-        _adUnitIdChoiceOfTheDay.postValue(value)
+    private val _isRewarded = MutableLiveData(true)
+    val isRewarded: LiveData<Boolean>
+        get() = _isRewarded
+
+    fun setIsRewarded(value: Boolean) {
+        _isRewarded.postValue(value)
     }
 
-    private val _adUnitIdChoiceOfTheDayPremiado = MutableLiveData(String())
-    val adUnitIdChoiceOfTheDayPremiado: LiveData<String>
-        get() = _adUnitIdChoiceOfTheDayPremiado
+    // Hide Pokemon Of TheDay
 
-    fun setAdUnitIdChoiceOfTheDayPremiado(value: String) {
-        _adUnitIdChoiceOfTheDayPremiado.postValue(value)
+    private val _hidePokemonOfTheDay = MutableLiveData(true)
+    val hidePokemonOfTheDay: LiveData<Boolean>
+        get() = _hidePokemonOfTheDay
+
+    fun setHidePokemonOfTheDay(value: Boolean) {
+        _hidePokemonOfTheDay.postValue(value)
     }
 
-    private val _adUnitIdChoiceOfTheDayPremiadoShow = MutableLiveData(false)
-    val adUnitIdChoiceOfTheDayPremiadoShow: LiveData<Boolean>
-        get() = _adUnitIdChoiceOfTheDayPremiadoShow
+    // Choice of the day
 
-    fun setAdUnitIdChoiceOfTheDayPremiadoShow(value: Boolean) {
-        _adUnitIdChoiceOfTheDayPremiadoShow.postValue(value)
+    private val _choiceOfTheDay = MutableLiveData(false)
+    val choiceOfTheDay: LiveData<Boolean>
+        get() = _choiceOfTheDay
+
+    fun setChoiceOfTheDay(value: Boolean) {
+        _choiceOfTheDay.postValue(value)
     }
+
+    // Interstitial
+
+    private val _adUnitIdChoiceOfTheDayInterstitial = MutableLiveData(String())
+    val adUnitIdChoiceOfTheDayInterstitial: LiveData<String>
+        get() = _adUnitIdChoiceOfTheDayInterstitial
+
+    fun setAdUnitIdChoiceOfTheDayInterstitial(value: String) {
+        _adUnitIdChoiceOfTheDayInterstitial.postValue(value)
+    }
+
+    private val _choiceOfTheDayInterstitialShow = MutableLiveData(false)
+    val choiceOfTheDayInterstitialShow: LiveData<Boolean>
+        get() = _choiceOfTheDayInterstitialShow
+
+    fun adUnitIdChoiceOfTheDayInterstitialShow(value: Boolean) {
+        _choiceOfTheDayInterstitialShow.postValue(value)
+    }
+
+    private val _isAdLoadedInterstitial = MutableLiveData(false)
+    val isAdLoadedInterstitial: LiveData<Boolean>
+        get() = _isAdLoadedInterstitial
+
+    fun setIsAdLoadedInterstitial(value: Boolean) {
+        _isAdLoadedInterstitial.postValue(value)
+    }
+
+    // Rewarded
+
+    private val _adUnitIdChoiceOfTheDayRewarded = MutableLiveData(String())
+    val adUnitIdChoiceOfTheDayRewarded: LiveData<String>
+        get() = _adUnitIdChoiceOfTheDayRewarded
+
+    fun setAdUnitIdChoiceOfTheDayRewarded(value: String) {
+        _adUnitIdChoiceOfTheDayRewarded.postValue(value)
+    }
+
+    private val _choiceOfTheDayRewardedShow = MutableLiveData(false)
+    val choiceOfTheDayRewardedShow: LiveData<Boolean>
+        get() = _choiceOfTheDayRewardedShow
+
+    fun adUnitIdChoiceOfTheDayRewardedShow(value: Boolean) {
+        _choiceOfTheDayRewardedShow.postValue(value)
+    }
+
+    private val _isAdLoadedRewarded = MutableLiveData(false)
+    val isAdLoadedRewarded: LiveData<Boolean>
+        get() = _isAdLoadedRewarded
+
+    fun setIsAdLoadedRewarded(value: Boolean) {
+        _isAdLoadedRewarded.postValue(value)
+    }
+
+    // Social Media
 
     private val _facebookUrl = MutableLiveData(String())
     val facebookUrl: LiveData<String>
@@ -299,6 +359,7 @@ class PokemonViewModel(private val repository: PokemonRepository) : ViewModel() 
                 // Salvar a data, o Pokémon do dia e a lista de selecionados
                 with(sharedPreferences.edit()) {
                     putString("last_selection_date", currentDate)
+                    putBoolean("hide_pokemon_of_the_day", true)
                     putString("pokemon_of_the_day", pokemonOfTheDay.pokemon.name)
                     putStringSet("selected_pokemons", selectedPokemons)
                     apply()

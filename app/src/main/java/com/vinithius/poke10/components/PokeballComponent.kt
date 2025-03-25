@@ -2,6 +2,7 @@ package com.vinithius.poke10.components
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.runtime.Composable
@@ -12,6 +13,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -31,6 +33,8 @@ fun PokeballComponent(
         R.drawable.pokeball_03_gray
     ),
     isShimmer: Boolean = false,
+    choiceOfTheDayStatus : Boolean = false,
+    hidePokemonOfTheDay : Boolean = false,
     onCallBackFinishAnimation: () -> Unit = {},
     onCallBack: () -> Unit = {},
 ) {
@@ -72,12 +76,15 @@ fun PokeballComponent(
             contentDescription = "Pokeball animation",
             modifier = Modifier
                 .clickable {
-                    isForward = isForward.not()
-                    isPlaying = true
-                    onCallBack.invoke()
+                    if (hidePokemonOfTheDay.not()) {
+                        isForward = isForward.not()
+                        isPlaying = true
+                        onCallBack.invoke()
+                    }
                 }
                 .size(30.dp)
                 .clip(CircleShape)
+                .alpha(if (hidePokemonOfTheDay && choiceOfTheDayStatus) 0f else 1f)
         )
     }
 }
