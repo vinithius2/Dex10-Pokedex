@@ -18,8 +18,8 @@ android {
         applicationId "com.vinithius.poke10"
         minSdk 21
         targetSdk 34
-        versionCode 8
-        versionName "1.2.3"
+        versionCode 9
+        versionName "1.2.4"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
@@ -61,6 +61,7 @@ dependencies {
 
     implementation("io.coil-kt:coil-compose:2.5.0") // Coil para Compose
     implementation("io.coil-kt:coil-gif:2.4.0")     // Suporte para GIFs
+    implementation("io.coil-kt:coil-svg:2.4.0")     // Suporte para SVGs
 
     implementation 'com.google.android.play:review:2.0.2'
     implementation 'com.google.android.play:review-ktx:2.0.2'

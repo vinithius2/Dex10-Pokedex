@@ -7,7 +7,6 @@ import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import coil.compose.AsyncImagePainter
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.vinithius.poke10.datasource.database.PokemonWithDetails
@@ -20,6 +19,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 class PokemonViewModel(private val repository: PokemonRepository) : ViewModel() {
 
@@ -59,6 +61,10 @@ class PokemonViewModel(private val repository: PokemonRepository) : ViewModel() 
     private val _loadingPercent = MutableLiveData<Float>()
     val loadingPercent: LiveData<Float>
         get() = _loadingPercent
+
+    private val _pokemonListEvolutionNames = MutableLiveData<List<PokemonWithDetails>>()
+    val pokemonListEvolutionNames: LiveData<List<PokemonWithDetails>>
+        get() = _pokemonListEvolutionNames
 
     private val _pokemonListBackup = MutableLiveData<List<PokemonWithDetails>>()
     val pokemonListBackup: LiveData<List<PokemonWithDetails>>
@@ -106,6 +112,90 @@ class PokemonViewModel(private val repository: PokemonRepository) : ViewModel() 
     fun setAdUnitIdDetails(value: String) {
         _adUnitIdDetails.postValue(value)
     }
+
+    // Is Rewarded
+
+    private val _isRewarded = MutableLiveData(true)
+    val isRewarded: LiveData<Boolean>
+        get() = _isRewarded
+
+    fun setIsRewarded(value: Boolean) {
+        _isRewarded.postValue(value)
+    }
+
+    // Hide Pokemon Of TheDay
+
+    private val _hidePokemonOfTheDay = MutableLiveData(true)
+    val hidePokemonOfTheDay: LiveData<Boolean>
+        get() = _hidePokemonOfTheDay
+
+    fun setHidePokemonOfTheDay(value: Boolean) {
+        _hidePokemonOfTheDay.postValue(value)
+    }
+
+    // Choice of the day
+
+    private val _choiceOfTheDay = MutableLiveData(false)
+    val choiceOfTheDay: LiveData<Boolean>
+        get() = _choiceOfTheDay
+
+    fun setChoiceOfTheDay(value: Boolean) {
+        _choiceOfTheDay.postValue(value)
+    }
+
+    // Interstitial
+
+    private val _adUnitIdChoiceOfTheDayInterstitial = MutableLiveData(String())
+    val adUnitIdChoiceOfTheDayInterstitial: LiveData<String>
+        get() = _adUnitIdChoiceOfTheDayInterstitial
+
+    fun setAdUnitIdChoiceOfTheDayInterstitial(value: String) {
+        _adUnitIdChoiceOfTheDayInterstitial.postValue(value)
+    }
+
+    private val _choiceOfTheDayInterstitialShow = MutableLiveData(false)
+    val choiceOfTheDayInterstitialShow: LiveData<Boolean>
+        get() = _choiceOfTheDayInterstitialShow
+
+    fun adUnitIdChoiceOfTheDayInterstitialShow(value: Boolean) {
+        _choiceOfTheDayInterstitialShow.postValue(value)
+    }
+
+    private val _isAdLoadedInterstitial = MutableLiveData(false)
+    val isAdLoadedInterstitial: LiveData<Boolean>
+        get() = _isAdLoadedInterstitial
+
+    fun setIsAdLoadedInterstitial(value: Boolean) {
+        _isAdLoadedInterstitial.postValue(value)
+    }
+
+    // Rewarded
+
+    private val _adUnitIdChoiceOfTheDayRewarded = MutableLiveData(String())
+    val adUnitIdChoiceOfTheDayRewarded: LiveData<String>
+        get() = _adUnitIdChoiceOfTheDayRewarded
+
+    fun setAdUnitIdChoiceOfTheDayRewarded(value: String) {
+        _adUnitIdChoiceOfTheDayRewarded.postValue(value)
+    }
+
+    private val _choiceOfTheDayRewardedShow = MutableLiveData(false)
+    val choiceOfTheDayRewardedShow: LiveData<Boolean>
+        get() = _choiceOfTheDayRewardedShow
+
+    fun adUnitIdChoiceOfTheDayRewardedShow(value: Boolean) {
+        _choiceOfTheDayRewardedShow.postValue(value)
+    }
+
+    private val _isAdLoadedRewarded = MutableLiveData(false)
+    val isAdLoadedRewarded: LiveData<Boolean>
+        get() = _isAdLoadedRewarded
+
+    fun setIsAdLoadedRewarded(value: Boolean) {
+        _isAdLoadedRewarded.postValue(value)
+    }
+
+    // Social Media
 
     private val _facebookUrl = MutableLiveData(String())
     val facebookUrl: LiveData<String>
@@ -173,10 +263,6 @@ class PokemonViewModel(private val repository: PokemonRepository) : ViewModel() 
     val isDetailFavorite: LiveData<Boolean>
         get() = _isDetailFavorite
 
-    private val _isDetailFilter = MutableLiveData(false)
-    val isDetailFilter: LiveData<Boolean>
-        get() = _isDetailFilter
-
     fun updateSharedImage(pokemonId: String, imagePainter: AsyncImagePainter) {
         val currentImages = _sharedPokemonImages.value.orEmpty()
         _sharedPokemonImages.value = currentImages + (pokemonId to imagePainter)
@@ -192,12 +278,8 @@ class PokemonViewModel(private val repository: PokemonRepository) : ViewModel() 
         _idPokemon.postValue(value)
     }
 
-    private fun cleanPokemon() {
-        _pokemonDetail.postValue(null)
-    }
-
     /**
-     * Get pokemons list.
+     * Get pokemons list with Pokémon of the Day logic.
      */
     fun getPokemonList(context: Context) {
         CoroutineScope(Dispatchers.IO).launch {
@@ -218,11 +300,18 @@ class PokemonViewModel(private val repository: PokemonRepository) : ViewModel() 
                         _stateList.postValue(RequestStateList.Error(e))
                     }
                 ) ?: emptyList()
-                _pokemonListBackup.postValue(result)
+
+
+                // Atualizar a lista com o Pokémon do dia
+                val updatedList = updatePokemonOfTheDay(context, result)
+
+                _pokemonListBackup.postValue(updatedList)
+
                 if (_pokemonList.value == null) {
-                    _pokemonList.postValue(result)
-                    makeFilter(result)
+                    _pokemonList.postValue(updatedList)
+                    makeFilter(updatedList)
                 }
+
                 _stateList.postValue(RequestStateList.Success)
             } catch (e: Exception) {
                 FirebaseCrashlytics.getInstance().recordException(e)
@@ -230,6 +319,82 @@ class PokemonViewModel(private val repository: PokemonRepository) : ViewModel() 
                 Log.e("Error list pokemons", e.toString())
             }
         }
+    }
+
+    /**
+     * Atualiza a lista com o Pokémon do dia, garantindo que não haja repetição até o ciclo reiniciar.
+     */
+    private fun updatePokemonOfTheDay(
+        context: Context,
+        pokemonList: List<PokemonWithDetails>
+    ): List<PokemonWithDetails> {
+        val sharedPreferences = context.getSharedPreferences("pokemon_prefs", Context.MODE_PRIVATE)
+        val lastSelectionDate = sharedPreferences.getString("last_selection_date", null)
+        val currentDate = getCurrentDate()
+
+        // Recuperar a lista de Pokémon já selecionados no ciclo atual
+        val selectedPokemons =
+            sharedPreferences.getStringSet("selected_pokemons", mutableSetOf())?.toMutableSet()
+                ?: mutableSetOf()
+
+        // Se for um novo dia
+        if (lastSelectionDate != currentDate) {
+            // Verificar se todos os Pokémon já foram selecionados
+            if (selectedPokemons.size >= pokemonList.size) {
+                selectedPokemons.clear() // Reiniciar o ciclo
+            }
+
+            // Filtrar Pokémon que ainda não foram selecionados
+            val availablePokemons =
+                pokemonList.filter { !selectedPokemons.contains(it.pokemon.name) }
+
+            if (availablePokemons.isNotEmpty()) {
+                // Selecionar um Pokémon aleatório dos disponíveis
+                val randomIndex = (0 until availablePokemons.size).random()
+                val pokemonOfTheDay = availablePokemons[randomIndex]
+
+                // Adicionar à lista de selecionados
+                selectedPokemons.add(pokemonOfTheDay.pokemon.name)
+
+                // Salvar a data, o Pokémon do dia e a lista de selecionados
+                with(sharedPreferences.edit()) {
+                    putString("last_selection_date", currentDate)
+                    putBoolean("hide_pokemon_of_the_day", true)
+                    putString("pokemon_of_the_day", pokemonOfTheDay.pokemon.name)
+                    putStringSet("selected_pokemons", selectedPokemons)
+                    apply()
+                }
+
+                // Criar nova lista com o Pokémon do dia no topo
+                val updatedList = mutableListOf<PokemonWithDetails>()
+                updatedList.add(pokemonOfTheDay)
+                updatedList.addAll(pokemonList.filter { it != pokemonOfTheDay })
+                return updatedList
+            }
+        } else {
+            // Recuperar o Pokémon do dia atual
+            val pokemonOfTheDayName = sharedPreferences.getString("pokemon_of_the_day", null)
+            val pokemonOfTheDay = pokemonList.find { it.pokemon.name == pokemonOfTheDayName }
+
+            if (pokemonOfTheDay != null) {
+                // Mover o Pokémon do dia para o topo
+                val updatedList = mutableListOf<PokemonWithDetails>()
+                updatedList.add(pokemonOfTheDay)
+                updatedList.addAll(pokemonList.filter { it != pokemonOfTheDay })
+                return updatedList
+            }
+        }
+
+        // Se não houver Pokémon disponível ou não for um novo dia, retornar a lista original
+        return pokemonList
+    }
+
+    /**
+     * Retorna a data atual no formato "yyyy-MM-dd".
+     */
+    private fun getCurrentDate(): String {
+        val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+        return dateFormat.format(Date())
     }
 
     private fun makeFilter(pokemonList: List<PokemonWithDetails>) {
