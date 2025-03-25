@@ -1215,8 +1215,9 @@ private fun PokemonEvolution(
             ) {
                 val pokemonId = pokemonDetail?.id ?: 0
                 val color = viewModel.getPokemonColor()?.getColorByString() ?: Color.Black
-                pokemonDetail?.evolution?.getListEvolutions()?.let {
-                    viewModel.getIdByNames(it)?.run {
+                val evolutions = pokemonDetail?.evolution?.getListEvolutions()
+                evolutions?.let { evolutionsItem ->
+                    viewModel.getIdByNames(evolutionsItem)?.run {
                         LazyRow(
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
@@ -1260,8 +1261,7 @@ private fun PokemonEvolution(
                                 ) {
                                     LoadGifWithCoilToEvolution(data)
                                 }
-                                val arrowVisible =
-                                    pokemonDetail.evolution?.getListEvolutions()?.size == index + 1
+                                val arrowVisible = evolutions.size == index + 1
                                 if (arrowVisible.not()) {
                                     Image(
                                         painter = painterResource(id = R.drawable.ic_baseline_arrow_forward_ios_24),

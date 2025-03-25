@@ -287,7 +287,7 @@ fun SharedTransitionScope.Holder(
 
     val context = LocalContext.current
     val sharedPreferences = context.getSharedPreferences("pokemon_prefs", Context.MODE_PRIVATE)
-    var hidePokemonOfTheDay = sharedPreferences.getBoolean("hide_pokemon_of_the_day", true)
+    val hidePokemonOfTheDay = sharedPreferences.getBoolean("hide_pokemon_of_the_day", true)
 
     // Normal
     var habitat = pokemonData.pokemon.habitat.getDrawableHabitat()
