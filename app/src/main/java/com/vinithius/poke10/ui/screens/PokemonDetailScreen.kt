@@ -33,6 +33,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.pager.HorizontalPager
@@ -40,22 +41,31 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.layout.ContentScale
@@ -70,6 +80,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
 import androidx.navigation.NavController
 import coil.ImageLoader
 import coil.compose.AsyncImagePainter
@@ -85,6 +96,8 @@ import com.vinithius.poke10.components.TypeListResponse
 import com.vinithius.poke10.datasource.mapper.fromDefaultToListType
 import com.vinithius.poke10.datasource.response.Pokemon
 import com.vinithius.poke10.datasource.response.Type
+import com.vinithius.poke10.extension.LoadGifWithCoilToSprite
+import com.vinithius.poke10.extension.SpriteItem
 import com.vinithius.poke10.extension.capitalize
 import com.vinithius.poke10.extension.convertPounds
 import com.vinithius.poke10.extension.converterIntToDouble
@@ -93,6 +106,7 @@ import com.vinithius.poke10.extension.getDrawableHabitat
 import com.vinithius.poke10.extension.getFlavorTextForLanguage
 import com.vinithius.poke10.extension.getHtmlCompat
 import com.vinithius.poke10.extension.getListEvolutions
+import com.vinithius.poke10.extension.getSpriteItems
 import com.vinithius.poke10.ui.MainActivity
 import com.vinithius.poke10.ui.viewmodel.PokemonViewModel
 import com.vinithius.poke10.ui.viewmodel.RequestStateDetail
@@ -183,13 +197,29 @@ fun SharedTransitionScope.PokemonDetailScreen(
         viewModel.setDetailsScreen(false)
         navController?.popBackStack()
     }
+    val context = LocalContext.current
+    val sharedPreferences = context.getSharedPreferences("pokemon_prefs", Context.MODE_PRIVATE)
+    val hidePokemonOfTheDay = sharedPreferences.getBoolean("hide_pokemon_of_the_day", true)
+    val isRewarded = sharedPreferences.getBoolean("is_rewarded", true)
+    // Observes
     val pokemonDetail by viewModel.pokemonDetail.observeAsState()
+    val choiceOfTheDayStatus by viewModel.choiceOfTheDay.observeAsState(false)
+    val hidePokemonOfTheDayTrigger by viewModel.hidePokemonOfTheDay.observeAsState(false)
+    var noWhiteImage by remember { mutableStateOf(false) }
     val painter = viewModel.getSharedImage(pokemonId.toString())
     Column(
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
     ) {
+
+        ChoiceOfTheDay(choiceOfTheDayStatus)
+        if (isRewarded) {
+            viewModel.adUnitIdChoiceOfTheDayRewardedShow(choiceOfTheDayStatus)
+        } else {
+            viewModel.adUnitIdChoiceOfTheDayInterstitialShow(choiceOfTheDayStatus)
+        }
+
         Card(
             modifier = Modifier
                 .height(320.dp)
@@ -224,7 +254,8 @@ fun SharedTransitionScope.PokemonDetailScreen(
                                     boundsTransform = { _, _ ->
                                         tween(durationMillis = 1000)
                                     }
-                                )
+                                ),
+                            colorFilter = if (hidePokemonOfTheDayTrigger && choiceOfTheDayStatus) ColorFilter.tint(Color.White) else null
                         )
                     } else {
                         CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
@@ -345,9 +376,10 @@ fun SharedTransitionScope.PokemonDetailScreen(
             }
         }
         Spacer(modifier = Modifier.size(5.dp))
+        PokemonArts(viewModel, pokemonDetail)
         PokemonChart(viewModel, pokemonDetail, pokemonColor)
         PokemonIsABaby()
-        PokemonEvolution(pokemonDetail)
+        PokemonEvolution(navController, pokemonDetail)
         // Tabs
         TabWithPagerExample(pokemonDetail, viewModel, pokemonColor)
     }
@@ -746,6 +778,185 @@ private fun DefaultFirstCardData(
 }
 
 @Composable
+private fun ChoiceOfTheDay(
+    choiceOfTheDayStatus: Boolean
+) {
+    AnimatedVisibility(
+        visible = choiceOfTheDayStatus,
+        enter = slideInHorizontally() + fadeIn(),
+        exit = slideOutHorizontally() + fadeOut()
+    ) {
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(8.dp),
+            shape = RoundedCornerShape(8.dp),
+            elevation = CardDefaults.elevatedCardElevation(4.dp)
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(12.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Image(
+                    painter = painterResource(id = R.drawable.pokeball_01),
+                    contentDescription = "is baby",
+                    modifier = Modifier.size(40.dp)
+                )
+                Text(
+                    text = stringResource(R.string.choice_of_the_day),
+                    style = TextStyle(
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold,
+                        fontStyle = androidx.compose.ui.text.font.FontStyle.Normal,
+                    )
+                )
+                Image(
+                    painter = painterResource(id = R.drawable.pokeball_01),
+                    contentDescription = "is baby",
+                    modifier = Modifier.size(40.dp)
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun PokemonArts(
+    viewModel: PokemonViewModel,
+    pokemonDetail: Pokemon?,
+) {
+    var dataBottomSheet: SpriteItem? by remember { mutableStateOf(null) }
+    val context = LocalContext.current
+    val activity = getActivity()
+    var showBottomSheet by remember { mutableStateOf(false) }
+    StateRequest(
+        viewModel = viewModel,
+        loading = {
+            Column(
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .padding(6.dp)
+                    .shimmer(),
+            ) {
+                val itemsLoading = listOf(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13)
+                itemsLoading.let { sprites ->
+                    LazyRow(
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        itemsIndexed(sprites) { _, _ ->
+                            Card(
+                                modifier = Modifier.padding(8.dp),
+                                shape = RoundedCornerShape(8.dp),
+                                elevation = CardDefaults.elevatedCardElevation(4.dp),
+                                onClick = {
+                                    // Do nothing
+                                }
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(70.dp)
+                                        .shimmer()
+                                ) {
+                                    CircularProgressIndicator(
+                                        color = Color.White,
+                                        modifier = Modifier
+                                            .align(Alignment.Center)
+                                            .size(30.dp)
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        success = {
+            Column(
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .padding(6.dp),
+            ) {
+                pokemonDetail?.getSpriteItems(context)?.let { sprites ->
+                    LazyRow(
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        itemsIndexed(sprites) { _, data ->
+                            Card(
+                                modifier = Modifier.padding(8.dp),
+                                shape = RoundedCornerShape(8.dp),
+                                elevation = CardDefaults.elevatedCardElevation(4.dp),
+                                onClick = {
+                                    showBottomSheet = showBottomSheet.not()
+                                    dataBottomSheet = data
+                                    activity?.trackButtonClick("Art: ${data.title}")
+                                }
+                            ) {
+                                data.LoadGifWithCoilToSprite(context, false)
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        error = { /* Do nothing yet */ }
+    )
+
+    if (showBottomSheet) {
+        Dialog(onDismissRequest = { showBottomSheet = false }) {
+            Surface(
+                shape = RoundedCornerShape(16.dp),
+                color = Color.LightGray,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .fillMaxHeight(0.8f)
+            ) {
+                dataBottomSheet?.let { data ->
+                    Column(
+                        modifier = Modifier.fillMaxSize()
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Spacer(modifier = Modifier.weight(1f))
+
+                            Text(
+                                text = data.title.capitalize(),
+                                style = MaterialTheme.typography.bodyLarge,
+                                fontWeight = FontWeight.Bold,
+                                textAlign = TextAlign.Center
+                            )
+
+                            Box(modifier = Modifier.weight(1f)) {
+                                IconButton(
+                                    onClick = {
+                                        showBottomSheet = false
+                                        activity?.trackButtonClick("Close dialog image detail")
+                                    },
+                                    modifier = Modifier.align(Alignment.CenterEnd)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Close,
+                                        contentDescription = stringResource(R.string.close),
+                                        tint = MaterialTheme.colorScheme.onSecondary
+                                    )
+                                }
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(16.dp))
+                        data.LoadGifWithCoilToSprite(context, true)
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
 private fun PokemonChart(
     viewModel: PokemonViewModel,
     pokemonDetail: Pokemon?,
@@ -943,6 +1154,7 @@ private fun PokemonIsABabyPreview(
 
 @Composable
 private fun PokemonEvolution(
+    navController: NavController?,
     pokemonDetail: Pokemon?,
     viewModel: PokemonViewModel = getViewModel()
 ) {
@@ -1003,8 +1215,9 @@ private fun PokemonEvolution(
             ) {
                 val pokemonId = pokemonDetail?.id ?: 0
                 val color = viewModel.getPokemonColor()?.getColorByString() ?: Color.Black
-                pokemonDetail?.evolution?.getListEvolutions()?.let {
-                    viewModel.getIdByNames(it)?.run {
+                val evolutions = pokemonDetail?.evolution?.getListEvolutions()
+                evolutions?.let { evolutionsItem ->
+                    viewModel.getIdByNames(evolutionsItem)?.run {
                         LazyRow(
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
@@ -1024,18 +1237,31 @@ private fun PokemonEvolution(
                                     shape = RoundedCornerShape(8.dp),
                                     elevation = CardDefaults.elevatedCardElevation(4.dp),
                                     onClick = {
+                                        /*
+                                        // AINDA POR FAZER!!!
+                                        if (pokemonId != data.first) {
+                                            viewModel.pokemonList.value?.find { item ->
+                                                item.pokemon.name == data.second
+                                            }?.run {
+                                                val id = this.pokemon.id
+                                                val name = this.pokemon.name
+                                                val colorPokemon = this.pokemon.color
+                                                navController?.navigate("pokemonDetail/$id/$name/$colorPokemon/${false}")
+                                            }
+                                        }
+                                        */
                                         Toast.makeText(
                                             context,
                                             data.second.capitalize(),
                                             Toast.LENGTH_SHORT
                                         ).show()
+
                                         activity?.trackButtonClick("Evolution: ${data.second.capitalize()}")
                                     }
                                 ) {
                                     LoadGifWithCoilToEvolution(data)
                                 }
-                                val arrowVisible =
-                                    pokemonDetail.evolution?.getListEvolutions()?.size == index + 1
+                                val arrowVisible = evolutions.size == index + 1
                                 if (arrowVisible.not()) {
                                     Image(
                                         painter = painterResource(id = R.drawable.ic_baseline_arrow_forward_ios_24),

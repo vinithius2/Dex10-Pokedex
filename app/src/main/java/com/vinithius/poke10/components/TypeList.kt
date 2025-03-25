@@ -14,6 +14,7 @@ import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
@@ -56,12 +57,16 @@ fun TypeListResponse(
 
 @Composable
 fun TypeListDataBase(
-    types: List<TypeDataBase>
+    types: List<TypeDataBase>,
+    choiceOfTheDayStatus: Boolean = false,
+    hidePokemonOfTheDay: Boolean = false
 ) {
     if (types.isNotEmpty()) {
         LazyRow(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
-            modifier = Modifier.padding(start = 8.dp),
+            modifier = Modifier
+                .padding(start = 8.dp)
+                .alpha(if (hidePokemonOfTheDay && choiceOfTheDayStatus) 0f else 1f)
         ) {
             items(
                 items = types,

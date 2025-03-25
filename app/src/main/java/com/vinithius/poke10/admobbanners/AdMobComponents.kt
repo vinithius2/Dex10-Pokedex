@@ -1,4 +1,4 @@
-package com.vinithius.poke10.components
+package com.vinithius.poke10.admobbanners
 
 import android.util.Log
 import androidx.compose.foundation.layout.fillMaxWidth

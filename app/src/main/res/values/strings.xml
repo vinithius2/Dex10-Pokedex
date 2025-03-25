@@ -86,4 +86,26 @@
     <string name="facebook">Facebook</string>
     <string name="reddit">Reddit</string>
     <string name="jigglypuff_songs">Please, don\'t sleep!</string>
+    <!-- Titles for Pokémon sprites -->
+    <string name="title_back_default">Back</string>
+    <string name="title_back_female">Back Female</string>
+    <string name="title_back_shiny">Back Shiny</string>
+    <string name="title_back_shiny_female">Back Shiny Female</string>
+    <string name="title_front_default">Front</string>
+    <string name="title_front_female">Front Female</string>
+    <string name="title_front_shiny">Front Shiny</string>
+    <string name="title_front_shiny_female">Front Shiny Female</string>
+
+    <!-- Sprites from other categories -->
+    <string name="title_dream_world_front">Dream World - Front</string>
+    <string name="title_dream_world_back">Dream World - Back</string>
+    <string name="title_home_front_default">Home - Front</string>
+    <string name="title_home_front_shiny">Home - Front Shiny</string>
+    <string name="title_official_artwork">Official Artwork</string>
+    <string name="title_showdown_front">Showdown - Front</string>
+    <string name="title_showdown_back">Showdown - Back</string>
+    <string name="title_showdown_front_shiny">Showdown - Front Shiny</string>
+    <string name="title_showdown_back_shiny">Showdown - Back Shiny</string>
+
+    <string name="choice_of_the_day">Choice of the day</string>
 </resources>

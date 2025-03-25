@@ -2,6 +2,7 @@ package com.vinithius.poke10.ui.screens
 
 import GetFilterBar
 import android.annotation.SuppressLint
+import android.content.Context
 import android.os.Build
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.AnimatedVisibilityScope
@@ -12,6 +13,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -23,7 +25,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Card
 import androidx.compose.material.CircularProgressIndicator
@@ -34,6 +37,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.snapshots.SnapshotStateMap
@@ -45,6 +49,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -138,11 +143,15 @@ fun SharedTransitionScope.PokemonListScreen(
     val context = LocalContext.current
     SetAnalyticScreenName()
     LaunchedEffect(Unit) {
-        viewModel.getPokemonList(context)
+        if (viewModel.pokemonList.value == null || viewModel.pokemonList.value?.isEmpty() == true) {
+            viewModel.getPokemonList(context)
+        }
         viewModel.setPokemonColor(null)
     }
+    val listState = rememberSaveable(saver = LazyListState.Saver) { LazyListState() }
     val pokemonItems by viewModel.pokemonList.observeAsState(emptyList())
     val isFavoriteFilter by viewModel.isFavoriteFilter.observeAsState(false)
+    val sharedPreferences = context.getSharedPreferences("pokemon_prefs", Context.MODE_PRIVATE)
 
     Column(
         modifier = Modifier.fillMaxSize()
@@ -166,12 +175,15 @@ fun SharedTransitionScope.PokemonListScreen(
                     }
                 )
                 if (pokemonItems.isNotEmpty()) {
-                    LazyColumn {
-                        items(
+                    val pokemonOfTheDayName =
+                        sharedPreferences.getString("pokemon_of_the_day", null)
+                    LazyColumn(state = listState) {
+                        itemsIndexed(
                             items = pokemonItems,
-                            key = { data -> data.pokemon.id }
-                        ) { pokemonData ->
+                            key = { _, data -> data.pokemon.id }
+                        ) { _, pokemonData ->
                             var isVisible by remember { mutableStateOf(true) }
+                            val choiceOfTheDay = pokemonOfTheDayName == pokemonData.pokemon.name
                             AnimatedVisibility(
                                 visible = isVisible,
                                 exit = scaleOut(animationSpec = tween(durationMillis = 300))
@@ -186,9 +198,11 @@ fun SharedTransitionScope.PokemonListScreen(
                                             viewModel.removeItemIfNotIsFavorite()
                                         }
                                     },
-                                    onClickDetail = { id, name, color ->
+                                    choiceOfTheDayStatus = choiceOfTheDay,
+                                    onClickDetail = { id, name, color, choiceOfTheDayStatus ->
                                         activity?.trackButtonClick("Click button detail: $name")
                                         viewModel.setIdPokemon(id)
+                                        viewModel.setChoiceOfTheDay(choiceOfTheDayStatus)
                                         navController.navigate("pokemonDetail/$id/$name/$color")
                                     },
                                     onClickFavorite = { pokemonFavorite ->
@@ -228,8 +242,9 @@ fun SharedTransitionScope.PokemonListItem(
     viewModel: PokemonViewModel?,
     pokemonData: PokemonWithDetails,
     animatedVisibilityScope: AnimatedVisibilityScope?,
+    choiceOfTheDayStatus: Boolean = false,
     onCallBackFinishAnimation: (() -> Unit)?,
-    onClickDetail: ((Int, String, String) -> Unit)?,
+    onClickDetail: ((Int, String, String, Boolean) -> Unit)?,
     onClickFavorite: ((PokemonWithDetails) -> Unit)?
 ) {
     Card(
@@ -240,7 +255,7 @@ fun SharedTransitionScope.PokemonListItem(
                 pokemonData.pokemon.let {
                     if (onClickDetail != null) {
                         viewModel?.setDetailsScreen(true)
-                        onClickDetail(it.id, it.name, it.color)
+                        onClickDetail(it.id, it.name, it.color, choiceOfTheDayStatus)
                     }
                 }
             },
@@ -251,6 +266,7 @@ fun SharedTransitionScope.PokemonListItem(
             viewModel,
             pokemonData,
             animatedVisibilityScope,
+            choiceOfTheDayStatus,
             onClickFavorite,
             onCallBackFinishAnimation
         )
@@ -264,14 +280,30 @@ fun SharedTransitionScope.Holder(
     viewModel: PokemonViewModel?,
     pokemonData: PokemonWithDetails,
     animatedVisibilityScope: AnimatedVisibilityScope?,
+    choiceOfTheDayStatus: Boolean = false,
     onClickFavorite: ((PokemonWithDetails) -> Unit)?,
     onCallBackFinishAnimation: (() -> Unit)?,
 ) {
-    Box(
-        Modifier.background(Color.White)
-    ) {
+
+    val context = LocalContext.current
+    val sharedPreferences = context.getSharedPreferences("pokemon_prefs", Context.MODE_PRIVATE)
+    val hidePokemonOfTheDay = sharedPreferences.getBoolean("hide_pokemon_of_the_day", true)
+
+    // Normal
+    var habitat = pokemonData.pokemon.habitat.getDrawableHabitat()
+    var modifier = Modifier.background(Color.White)
+
+    if (choiceOfTheDayStatus && hidePokemonOfTheDay) {
+        // Hide
+        habitat = R.drawable.unknow_habitat
+        modifier = Modifier
+            .background(Color.White)
+            .border(width = 3.dp, color = Color.White, shape = RoundedCornerShape(16.dp))
+    }
+
+    Box(modifier = modifier) {
         Image(
-            painter = painterResource(id = pokemonData.pokemon.habitat.getDrawableHabitat()),
+            painter = painterResource(id = habitat),
             contentDescription = null,
             contentScale = ContentScale.Crop,
             modifier = Modifier
@@ -315,9 +347,18 @@ fun SharedTransitionScope.Holder(
                         .weight(1f)
                         .align(Alignment.CenterVertically)
                 ) {
-                    val numberPokemon = String.format("Nº%03d", pokemonData.pokemon.id)
+                    var result = String.format("Nº%03d", pokemonData.pokemon.id)
+                    var name = pokemonData.pokemon.name.capitalize()
+                    if (choiceOfTheDayStatus && hidePokemonOfTheDay) {
+                        result = "Nº???"
+                        name = "??????"
+                    }
+                    if (choiceOfTheDayStatus) {
+                        val choiceOfTheDay = stringResource(R.string.choice_of_the_day)
+                        result = "$result ($choiceOfTheDay)"
+                    }
                     Text(
-                        text = numberPokemon,
+                        text = result,
                         color = Color.White,
                         modifier = Modifier.padding(start = 8.dp),
                         style = TextStyle(
@@ -336,7 +377,7 @@ fun SharedTransitionScope.Holder(
                     )
                     Spacer(modifier = Modifier.size(5.dp))
                     Text(
-                        text = pokemonData.pokemon.name.capitalize(),
+                        text = name,
                         modifier = Modifier.padding(start = 8.dp),
                         color = Color.White,
                         style = TextStyle(
@@ -354,16 +395,24 @@ fun SharedTransitionScope.Holder(
                         ),
                     )
                     Spacer(modifier = Modifier.size(5.dp))
-                    StatComponent(pokemonData)
+                    StatComponent(pokemonData, choiceOfTheDayStatus, hidePokemonOfTheDay)
                     Spacer(modifier = Modifier.size(5.dp))
-                    TypeListDataBase(pokemonData.types)
+                    TypeListDataBase(pokemonData.types, choiceOfTheDayStatus, hidePokemonOfTheDay)
                 }
-                LoadGifWithCoil(viewModel, pokemonData, animatedVisibilityScope)
+                LoadGifWithCoil(
+                    viewModel,
+                    pokemonData,
+                    animatedVisibilityScope,
+                    choiceOfTheDayStatus,
+                    hidePokemonOfTheDay
+                )
                 Column(
                     modifier = Modifier.align(Alignment.CenterVertically)
                 ) {
                     PokeballComponent(
                         favorite = pokemonData.pokemon.favorite,
+                        choiceOfTheDayStatus = choiceOfTheDayStatus,
+                        hidePokemonOfTheDay = hidePokemonOfTheDay,
                         onCallBackFinishAnimation = {
                             onCallBackFinishAnimation?.invoke()
                         }
@@ -372,15 +421,19 @@ fun SharedTransitionScope.Holder(
                             onClickFavorite(pokemonData)
                         }
                     }
+
                 }
             }
         }
-
     }
 }
 
 @Composable
-fun StatComponent(pokemonData: PokemonWithDetails) {
+fun StatComponent(
+    pokemonData: PokemonWithDetails,
+    choiceOfTheDayStatus: Boolean = false,
+    hidePokemonOfTheDay: Boolean = false
+) {
     Column(
         modifier = Modifier.padding(start = 8.dp)
     ) {
@@ -389,8 +442,12 @@ fun StatComponent(pokemonData: PokemonWithDetails) {
             verticalAlignment = Alignment.CenterVertically
         ) {
             pokemonData.stats.take(3).forEachIndexed { index, stat ->
+                var result = "${stat.name.value.capitalize()}: ${stat.baseStat}"
+                if (hidePokemonOfTheDay && choiceOfTheDayStatus) {
+                    result = "${stat.name.value.capitalize()}: ??"
+                }
                 Text(
-                    text = "${stat.name.value.capitalize()}: ${stat.baseStat}",
+                    text = result,
                     style = TextStyle(
                         fontSize = 8.sp,
                         color = Color.White,
@@ -411,13 +468,14 @@ fun StatComponent(pokemonData: PokemonWithDetails) {
     }
 }
 
-
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun SharedTransitionScope.LoadGifWithCoil(
     viewModel: PokemonViewModel?,
     pokemonData: PokemonWithDetails,
     animatedVisibilityScope: AnimatedVisibilityScope?,
+    choiceOfTheDayStatus: Boolean = false,
+    hidePokemonOfTheDay: Boolean = false
 ) {
     val context = LocalContext.current
     val imageLoader = ImageLoader.Builder(context)
@@ -440,7 +498,6 @@ fun SharedTransitionScope.LoadGifWithCoil(
         modifier = Modifier
             .size(70.dp)
     ) {
-
         val painter = rememberAsyncImagePainter(
             model = imageRequest,
             imageLoader = imageLoader
@@ -478,7 +535,8 @@ fun SharedTransitionScope.LoadGifWithCoil(
                     boundsTransform = { _, _ ->
                         tween(durationMillis = 1000)
                     }
-                )
+                ),
+            colorFilter = if (hidePokemonOfTheDay && choiceOfTheDayStatus) ColorFilter.tint(Color.White) else null
         )
     }
 }
@@ -495,6 +553,7 @@ fun PokemonListScreenPreview() {
                 null,
                 setMockupPokemon(),
                 null,
+                false,
                 null,
                 null,
                 null
