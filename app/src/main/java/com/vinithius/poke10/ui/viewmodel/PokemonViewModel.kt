@@ -171,6 +171,21 @@ class PokemonViewModel(private val repository: PokemonRepository) : ViewModel() 
 
     // Rewarded
 
+    data class AdData(
+        val id: Int,
+        val name: String,
+        val color: String,
+        val choiceOfTheDayStatus: Boolean
+    )
+
+    private val _adDataToDetails = MutableLiveData<AdData>(null)
+    val adDataToDetails: LiveData<AdData>
+        get() = _adDataToDetails
+
+    fun setAdDataToDetails(value: AdData) {
+        _adDataToDetails.postValue(value)
+    }
+
     private val _adUnitIdChoiceOfTheDayRewarded = MutableLiveData(String())
     val adUnitIdChoiceOfTheDayRewarded: LiveData<String>
         get() = _adUnitIdChoiceOfTheDayRewarded

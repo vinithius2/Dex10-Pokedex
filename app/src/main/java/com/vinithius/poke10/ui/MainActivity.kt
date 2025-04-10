@@ -215,10 +215,10 @@ fun MainScreen(
     activity: MainActivity,
     viewModel: PokemonViewModel = getViewModel()
 ) {
-    GetAdUnitId()
-    SetInterstitialOrRewardedAdManager(activity)
-    SetupSystemUI(viewModel)
     val navController = rememberNavController()
+    GetAdUnitId()
+    SetInterstitialOrRewardedAdManager(activity, navController)
+    SetupSystemUI(viewModel)
     Scaffold(
         topBar = {
             GetTopBar(viewModel, navController)
@@ -237,6 +237,7 @@ fun MainScreen(
 @Composable
 fun SetInterstitialOrRewardedAdManager(
     activity: MainActivity,
+    navController: NavHostController,
     viewModel: PokemonViewModel = getViewModel()
 ) {
     val context = LocalContext.current
@@ -249,10 +250,13 @@ fun SetInterstitialOrRewardedAdManager(
             apply()
         }
 
+
         val adManagerRewarded = remember { AdManagerRewarded(context) }
         val adUnitId by viewModel.adUnitIdChoiceOfTheDayRewarded.observeAsState()
         val isShowingRewarded by viewModel.choiceOfTheDayRewardedShow.observeAsState(false)
         val isAdLoadedRewarded by viewModel.isAdLoadedRewarded.observeAsState(false)
+        val adDataToDetails by viewModel.adDataToDetails.observeAsState()
+        val navigationTriggered = remember { mutableStateOf(false) }
 
         LaunchedEffect(adUnitId) {
             adUnitId?.let {
@@ -261,20 +265,37 @@ fun SetInterstitialOrRewardedAdManager(
                 }
             }
         }
-
-        LaunchedEffect(isShowingRewarded, isAdLoadedRewarded) {
-            if (isShowingRewarded && isAdLoadedRewarded) {
-                adManagerRewarded.showAd(activity) {
-                    with(sharedPreferences.edit()) {
-                        putBoolean("hide_pokemon_of_the_day", false)
-                        apply()
+        LaunchedEffect(isShowingRewarded) {
+            if (isShowingRewarded) {
+                if (isAdLoadedRewarded) {
+                    adManagerRewarded.showAd(activity) {
+                        with(sharedPreferences.edit()) {
+                            putBoolean("hide_pokemon_of_the_day", false)
+                            apply()
+                        }
+                        viewModel.setHidePokemonOfTheDay(false)
+                        gotToDetails(
+                            adDataToDetails,
+                            activity,
+                            navController,
+                            viewModel,
+                        )
+                        viewModel.adUnitIdChoiceOfTheDayRewardedShow(false)
+                        viewModel.setIsAdLoadedRewarded(false)
                     }
-                    viewModel.setHidePokemonOfTheDay(false)
+                } else {
+                    gotToDetails(
+                        adDataToDetails,
+                        activity,
+                        navController,
+                        viewModel,
+                    )
+                    viewModel.adUnitIdChoiceOfTheDayRewardedShow(false)
                 }
-                viewModel.adUnitIdChoiceOfTheDayRewardedShow(false)
-
             }
         }
+
+
     } else {
         with(sharedPreferences.edit()) {
             putBoolean("is_rewarded", false)
@@ -307,6 +328,20 @@ fun SetInterstitialOrRewardedAdManager(
                 }
             }
         }
+    }
+}
+
+private fun gotToDetails(
+    adDataToDetails: PokemonViewModel.AdData?,
+    activity: MainActivity,
+    navController: NavHostController,
+    viewModel: PokemonViewModel,
+) {
+    adDataToDetails?.run {
+        activity.trackButtonClick("Click button detail: $name")
+        viewModel.setIdPokemon(id)
+        viewModel.setChoiceOfTheDay(choiceOfTheDayStatus)
+        navController.navigate("pokemonDetail/$id/$name/$color")
     }
 }
 

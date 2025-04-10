@@ -204,13 +204,33 @@ fun SharedTransitionScope.PokemonListScreen(
                                     onClickDetail = { id, name, color, choiceOfTheDayStatus ->
                                         if (choiceOfTheDay) {
                                             if (isRewarded) {
-                                                viewModel.adUnitIdChoiceOfTheDayRewardedShow(
-                                                    choiceOfTheDayStatus
-                                                )
+                                                with(viewModel) {
+                                                    adUnitIdChoiceOfTheDayRewardedShow(
+                                                        choiceOfTheDayStatus
+                                                    )
+                                                    setAdDataToDetails(
+                                                        PokemonViewModel.AdData(
+                                                            id,
+                                                            name,
+                                                            color,
+                                                            choiceOfTheDayStatus
+                                                        )
+                                                    )
+                                                }
                                             } else {
-                                                viewModel.adUnitIdChoiceOfTheDayInterstitialShow(
-                                                    choiceOfTheDayStatus
-                                                )
+                                                with(viewModel) {
+                                                    adUnitIdChoiceOfTheDayInterstitialShow(
+                                                        choiceOfTheDayStatus
+                                                    )
+                                                    setAdDataToDetails(
+                                                        PokemonViewModel.AdData(
+                                                            id,
+                                                            name,
+                                                            color,
+                                                            choiceOfTheDayStatus
+                                                        )
+                                                    )
+                                                }
                                             }
                                         } else {
                                             goToDetails(
@@ -223,11 +243,6 @@ fun SharedTransitionScope.PokemonListScreen(
                                                 choiceOfTheDayStatus
                                             )
                                         }
-                                        activity?.trackButtonClick("Click button detail: $name")
-                                        viewModel.setIdPokemon(id)
-                                        viewModel.setChoiceOfTheDay(choiceOfTheDayStatus)
-                                        navController.navigate("pokemonDetail/$id/$name/$color")
-
                                     },
                                     onClickFavorite = { pokemonFavorite ->
                                         pokemonFavorite.pokemon.name
@@ -411,13 +426,13 @@ fun SharedTransitionScope.Holder(
         habitat
     }
 
-        Box(modifier = modifierBox) {
-            Image(
-                painter = painterResource(id = habitatRes),
-                contentDescription = null,
-                contentScale = ContentScale.Crop,
-                modifier = modifierBackground.then(Modifier.matchParentSize())
-            )
+    Box(modifier = modifierBox) {
+        Image(
+            painter = painterResource(id = habitatRes),
+            contentDescription = null,
+            contentScale = ContentScale.Crop,
+            modifier = modifierBackground.then(Modifier.matchParentSize())
+        )
         Box(
             modifier = Modifier
                 .drawBehind {
