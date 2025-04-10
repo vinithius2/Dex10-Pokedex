@@ -68,6 +68,7 @@ import coil.decode.GifDecoder
 import coil.decode.ImageDecoderDecoder
 import coil.request.ImageRequest
 import com.vinithius.poke10.R
+import com.vinithius.poke10.components.AdRequirementDialog
 import com.vinithius.poke10.components.EmptyListStatus
 import com.vinithius.poke10.components.ErrorStatus
 import com.vinithius.poke10.components.LoadingPokemonList
@@ -152,6 +153,7 @@ fun SharedTransitionScope.PokemonListScreen(
     val pokemonItems by viewModel.pokemonList.observeAsState(emptyList())
     val isFavoriteFilter by viewModel.isFavoriteFilter.observeAsState(false)
     val sharedPreferences = context.getSharedPreferences("pokemon_prefs", Context.MODE_PRIVATE)
+    val isRewarded by viewModel.isRewarded.observeAsState(true)
 
     Column(
         modifier = Modifier.fillMaxSize()
@@ -200,10 +202,32 @@ fun SharedTransitionScope.PokemonListScreen(
                                     },
                                     choiceOfTheDayStatus = choiceOfTheDay,
                                     onClickDetail = { id, name, color, choiceOfTheDayStatus ->
+                                        if (choiceOfTheDay) {
+                                            if (isRewarded) {
+                                                viewModel.adUnitIdChoiceOfTheDayRewardedShow(
+                                                    choiceOfTheDayStatus
+                                                )
+                                            } else {
+                                                viewModel.adUnitIdChoiceOfTheDayInterstitialShow(
+                                                    choiceOfTheDayStatus
+                                                )
+                                            }
+                                        } else {
+                                            goToDetails(
+                                                navController,
+                                                activity,
+                                                viewModel,
+                                                id,
+                                                name,
+                                                color,
+                                                choiceOfTheDayStatus
+                                            )
+                                        }
                                         activity?.trackButtonClick("Click button detail: $name")
                                         viewModel.setIdPokemon(id)
                                         viewModel.setChoiceOfTheDay(choiceOfTheDayStatus)
                                         navController.navigate("pokemonDetail/$id/$name/$color")
+
                                     },
                                     onClickFavorite = { pokemonFavorite ->
                                         pokemonFavorite.pokemon.name
@@ -229,6 +253,21 @@ fun SharedTransitionScope.PokemonListScreen(
     }
 }
 
+private fun goToDetails(
+    navController: NavController,
+    activity: MainActivity?,
+    viewModel: PokemonViewModel,
+    id: Int,
+    name: String,
+    color: String,
+    choiceOfTheDayStatus: Boolean
+) {
+    activity?.trackButtonClick("Click button detail: $name")
+    viewModel.setIdPokemon(id)
+    viewModel.setChoiceOfTheDay(choiceOfTheDayStatus)
+    navController.navigate("pokemonDetail/$id/$name/$color")
+}
+
 fun getFilterBarData(
     filter: Map<String, SnapshotStateMap<String, Boolean>>,
     viewModel: PokemonViewModel
@@ -247,16 +286,48 @@ fun SharedTransitionScope.PokemonListItem(
     onClickDetail: ((Int, String, String, Boolean) -> Unit)?,
     onClickFavorite: ((PokemonWithDetails) -> Unit)?
 ) {
+    val context = LocalContext.current
+    val sharedPreferences = context.getSharedPreferences("pokemon_prefs", Context.MODE_PRIVATE)
+    var dontShowAgain by remember { mutableStateOf(false) }
+    dontShowAgain = sharedPreferences.getBoolean("dont_show_again", false)
+    var showDialog by remember { mutableStateOf(false) }
+
+    if (showDialog) {
+        AdRequirementDialog(
+            onDismiss = { showDialog = false },
+            onConfirm = {
+                clickAndGoToDetails(
+                    viewModel,
+                    pokemonData,
+                    choiceOfTheDayStatus,
+                    onClickDetail,
+                )
+            },
+            dontShowAgain = dontShowAgain,
+            onDontShowAgainChanged = {
+                with(sharedPreferences.edit()) {
+                    putBoolean("dont_show_again", it)
+                    apply()
+                }
+                dontShowAgain = it
+            }
+        )
+    }
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(8.dp)
             .clickable {
-                pokemonData.pokemon.let {
-                    if (onClickDetail != null) {
-                        viewModel?.setDetailsScreen(true)
-                        onClickDetail(it.id, it.name, it.color, choiceOfTheDayStatus)
-                    }
+                if (choiceOfTheDayStatus && dontShowAgain.not()) {
+                    showDialog = true
+                } else {
+                    clickAndGoToDetails(
+                        viewModel,
+                        pokemonData,
+                        choiceOfTheDayStatus,
+                        onClickDetail,
+                    )
                 }
             },
         elevation = 5.dp,
@@ -270,6 +341,20 @@ fun SharedTransitionScope.PokemonListItem(
             onClickFavorite,
             onCallBackFinishAnimation
         )
+    }
+}
+
+private fun clickAndGoToDetails(
+    viewModel: PokemonViewModel?,
+    pokemonData: PokemonWithDetails,
+    choiceOfTheDayStatus: Boolean = false,
+    onClickDetail: ((Int, String, String, Boolean) -> Unit)?
+) {
+    pokemonData.pokemon.let {
+        if (onClickDetail != null) {
+            viewModel?.setDetailsScreen(true)
+            onClickDetail(it.id, it.name, it.color, choiceOfTheDayStatus)
+        }
     }
 }
 
@@ -291,40 +376,48 @@ fun SharedTransitionScope.Holder(
 
     // Normal
     var habitat = pokemonData.pokemon.habitat.getDrawableHabitat()
-    var modifier = Modifier.background(Color.White)
 
-    if (choiceOfTheDayStatus && hidePokemonOfTheDay) {
-        // Hide
-        habitat = R.drawable.unknow_habitat
-        modifier = Modifier
-            .background(Color.White)
-            .border(width = 3.dp, color = Color.White, shape = RoundedCornerShape(16.dp))
+    val modifierBackground = if (choiceOfTheDayStatus && hidePokemonOfTheDay) {
+        Modifier
+    } else {
+        Modifier.drawWithContent {
+            drawContent()
+            drawRect(
+                brush = Brush.horizontalGradient(
+                    colors = listOf(
+                        Color.Black.copy(alpha = 0.8f),
+                        Color.Black.copy(alpha = 0.3f),
+                        Color.Transparent
+                    ),
+                    startX = size.width * 0.1f,
+                    endX = size.width
+                ),
+                blendMode = BlendMode.DstIn
+            )
+        }
     }
 
-    Box(modifier = modifier) {
-        Image(
-            painter = painterResource(id = habitat),
-            contentDescription = null,
-            contentScale = ContentScale.Crop,
-            modifier = Modifier
-                .matchParentSize()
-                .drawWithContent {
-                    drawContent()
-                    drawRect(
-                        brush = Brush.horizontalGradient(
-                            colors = listOf(
-                                Color.Black.copy(alpha = 0.8f),
-                                Color.Black.copy(alpha = 0.3f),
-                                Color.Transparent
-                            ),
-                            startX = size.width * 0.1f,
-                            endX = size.width
-                        ),
-                        blendMode = BlendMode.DstIn
-                    )
-                }
-        )
+    val modifierBox = if (choiceOfTheDayStatus && hidePokemonOfTheDay) {
+        Modifier
+            .background(Color.White)
+            .border(width = 2.dp, color = Color.White, shape = RoundedCornerShape(16.dp))
+    } else {
+        Modifier
+    }
 
+    val habitatRes = if (choiceOfTheDayStatus && hidePokemonOfTheDay) {
+        R.drawable.backgroundchoiceoftheday
+    } else {
+        habitat
+    }
+
+        Box(modifier = modifierBox) {
+            Image(
+                painter = painterResource(id = habitatRes),
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = modifierBackground.then(Modifier.matchParentSize())
+            )
         Box(
             modifier = Modifier
                 .drawBehind {
@@ -350,8 +443,8 @@ fun SharedTransitionScope.Holder(
                     var result = String.format("Nº%03d", pokemonData.pokemon.id)
                     var name = pokemonData.pokemon.name.capitalize()
                     if (choiceOfTheDayStatus && hidePokemonOfTheDay) {
-                        result = "Nº???"
-                        name = "??????"
+                        result = String()
+                        name = "????"
                     }
                     if (choiceOfTheDayStatus) {
                         val choiceOfTheDay = stringResource(R.string.choice_of_the_day)
@@ -421,7 +514,6 @@ fun SharedTransitionScope.Holder(
                             onClickFavorite(pokemonData)
                         }
                     }
-
                 }
             }
         }
@@ -536,7 +628,7 @@ fun SharedTransitionScope.LoadGifWithCoil(
                         tween(durationMillis = 1000)
                     }
                 ),
-            colorFilter = if (hidePokemonOfTheDay && choiceOfTheDayStatus) ColorFilter.tint(Color.White) else null
+            colorFilter = if (hidePokemonOfTheDay && choiceOfTheDayStatus) ColorFilter.tint(Color.Black) else null
         )
     }
 }

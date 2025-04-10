@@ -272,6 +272,7 @@ fun SetInterstitialOrRewardedAdManager(
                     viewModel.setHidePokemonOfTheDay(false)
                 }
                 viewModel.adUnitIdChoiceOfTheDayRewardedShow(false)
+
             }
         }
     } else {

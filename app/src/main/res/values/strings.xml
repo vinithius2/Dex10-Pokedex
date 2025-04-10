@@ -108,4 +108,10 @@
     <string name="title_showdown_back_shiny">Showdown - Back Shiny</string>
 
     <string name="choice_of_the_day">Choice of the day</string>
+
+    <string name="ad_message">When you tap on the choice of the day, you must watch an ad to unlock it. Each choice is available only on its designated day and remains hidden until clicked. By watching, you\'re supporting the developer to keep improving the app. Thank you!</string>
+    <string name="dont_show_again">Don\'t show this message again</string>
+    <string name="know_this_first">We\'d like you to know this first</string>
+    <string name="ok">Ok</string>
+    <string name="cancel">Cancel</string>
 </resources>
