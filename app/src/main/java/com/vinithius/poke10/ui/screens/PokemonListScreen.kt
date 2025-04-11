@@ -172,10 +172,10 @@ fun SharedTransitionScope.PokemonListScreen(
             success = {
                 GetFilterBar(
                     onCallBackClearFavoriteFilter = {
-                        viewModel.getPokemonFavoriteList(false)
+                        viewModel.getPokemonFavoriteList(false, context)
                     },
                     onCallBackFilter = {
-                        getFilterBarData(it, viewModel)
+                        getFilterBarData(it, viewModel, context)
                     }
                 )
                 if (pokemonItems.isNotEmpty()) {
@@ -201,7 +201,7 @@ fun SharedTransitionScope.PokemonListScreen(
                                     onCallBackFinishAnimation = {
                                         if (isFavoriteFilter) {
                                             isVisible = false
-                                            viewModel.removeItemIfNotIsFavorite()
+                                            viewModel.removeItemIfNotIsFavorite(context)
                                         }
                                     },
                                     choiceOfTheDayStatus = choiceOfTheDay,
@@ -274,9 +274,10 @@ private fun goToDetails(
 
 fun getFilterBarData(
     filter: Map<String, SnapshotStateMap<String, Boolean>>,
-    viewModel: PokemonViewModel
+    viewModel: PokemonViewModel,
+    context: Context
 ) {
-    viewModel.updateFilterState(filter)
+    viewModel.updateFilterState(filter, context)
 }
 
 @OptIn(ExperimentalSharedTransitionApi::class)

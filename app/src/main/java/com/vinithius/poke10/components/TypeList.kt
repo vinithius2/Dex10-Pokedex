@@ -19,6 +19,7 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shadow
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -26,6 +27,7 @@ import androidx.compose.ui.unit.dp
 import com.vinithius.poke10.extension.capitalize
 import com.vinithius.poke10.extension.getDrawableIco
 import com.vinithius.poke10.extension.getDrawableIcoColor
+import com.vinithius.poke10.extension.getStringType
 import com.vinithius.poke10.datasource.database.Type as TypeDataBase
 import com.vinithius.poke10.datasource.response.Type as TypeResponse
 
@@ -87,6 +89,7 @@ fun TypeListDataBase(
 
 @Composable
 fun TypeItem(typeName: String) {
+    val context = LocalContext.current
     Box(
         modifier = Modifier
             .background(
@@ -112,7 +115,7 @@ fun TypeItem(typeName: String) {
                 modifier = Modifier.size(20.dp)
             )
             Text(
-                text = typeName.capitalize(),
+                text = typeName.getStringType(context),
                 color = Color.White,
                 style = TextStyle(
                     fontWeight = FontWeight.Bold,

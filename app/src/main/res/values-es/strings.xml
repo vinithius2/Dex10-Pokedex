@@ -114,4 +114,49 @@ Descárgalo ahora:
     <string name="know_this_first">Nos gustaría que supieras esto primero</string>
     <string name="ok">Ok</string>
     <string name="cancel">Cancelar</string>
+
+    <!-- FILTER -->
+    <string name="type">Tipo</string>
+    <string name="ability">Habilidad</string>
+    <string name="color">Color</string>
+    <string name="habitat">Hábitat</string>
+
+    <!-- STATS -->
+    <string name="hp">Hp</string>
+    <string name="attack">Ataque</string>
+    <string name="defense">Defensa</string>
+    <string name="special_attack">Ataque especial</string>
+    <string name="special_defense">Defensa especial</string>
+    <string name="speed">Velocidad</string>
+
+    <!-- Habitat -->
+    <string name="cave">Cueva</string>
+    <string name="forest">Bosque</string>
+    <string name="grassland">Pradera</string>
+    <string name="mountain">Montaña</string>
+    <string name="rare">Raro</string>
+    <string name="rough_terrain">Terreno accidentado</string>
+    <string name="sea">Mar</string>
+    <string name="urban">Urbano</string>
+    <string name="waters_edge">Orilla del agua</string>
+
+    <!-- TYPE -->
+    <string name="bug">Bicho</string>
+    <string name="dark">Oscuro</string>
+    <string name="dragon">Dragón</string>
+    <string name="electric">Eléctrico</string>
+    <string name="fairy">Hada</string>
+    <string name="fighting">Lucha</string>
+    <string name="fire">Fuego</string>
+    <string name="flying">Volador</string>
+    <string name="ghost">Fantasma</string>
+    <string name="grass">Planta</string>
+    <string name="ground">Tierra</string>
+    <string name="ice">Hielo</string>
+    <string name="poison">Veneno</string>
+    <string name="psychic">Psíquico</string>
+    <string name="rock">Roca</string>
+    <string name="steel">Acero</string>
+    <string name="water">Agua</string>
+    <string name="unknow">Desconocido</string>
 </resources>

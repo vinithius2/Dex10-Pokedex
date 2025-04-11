@@ -114,4 +114,49 @@
     <string name="know_this_first">हम चाहते हैं कि आप पहले यह जान लें</string>
     <string name="ok">ठीक है</string>
     <string name="cancel">रद्द करें</string>
+
+    <!-- FILTER -->
+    <string name="type">प्रकार</string>
+    <string name="ability">क्षमता</string>
+    <string name="color">रंग</string>
+    <string name="habitat">आवास</string>
+
+    <!-- STATS -->
+    <string name="hp">Hp</string>
+    <string name="attack">हमला</string>
+    <string name="defense">रक्षा</string>
+    <string name="special_attack">विशेष हमला</string>
+    <string name="special_defense">विशेष रक्षा</string>
+    <string name="speed">गति</string>
+
+    <!-- Habitat -->
+    <string name="cave">गुफा</string>
+    <string name="forest">जंगल</string>
+    <string name="grassland">घास का मैदान</string>
+    <string name="mountain">पहाड़</string>
+    <string name="rare">दुर्लभ</string>
+    <string name="rough_terrain">खराब इलाका</string>
+    <string name="sea">समुंदर</string>
+    <string name="urban">शहरी</string>
+    <string name="waters_edge">जल का किनारा</string>
+
+    <!-- TYPE -->
+    <string name="bug">कीट</string>
+    <string name="dark">अंधेरा</string>
+    <string name="dragon">ड्रैगन</string>
+    <string name="electric">बिजली</string>
+    <string name="fairy">परी</string>
+    <string name="fighting">लड़ाई</string>
+    <string name="fire">आग</string>
+    <string name="flying">उड़ान</string>
+    <string name="ghost">भूत</string>
+    <string name="grass">घास</string>
+    <string name="ground">भूमि</string>
+    <string name="ice">बर्फ</string>
+    <string name="poison">जहर</string>
+    <string name="psychic">मनोवैज्ञानिक</string>
+    <string name="rock">पत्थर</string>
+    <string name="steel">इस्पात</string>
+    <string name="water">पानी</string>
+    <string name="unknow">अज्ञात</string>
 </resources>

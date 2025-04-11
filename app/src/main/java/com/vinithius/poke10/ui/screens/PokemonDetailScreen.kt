@@ -105,6 +105,8 @@ import com.vinithius.poke10.extension.getFlavorTextForLanguage
 import com.vinithius.poke10.extension.getHtmlCompat
 import com.vinithius.poke10.extension.getListEvolutions
 import com.vinithius.poke10.extension.getSpriteItems
+import com.vinithius.poke10.extension.getStringHabitat
+import com.vinithius.poke10.extension.getStringStat
 import com.vinithius.poke10.ui.MainActivity
 import com.vinithius.poke10.ui.viewmodel.PokemonViewModel
 import com.vinithius.poke10.ui.viewmodel.RequestStateDetail
@@ -541,6 +543,7 @@ private fun PokemonHabitat(
 
 @Composable
 private fun PokemonHabitatSuccessComposable(pokemonDetail: Pokemon?, pokemonName: String) {
+    val context = LocalContext.current
     val habitatImg =
         pokemonDetail?.specie?.habitat?.name?.getDrawableHabitat() ?: R.drawable.unknow_habitat
     Box(
@@ -579,7 +582,7 @@ private fun PokemonHabitatSuccessComposable(pokemonDetail: Pokemon?, pokemonName
         )
         val habitat = pokemonDetail?.specie?.habitat?.name?.capitalize() ?: "?"
         Text(
-            text = habitat,
+            text = habitat.getStringHabitat(context),
             modifier = Modifier
                 .padding(end = 12.dp, bottom = 12.dp)
                 .align(Alignment.BottomEnd),
@@ -965,15 +968,19 @@ private fun PokemonChart(
     }
 }
 
-private fun getStatsLabels(pokemonDetail: Pokemon?): List<String> {
+private fun getStatsLabels(pokemonDetail: Pokemon?, context: Context): List<String> {
     return pokemonDetail?.stats?.map { stat ->
-        "${stat.stat.name?.capitalize()?.replace("-", " ")} (${stat.base_stat})"
+        "${stat.stat.name?.getStringStat(context)} (${stat.base_stat})"
     } ?: listOf()
 }
 
-private fun getStats(pokemonDetail: Pokemon?, pokemonColor: String): List<Bars> {
+private fun getStats(
+    pokemonDetail: Pokemon?,
+    pokemonColor: String,
+    context: Context
+): List<Bars> {
     if (pokemonDetail != null) {
-        val labels = getStatsLabels(pokemonDetail)
+        val labels = getStatsLabels(pokemonDetail, context)
         return pokemonDetail.stats?.mapIndexed { index, stat ->
             Bars(
                 label = labels[index],
@@ -993,7 +1000,8 @@ private fun getStats(pokemonDetail: Pokemon?, pokemonColor: String): List<Bars> 
 
 @Composable
 private fun ChartSuccessComposable(pokemonDetail: Pokemon?, pokemonColor: String) {
-    val stats = getStats(pokemonDetail, pokemonColor)
+    val context = LocalContext.current
+    val stats = getStats(pokemonDetail, pokemonColor, context)
     RowChart(
         modifier = Modifier
             .fillMaxSize()
@@ -1012,7 +1020,7 @@ private fun ChartSuccessComposable(pokemonDetail: Pokemon?, pokemonColor: String
             enabled = true,
             textStyle = MaterialTheme.typography.labelSmall,
             padding = 12.dp,
-            labels = getStatsLabels(pokemonDetail),
+            labels = getStatsLabels(pokemonDetail, context),
         ),
         animationSpec = spring(
             dampingRatio = Spring.DampingRatioMediumBouncy,

@@ -4,6 +4,7 @@ import android.content.Context
 import android.util.Log
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.snapshots.SnapshotStateMap
+import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -22,6 +23,7 @@ import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import com.vinithius.poke10.R
 
 class PokemonViewModel(private val repository: PokemonRepository) : ViewModel() {
 
@@ -321,7 +323,7 @@ class PokemonViewModel(private val repository: PokemonRepository) : ViewModel() 
                 val updatedList = updatePokemonOfTheDay(context, result)
                 _pokemonListBackup.postValue(updatedList)
                 _pokemonList.postValue(updatedList)
-                makeFilter(updatedList)
+                makeFilter(updatedList, context)
 
                 _stateList.postValue(RequestStateList.Success)
             } catch (e: Exception) {
@@ -408,7 +410,10 @@ class PokemonViewModel(private val repository: PokemonRepository) : ViewModel() 
         return dateFormat.format(Date())
     }
 
-    private fun makeFilter(pokemonList: List<PokemonWithDetails>) {
+    private fun makeFilter(
+        pokemonList: List<PokemonWithDetails>,
+        context: Context
+        ) {
         val checkboxStateMapTypes = checkboxStateMap(
             pokemonList.flatMap { pokemon -> pokemon.types.map { it.typeName } }
         )
@@ -421,11 +426,12 @@ class PokemonViewModel(private val repository: PokemonRepository) : ViewModel() 
         val checkboxStateMapHabitats = checkboxStateMap(
             pokemonList.map { it.pokemon.habitat }
         )
+        context.getString(R.string.type)
         val filterMap = mapOf(
-            "type" to checkboxStateMapTypes,
-            "ability" to checkboxStateMapAbilities,
-            "color" to checkboxStateMapColors,
-            "habitat" to checkboxStateMapHabitats,
+            context.getString(R.string.type) to checkboxStateMapTypes,
+            context.getString(R.string.ability) to checkboxStateMapAbilities,
+            context.getString(R.string.color) to checkboxStateMapColors,
+            context.getString(R.string.habitat) to checkboxStateMapHabitats,
         )
         _pokemonFilterList.postValue(filterMap)
     }
@@ -475,30 +481,43 @@ class PokemonViewModel(private val repository: PokemonRepository) : ViewModel() 
     /**
      * Remove item if not a favorite from the filter favorites
      */
-    fun removeItemIfNotIsFavorite() {
+    fun removeItemIfNotIsFavorite(
+        context: Context
+    ) {
         _isFavoriteFilter.takeIf { it.value ?: false }?.run {
-            getPokemonFavoriteList(true)
+            getPokemonFavoriteList(true, context)
         }
     }
 
     // FILTERS
 
-    fun getPokemonSearch(search: String) {
+    fun getPokemonSearch(
+        search: String,
+        context: Context,
+        ) {
         _searchNameFilter.value = search
-        getFilterPokemon()
+        getFilterPokemon(context)
     }
 
-    fun getPokemonFavoriteList(isFavorite: Boolean) {
+    fun getPokemonFavoriteList(
+        isFavorite: Boolean,
+        context: Context,
+        ) {
         _isFavoriteFilter.value = isFavorite
-        getFilterPokemon()
+        getFilterPokemon(context)
     }
 
-    fun updateFilterState(filter: Map<String, SnapshotStateMap<String, Boolean>>) {
+    fun updateFilterState(
+        filter: Map<String, SnapshotStateMap<String, Boolean>>,
+        context: Context,
+        ) {
         _filterMap.value = filter
-        getFilterPokemon()
+        getFilterPokemon(context)
     }
 
-    private fun getFilterPokemon() {
+    private fun getFilterPokemon(
+        context: Context,
+    ) {
         CoroutineScope(Dispatchers.IO).launch {
             _stateList.postValue(RequestStateList.Loading)
             try {
@@ -517,11 +536,12 @@ class PokemonViewModel(private val repository: PokemonRepository) : ViewModel() 
                         if (selectedValues.isEmpty()) {
                             true
                         } else {
+                            context.getString(R.string.ability)
                             when (key) {
-                                "type" -> pokemonWithDetails.types.any { it.typeName in selectedValues }
-                                "ability" -> pokemonWithDetails.abilities.any { it.name in selectedValues }
-                                "color" -> pokemonWithDetails.pokemon.color in selectedValues
-                                "habitat" -> pokemonWithDetails.pokemon.habitat in selectedValues
+                                context.getString(R.string.type) -> pokemonWithDetails.types.any { it.typeName in selectedValues }
+                                context.getString(R.string.ability) -> pokemonWithDetails.abilities.any { it.name in selectedValues }
+                                context.getString(R.string.color) -> pokemonWithDetails.pokemon.color in selectedValues
+                                context.getString(R.string.habitat) -> pokemonWithDetails.pokemon.habitat in selectedValues
                                 else -> true
                             }
                         }

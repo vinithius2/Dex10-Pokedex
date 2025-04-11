@@ -116,4 +116,49 @@ Je l\'utilise et je le recommande vivement! 😍</string>
     <string name="know_this_first">Nous aimerions que vous sachiez ceci en premier</string>
     <string name="ok">Ok</string>
     <string name="cancel">Annuler</string>
+
+    <!-- FILTER -->
+    <string name="type">Type</string>
+    <string name="ability">Capacité</string>
+    <string name="color">Couleur</string>
+    <string name="habitat">Habitat</string>
+
+    <!-- STATS -->
+    <string name="hp">Hp</string>
+    <string name="attack">Attaque</string>
+    <string name="defense">Défense</string>
+    <string name="special_attack">Attaque spéciale</string>
+    <string name="special_defense">Défense spéciale</string>
+    <string name="speed">Vitesse</string>
+
+    <!-- Habitat -->
+    <string name="cave">Caverne</string>
+    <string name="forest">Forêt</string>
+    <string name="grassland">Prairie</string>
+    <string name="mountain">Montagne</string>
+    <string name="rare">Rare</string>
+    <string name="rough_terrain">Terrain accidenté</string>
+    <string name="sea">Mer</string>
+    <string name="urban">Urbain</string>
+    <string name="waters_edge">Rivage</string>
+
+    <!-- TYPE -->
+    <string name="bug">Insecte</string>
+    <string name="dark">Sombre</string>
+    <string name="dragon">Dragon</string>
+    <string name="electric">Électrique</string>
+    <string name="fairy">Fée</string>
+    <string name="fighting">Combat</string>
+    <string name="fire">Feu</string>
+    <string name="flying">Volant</string>
+    <string name="ghost">Fantôme</string>
+    <string name="grass">Plante</string>
+    <string name="ground">Sol</string>
+    <string name="ice">Glace</string>
+    <string name="poison">Poison</string>
+    <string name="psychic">Psychique</string>
+    <string name="rock">Roche</string>
+    <string name="steel">Acier</string>
+    <string name="water">Eau</string>
+    <string name="unknow">Inconnu</string>
 </resources>

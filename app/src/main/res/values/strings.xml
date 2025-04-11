@@ -114,4 +114,52 @@
     <string name="know_this_first">We\'d like you to know this first</string>
     <string name="ok">Ok</string>
     <string name="cancel">Cancel</string>
+
+    <!-- FILTER -->
+    <string name="type">Type</string>
+    <string name="ability">Ability</string>
+    <string name="color">Color</string>
+    <string name="habitat">Habitat</string>
+
+    <!-- STATS -->
+
+    <string name="hp">Hp</string>
+    <string name="attack">Attack</string>
+    <string name="defense">Defense</string>
+    <string name="special_attack">Special attack</string>
+    <string name="special_defense">Special defense</string>
+    <string name="speed">Speed</string>
+
+    <!-- Habitat -->
+
+    <string name="cave">Cave</string>
+    <string name="forest">Forest</string>
+    <string name="grassland">Grassland</string>
+    <string name="mountain">Mountain</string>
+    <string name="rare">Rare</string>
+    <string name="rough_terrain">Rough Terrain</string>
+    <string name="sea">Sea</string>
+    <string name="urban">Urban</string>
+    <string name="waters_edge">Waters Edge</string>
+
+    <!-- TYPE -->
+
+    <string name="bug">Bug</string>
+    <string name="dark">Dark</string>
+    <string name="dragon">Dragon</string>
+    <string name="electric">Electric</string>
+    <string name="fairy">Fairy</string>
+    <string name="fighting">Fighting</string>
+    <string name="fire">Fire</string>
+    <string name="flying">Flying</string>
+    <string name="ghost">Ghost</string>
+    <string name="grass">Grass</string>
+    <string name="ground">Ground</string>
+    <string name="ice">Ice</string>
+    <string name="poison">Poison</string>
+    <string name="psychic">Psychic</string>
+    <string name="rock">Rock</string>
+    <string name="steel">Steel</string>
+    <string name="water">Water</string>
+    <string name="unknow">Unknown</string>
 </resources>

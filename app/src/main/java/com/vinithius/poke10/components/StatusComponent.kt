@@ -101,10 +101,10 @@ fun LoadingPokemonList() {
 @Composable
 fun GetFilterLoading() {
     val filterMap = mapOf(
-        "type" to mutableStateMapOf(),
-        "ability" to mutableStateMapOf(),
-        "color" to mutableStateMapOf(),
-        "habitat" to mutableStateMapOf<String, Boolean>(),
+        stringResource(R.string.type) to mutableStateMapOf(),
+        stringResource(R.string.ability) to mutableStateMapOf(),
+        stringResource(R.string.color) to mutableStateMapOf(),
+        stringResource(R.string.habitat) to mutableStateMapOf<String, Boolean>(),
     )
     val filterList = mutableListOf<String>().apply {
         add("first")

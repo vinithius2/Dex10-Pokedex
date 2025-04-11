@@ -467,7 +467,7 @@ private fun GetTopBar(
                             value = searchQuery,
                             onValueChange = {
                                 searchQuery = it
-                                viewModel.getPokemonSearch(searchQuery)
+                                viewModel.getPokemonSearch(searchQuery, context)
                             },
                             placeholder = {
                                 Text(
@@ -490,7 +490,7 @@ private fun GetTopBar(
                             trailingIcon = {
                                 IconButton(onClick = {
                                     searchQuery = String()
-                                    viewModel.getPokemonSearch(searchQuery)
+                                    viewModel.getPokemonSearch(searchQuery, context)
                                     isSearchActive = false
                                 }) {
                                     Icon(
@@ -583,7 +583,7 @@ private fun AppMenuPageList(
     var expanded by remember { mutableStateOf(false) }
     IconButton(onClick = {
         activity?.trackButtonClick("Menu toolbar: favorites -> ${favoriteFilter.not()}")
-        viewModel.getPokemonFavoriteList(favoriteFilter.not())
+        viewModel.getPokemonFavoriteList(favoriteFilter.not(), context)
     }) {
         Icon(
             imageVector = if (favoriteFilter) Icons.Default.Favorite else Icons.Default.FavoriteBorder,

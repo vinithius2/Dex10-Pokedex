@@ -114,4 +114,49 @@ Eu uso e recomendo demais! 😍</string>
     <string name="know_this_first">Gostaríamos que você soubesse isto primeiro</string>
     <string name="ok">Ok</string>
     <string name="cancel">Cancelar</string>
+
+    <!-- FILTER -->
+    <string name="type">Tipo</string>
+    <string name="ability">Habilidade</string>
+    <string name="color">Cor</string>
+    <string name="habitat">Habitat</string>
+
+    <!-- STATS -->
+    <string name="hp">Hp</string>
+    <string name="attack">Ataque</string>
+    <string name="defense">Defesa</string>
+    <string name="special_attack">Ataque especial</string>
+    <string name="special_defense">Defesa especial</string>
+    <string name="speed">Velocidade</string>
+
+    <!-- Habitat -->
+    <string name="cave">Caverna</string>
+    <string name="forest">Floresta</string>
+    <string name="grassland">Pastagem</string>
+    <string name="mountain">Montanha</string>
+    <string name="rare">Raro</string>
+    <string name="rough_terrain">Terreno acidentado</string>
+    <string name="sea">Mar</string>
+    <string name="urban">Urbano</string>
+    <string name="waters_edge">Beira d\'água</string>
+
+    <!-- TYPE -->
+    <string name="bug">Inseto</string>
+    <string name="dark">Sombrio</string>
+    <string name="dragon">Dragão</string>
+    <string name="electric">Elétrico</string>
+    <string name="fairy">Fada</string>
+    <string name="fighting">Luta</string>
+    <string name="fire">Fogo</string>
+    <string name="flying">Voador</string>
+    <string name="ghost">Fantasma</string>
+    <string name="grass">Planta</string>
+    <string name="ground">Terra</string>
+    <string name="ice">Gelo</string>
+    <string name="poison">Veneno</string>
+    <string name="psychic">Psíquico</string>
+    <string name="rock">Pedra</string>
+    <string name="steel">Aço</string>
+    <string name="water">Água</string>
+    <string name="unknow">Desconhecido</string>
 </resources>
