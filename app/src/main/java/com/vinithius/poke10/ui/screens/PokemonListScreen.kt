@@ -143,17 +143,19 @@ fun SharedTransitionScope.PokemonListScreen(
     val activity = getActivity()
     val context = LocalContext.current
     SetAnalyticScreenName()
+
+    val pokemonItems by viewModel.pokemonList.observeAsState(emptyList())
+    val isFavoriteFilter by viewModel.isFavoriteFilter.observeAsState(false)
+    val isRewarded by viewModel.isRewarded.observeAsState(true)
+    val sharedPreferences = context.getSharedPreferences("pokemon_prefs", Context.MODE_PRIVATE)
+    val listState = rememberSaveable(saver = LazyListState.Saver) { LazyListState() }
+
     LaunchedEffect(Unit) {
-        if (viewModel.pokemonList.value == null || viewModel.pokemonList.value?.isEmpty() == true) {
+        if (pokemonItems.isEmpty()) {
             viewModel.getPokemonList(context)
         }
         viewModel.setPokemonColor(null)
     }
-    val listState = rememberSaveable(saver = LazyListState.Saver) { LazyListState() }
-    val pokemonItems by viewModel.pokemonList.observeAsState(emptyList())
-    val isFavoriteFilter by viewModel.isFavoriteFilter.observeAsState(false)
-    val sharedPreferences = context.getSharedPreferences("pokemon_prefs", Context.MODE_PRIVATE)
-    val isRewarded by viewModel.isRewarded.observeAsState(true)
 
     Column(
         modifier = Modifier.fillMaxSize()
@@ -179,6 +181,7 @@ fun SharedTransitionScope.PokemonListScreen(
                 if (pokemonItems.isNotEmpty()) {
                     val pokemonOfTheDayName =
                         sharedPreferences.getString("pokemon_of_the_day", null)
+
                     LazyColumn(state = listState) {
                         itemsIndexed(
                             items = pokemonItems,
@@ -186,6 +189,7 @@ fun SharedTransitionScope.PokemonListScreen(
                         ) { _, pokemonData ->
                             var isVisible by remember { mutableStateOf(true) }
                             val choiceOfTheDay = pokemonOfTheDayName == pokemonData.pokemon.name
+
                             AnimatedVisibility(
                                 visible = isVisible,
                                 exit = scaleOut(animationSpec = tween(durationMillis = 300))
@@ -203,34 +207,20 @@ fun SharedTransitionScope.PokemonListScreen(
                                     choiceOfTheDayStatus = choiceOfTheDay,
                                     onClickDetail = { id, name, color, choiceOfTheDayStatus ->
                                         if (choiceOfTheDay) {
-                                            if (isRewarded) {
-                                                with(viewModel) {
-                                                    adUnitIdChoiceOfTheDayRewardedShow(
+                                            with(viewModel) {
+                                                if (isRewarded) {
+                                                    adUnitIdChoiceOfTheDayRewardedShow(choiceOfTheDayStatus)
+                                                } else {
+                                                    adUnitIdChoiceOfTheDayInterstitialShow(choiceOfTheDayStatus)
+                                                }
+                                                setAdDataToDetails(
+                                                    PokemonViewModel.AdData(
+                                                        id,
+                                                        name,
+                                                        color,
                                                         choiceOfTheDayStatus
                                                     )
-                                                    setAdDataToDetails(
-                                                        PokemonViewModel.AdData(
-                                                            id,
-                                                            name,
-                                                            color,
-                                                            choiceOfTheDayStatus
-                                                        )
-                                                    )
-                                                }
-                                            } else {
-                                                with(viewModel) {
-                                                    adUnitIdChoiceOfTheDayInterstitialShow(
-                                                        choiceOfTheDayStatus
-                                                    )
-                                                    setAdDataToDetails(
-                                                        PokemonViewModel.AdData(
-                                                            id,
-                                                            name,
-                                                            color,
-                                                            choiceOfTheDayStatus
-                                                        )
-                                                    )
-                                                }
+                                                )
                                             }
                                         } else {
                                             goToDetails(
@@ -245,7 +235,6 @@ fun SharedTransitionScope.PokemonListScreen(
                                         }
                                     },
                                     onClickFavorite = { pokemonFavorite ->
-                                        pokemonFavorite.pokemon.name
                                         activity?.trackButtonClick("Click favorite item list: ${pokemonFavorite.pokemon.name}")
                                         viewModel.setFavorite(pokemonFavorite.pokemon.id)
                                     }

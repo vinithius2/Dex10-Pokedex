@@ -6,6 +6,7 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -89,14 +90,21 @@ import com.vinithius.poke10.ui.theme.ThemePoke10
 import com.vinithius.poke10.ui.viewmodel.PokemonViewModel
 import com.vinithius.poke10.ui.viewmodel.RequestStateDetail
 import org.koin.androidx.compose.getViewModel
+import org.koin.androidx.viewmodel.ext.android.viewModel
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 class MainActivity : ComponentActivity() {
 
     private lateinit var analytics: FirebaseAnalytics
+    private val viewModel: PokemonViewModel by viewModel()
+    private lateinit var sharedPreferences: SharedPreferences
 
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        sharedPreferences = getSharedPreferences("pokemon_prefs", MODE_PRIVATE)
         setContent {
             ThemePoke10 {
                 MainScreen(
@@ -108,6 +116,15 @@ class MainActivity : ComponentActivity() {
         MobileAds.initialize(this@MainActivity)
         requestNotificationPermission()
         pushNotification()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        val lastSelectionDate = sharedPreferences.getString("last_selection_date", null)
+        val currentDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+        lastSelectionDate?.takeIf { it != currentDate }?.run {
+            viewModel.getPokemonList(this@MainActivity)
+        }
     }
 
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
@@ -178,7 +195,6 @@ private fun GetAdUnitId(viewModel: PokemonViewModel = getViewModel()) {
         .addOnCompleteListener { task ->
             if (task.isSuccessful) {
                 // Ads
-
                 val adUnitIdList = remoteConfig.getString("adUnitId_list")
                 val adUnitIdDetails = remoteConfig.getString("adUnitId_details")
                 val isRewarded = remoteConfig.getBoolean("isRewarded")
@@ -186,21 +202,19 @@ private fun GetAdUnitId(viewModel: PokemonViewModel = getViewModel()) {
                     remoteConfig.getString("adUnitId_choiceOfTheDay_interstitial")
                 val adUnitIdChoiceOfTheDayRewarded =
                     remoteConfig.getString("adUnitId_choiceOfTheDay_rewarded")
-
+                // Viewmodel set
                 viewModel.setAdUnitIdList(adUnitIdList)
                 viewModel.setAdUnitIdDetails(adUnitIdDetails)
                 viewModel.setIsRewarded(isRewarded)
                 viewModel.setAdUnitIdChoiceOfTheDayInterstitial(adUnitIdChoiceOfTheDayInterstitial)
                 viewModel.setAdUnitIdChoiceOfTheDayRewarded(adUnitIdChoiceOfTheDayRewarded)
-
                 // Social media
-
                 val facebookUrl = remoteConfig.getString("facebook_url")
                 val instagranUrl = remoteConfig.getString("instagran_url")
                 val redditUrl = remoteConfig.getString("reddit_url")
                 val googleForm = remoteConfig.getString("google_form")
                 val paypalId = remoteConfig.getString("paypal_id")
-
+                // Viewmodel set
                 viewModel.setFacebookUrl(facebookUrl)
                 viewModel.setInstagranUrl(instagranUrl)
                 viewModel.setRedditUrl(redditUrl)

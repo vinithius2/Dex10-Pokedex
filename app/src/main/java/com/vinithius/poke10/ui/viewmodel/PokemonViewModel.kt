@@ -317,15 +317,11 @@ class PokemonViewModel(private val repository: PokemonRepository) : ViewModel() 
                 ) ?: emptyList()
 
 
-                // Atualizar a lista com o Pokémon do dia
+                // Update the list with the Pokémon of the day
                 val updatedList = updatePokemonOfTheDay(context, result)
-
                 _pokemonListBackup.postValue(updatedList)
-
-                if (_pokemonList.value == null) {
-                    _pokemonList.postValue(updatedList)
-                    makeFilter(updatedList)
-                }
+                _pokemonList.postValue(updatedList)
+                makeFilter(updatedList)
 
                 _stateList.postValue(RequestStateList.Success)
             } catch (e: Exception) {

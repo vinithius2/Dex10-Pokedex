@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Poke10</string>
+    <string name="loading">Chargement</string>
+    <string name="is_general_error">Oups, une erreur s\'est produite!</string>
+    <string name="reloading">Rechargement</string>
+    <string name="pikachu_sad">Pikachu Triste</string>
+    <string name="pikachu">Pikachu</string>
+    <string name="unknown">Inconnu</string>
+    <string name="capture_rate">Taux de capture:</string>
+    <string name="shape">Forme:</string>
+    <string name="base_exp">Exp. de base:</string>
+    <string name="generation">Génération:</string>
+    <string name="ico_mythical">Icône mythique</string>
+    <string name="is_a_baby">C\'EST UN BÉBÉ!</string>
+    <string name="ico_left">Icône de gauche</string>
+    <string name="title_encounters">Rencontres</string>
+    <string name="arrow">Flèche</string>
+    <string name="unhidden">Non caché</string>
+    <string name="hidden">Caché</string>
+    <string name="title_abilities">Capacités</string>
+    <string name="ico_type">Icône type</string>
+    <string name="title_damage">Dégâts du type %1$s</string>
+    <string name="pokemon_evolution">Évolution du Pokémon</string>
+    <string name="ico_status_damage">Icône d\'état des dégâts</string>
+    <string name="title_effective_damage_from">Dégâts efficaces provenant de</string>
+    <string name="title_effective_damage_to">Dégâts efficaces vers</string>
+    <string name="title_habitat">Habitat</string>
+    <string name="title_ineffective_damage_from">Dégâts inefficaces provenant de</string>
+    <string name="title_ineffective_damage_to">Dégâts inefficaces vers</string>
+    <string name="title_no_damage_from">Aucun dégât de</string>
+    <string name="title_no_damage_to">Aucun dégât à</string>
+    <string name="title_text_entries">Entrées</string>
+    <string name="title_egg_groups">Groupes d\'œufs</string>
+    <string name="description">description</string>
+    <string name="kg_lbs" translatable="false">%1$s kg (%2$s lbs)</string>
+    <string name="m_inch" translatable="false">%1$s m (%2$s″)</string>
+    <string name="kg_lbs_loading" translatable="false">… kg (… lbs)</string>
+    <string name="m_inch_loading" translatable="false">… m (…″)</string>
+    <string name="toast_baby">C\'est un Pokémon bébé!</string>
+    <string name="toast_mythical">C\'est un Pokémon mythique!</string>
+    <string name="toast_legendary">C\'est un Pokémon légendaire!</string>
+    <string name="close">Fermer</string>
+    <string name="search">Recherche</string>
+    <string name="donate_to_developer">Faire un don au développeur ❤️</string>
+    <string name="suggestions_or_bugs">Suggestions ou bugs</string>
+    <string name="feedback_and_support">Retour d\'informations et support</string>
+    <string name="social_media">Réseaux sociaux</string>
+    <string name="rate_app">Noter l\'application ★★★★★</string>
+    <string name="share_app">Partager l\'application</string>
+    <string name="interaction">Interaction</string>
+    <string name="changelog_whats_new">Journal des modifications (Nouveautés)</string>
+    <string name="night_mode">Mode nuit:</string>
+    <string name="enabled">Activé</string>
+    <string name="disabled">Désactivé</string>
+    <string name="settings">Paramètres</string>
+    <string name="favorite">Favori</string>
+    <string name="clear_search">Effacer la recherche</string>
+    <string name="search_icon">Icône de recherche</string>
+    <string name="more_options">Plus d\'options</string>
+    <string name="loading_three_dots">Chargement…</string>
+    <string name="three_dots" translatable="false">…</string>
+    <string name="clear_all">Tout effacer</string>
+    <string name="no_pokemons">Hé, aucun Pokémon!</string>
+    <string name="try_again">Réessayer</string>
+    <string name="empty_list">Liste vide</string>
+    <string name="dont_close_app">Veuillez ne pas fermer l\'application, et essayez de ne pas vous endormir, d\'accord?</string>
+    <string name="back">Retour</string>
+    <string name="from">De:</string>
+    <string name="to">À:</string>
+    <string name="no_damage">Aucun dégât</string>
+    <string name="effective_damage">Dégâts efficaces</string>
+    <string name="ineffective_damage">Dégâts inefficaces</string>
+    <string name="damage">Dégâts</string>
+    <string name="encounters">Rencontres</string>
+    <string name="no_data">Aucune donnée</string>
+    <string name="eggs">Œufs</string>
+    <string name="abilities">Capacités</string>
+    <string name="info">Infos</string>
+    <string name="entries">Entrées</string>
+    <string name="no_description_available">Pas de description disponible.</string>
+    <string name="about_abilities_hidden">La capacité du Pokémon sera l\'une de ses capacités non cachées. Les capacités cachées ont été introduites dans la Génération V et sont relativement rares, nécessitant généralement une rencontre spéciale.</string>
+    <string name="share_app_message">Découvrez Poke10! 🧡✨
+Explorez tous les Pokémon, consultez les statistiques, les capacités et les stratégies de combat. Mettez en favoris vos préférés et maîtrisez l\'efficacité des types!
+
+Téléchargez-le dès maintenant:
+📲 %1$s
+
+Je l\'utilise et je le recommande vivement! 😍</string>
+    <string name="share_app_via">Partager l\'application via</string>
+    <string name="instagran">Instagran</string>
+    <string name="facebook">Facebook</string>
+    <string name="reddit">Reddit</string>
+    <string name="jigglypuff_songs">S\'il te plaît, ne t\'endors pas!</string>
+    <string name="title_back_default">Dos</string>
+    <string name="title_back_female">Dos (Femelle)</string>
+    <string name="title_back_shiny">Dos brillant</string>
+    <string name="title_back_shiny_female">Dos brillant (Femelle)</string>
+    <string name="title_front_default">Avant</string>
+    <string name="title_front_female">Avant (Femelle)</string>
+    <string name="title_front_shiny">Avant brillant</string>
+    <string name="title_front_shiny_female">Avant brillant (Femelle)</string>
+    <string name="title_dream_world_front">Dream World - Avant</string>
+    <string name="title_dream_world_back">Dream World - Dos</string>
+    <string name="title_home_front_default">Accueil - Avant</string>
+    <string name="title_home_front_shiny">Accueil - Avant brillant</string>
+    <string name="title_official_artwork">Œuvre officielle</string>
+    <string name="title_showdown_front">Showdown - Avant</string>
+    <string name="title_showdown_back">Showdown - Dos</string>
+    <string name="title_showdown_front_shiny">Showdown - Avant brillant</string>
+    <string name="title_showdown_back_shiny">Showdown - Dos brillant</string>
+    <string name="choice_of_the_day">Choix du jour</string>
+    <string name="ad_message">Lorsque vous appuyez sur le choix du jour, vous devez regarder une publicité pour le débloquer. Chaque choix est disponible uniquement le jour désigné et reste caché jusqu\'à ce qu\'il soit cliqué. En regardant, vous soutenez le développeur pour continuer à améliorer l\'application. Merci!</string>
+
+    <string name="dont_show_again">Ne plus afficher ce message</string>
+    <string name="know_this_first">Nous aimerions que vous sachiez ceci en premier</string>
+    <string name="ok">Ok</string>
+    <string name="cancel">Annuler</string>
+</resources>

@@ -1,0 +1,117 @@
+<resources>
+    <string name="app_name">Poke10</string>
+    <string name="loading">Carregando</string>
+    <string name="is_general_error">Ops, houve um erro!</string>
+    <string name="reloading">Recarregando</string>
+    <string name="pikachu_sad">Pikachu Triste</string>
+    <string name="pikachu">Pikachu</string>
+    <string name="unknown">Desconhecido</string>
+    <string name="capture_rate">Taxa de captura:</string>
+    <string name="shape">Forma:</string>
+    <string name="base_exp">Exp. Base:</string>
+    <string name="generation">Geração:</string>
+    <string name="ico_mythical">Ícone mítico</string>
+    <string name="is_a_baby">É UM BEBÊ!</string>
+    <string name="ico_left">Ícone à esquerda</string>
+    <string name="title_encounters">Encontros</string>
+    <string name="arrow">Seta</string>
+    <string name="unhidden">Desocultado</string>
+    <string name="hidden">Oculto</string>
+    <string name="title_abilities">Habilidades</string>
+    <string name="ico_type">Ícone tipo</string>
+    <string name="title_damage">%1$s dano do tipo</string>
+    <string name="pokemon_evolution">Evolução do Pokémon</string>
+    <string name="ico_status_damage">Ícone status de dano</string>
+    <string name="title_effective_damage_from">Dano efetivo de</string>
+    <string name="title_effective_damage_to">Dano efetivo para</string>
+    <string name="title_habitat">Habitat</string>
+    <string name="title_ineffective_damage_from">Dano ineficaz de</string>
+    <string name="title_ineffective_damage_to">Dano ineficaz para</string>
+    <string name="title_no_damage_from">Sem dano de</string>
+    <string name="title_no_damage_to">Sem dano para</string>
+    <string name="title_text_entries">Registros</string>
+    <string name="title_egg_groups">Grupos de ovos</string>
+    <string name="description">descrição</string>
+    <string name="kg_lbs" translatable="false">"%1$s kg (%2$s lbs)"</string>
+    <string name="m_inch" translatable="false">"%1$s m (%2$s″)"</string>
+    <string name="kg_lbs_loading" translatable="false">"… kg (… lbs)"</string>
+    <string name="m_inch_loading" translatable="false">"… m (…″)"</string>
+    <string name="toast_baby">Este é um Pokémon bebê!</string>
+    <string name="toast_mythical">Este é um Pokémon mítico!</string>
+    <string name="toast_legendary">Este é um Pokémon lendário!</string>
+    <string name="close">Fechar</string>
+    <string name="search">Pesquisar</string>
+    <string name="donate_to_developer">Doar para o desenvolvedor ❤️</string>
+    <string name="suggestions_or_bugs">Sugestões ou bugs</string>
+    <string name="feedback_and_support">Feedback e suporte</string>
+    <string name="social_media">Mídias sociais</string>
+    <string name="rate_app">Avaliar o app ★★★★★</string>
+    <string name="share_app">Compartilhar app</string>
+    <string name="interaction">Interação</string>
+    <string name="changelog_whats_new">Histórico de alterações (Novidades)</string>
+    <string name="night_mode">Modo noturno:</string>
+    <string name="enabled">Ativado</string>
+    <string name="disabled">Desativado</string>
+    <string name="settings">Configurações</string>
+    <string name="favorite">Favorito</string>
+    <string name="clear_search">Limpar pesquisa</string>
+    <string name="search_icon">Ícone de pesquisa</string>
+    <string name="more_options">Mais opções</string>
+    <string name="loading_three_dots">Carregando…</string>
+    <string name="three_dots" translatable="false">…</string>
+    <string name="clear_all">Limpar tudo</string>
+    <string name="no_pokemons">Ei, não há Pokémons!</string>
+    <string name="try_again">Tente novamente</string>
+    <string name="empty_list">Lista vazia</string>
+    <string name="dont_close_app">Por favor, não feche o app e tente não adormecer, ok?</string>
+    <string name="back">Voltar</string>
+    <string name="from">De:</string>
+    <string name="to">Para:</string>
+    <string name="no_damage">Sem dano</string>
+    <string name="effective_damage">Dano efetivo</string>
+    <string name="ineffective_damage">Dano ineficaz</string>
+    <string name="damage">Dano</string>
+    <string name="encounters">Encontros</string>
+    <string name="no_data">Sem dados</string>
+    <string name="eggs">Ovos</string>
+    <string name="abilities">Habilidades</string>
+    <string name="info">Informações</string>
+    <string name="entries">Entradas</string>
+    <string name="no_description_available">Nenhuma descrição disponível.</string>
+    <string name="about_abilities_hidden">A habilidade do Pokémon será uma de suas habilidades não ocultas. Habilidades secretas foram introduzidas na Geração V e são relativamente raras e geralmente requerem algum tipo de encontro especial.</string>
+    <string name="share_app_message">Confira o Poke10! 🧡✨
+Explore todos os Pokémon, veja estatísticas, habilidades e estratégias de batalha. Adicione seus favoritos e domine a eficácia de tipos!
+
+Baixe agora:
+📲 %1$s
+
+Eu uso e recomendo demais! 😍</string>
+    <string name="share_app_via">Compartilhar app via</string>
+    <string name="instagran">Instagran</string>
+    <string name="facebook">Facebook</string>
+    <string name="reddit">Reddit</string>
+    <string name="jigglypuff_songs">Por favor, não durma!</string>
+    <string name="title_back_default">Costas</string>
+    <string name="title_back_female">Costas Femininas</string>
+    <string name="title_back_shiny">Costas Brilhantes</string>
+    <string name="title_back_shiny_female">Costas Brilhantes Femininas</string>
+    <string name="title_front_default">Frente</string>
+    <string name="title_front_female">Frente Feminina</string>
+    <string name="title_front_shiny">Frente Brilhante</string>
+    <string name="title_front_shiny_female">Frente Brilhante Feminina</string>
+    <string name="title_dream_world_front">Dream World - Frente</string>
+    <string name="title_dream_world_back">Dream World - Costas</string>
+    <string name="title_home_front_default">Início - Frente</string>
+    <string name="title_home_front_shiny">Início - Frente Brilhante</string>
+    <string name="title_official_artwork">Arte oficial</string>
+    <string name="title_showdown_front">Showdown - Frente</string>
+    <string name="title_showdown_back">Showdown - Costas</string>
+    <string name="title_showdown_front_shiny">Showdown - Frente Brilhante</string>
+    <string name="title_showdown_back_shiny">Showdown - Costas Brilhantes</string>
+    <string name="choice_of_the_day">Escolha do dia</string>
+    <string name="ad_message">Quando você tocar na escolha do dia, será necessário assistir a um anúncio para desbloqueá-la. Cada escolha está disponível apenas no dia designado e permanece oculta até ser clicada. Ao assistir, você apoia o desenvolvedor a continuar melhorando o app. Obrigado!</string>
+    <string name="dont_show_again">Não mostrar esta mensagem novamente</string>
+    <string name="know_this_first">Gostaríamos que você soubesse isto primeiro</string>
+    <string name="ok">Ok</string>
+    <string name="cancel">Cancelar</string>
+</resources>
