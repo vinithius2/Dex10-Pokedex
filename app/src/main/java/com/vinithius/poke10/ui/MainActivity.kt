@@ -77,6 +77,10 @@ import com.google.android.play.core.review.ReviewManagerFactory
 import com.google.firebase.analytics.FirebaseAnalytics
 import com.google.firebase.installations.FirebaseInstallations
 import com.google.firebase.remoteconfig.FirebaseRemoteConfig
+import com.google.mlkit.common.model.DownloadConditions
+import com.google.mlkit.nl.translate.TranslateLanguage
+import com.google.mlkit.nl.translate.Translation
+import com.google.mlkit.nl.translate.TranslatorOptions
 import com.vinithius.poke10.BuildConfig
 import com.vinithius.poke10.R
 import com.vinithius.poke10.admobbanners.AdManagerInterstitial
@@ -116,6 +120,14 @@ class MainActivity : ComponentActivity() {
         MobileAds.initialize(this@MainActivity)
         requestNotificationPermission()
         pushNotification()
+        downloadTranslationModelIfSupported(
+            onDownloaded = {
+                Log.d("MLKit", "Translation template now available or successfully downloaded.")
+            },
+            onError = {
+                Log.e("MLKit", "Error downloading translation template", it)
+            }
+        )
     }
 
     override fun onResume() {
@@ -180,6 +192,44 @@ class MainActivity : ComponentActivity() {
         val bundle = Bundle()
         bundle.putString(FirebaseAnalytics.Param.SCREEN_NAME, screenName)
         analytics.logEvent(FirebaseAnalytics.Event.SCREEN_VIEW, bundle)
+    }
+
+    /**
+     * Realiza o download do modelo de tradução do inglês para o idioma do dispositivo,
+     * se este for um dos suportados: Português, Espanhol, Francês ou Hindi.
+     *
+     * @param onDownloaded Callback chamado quando o modelo estiver disponível.
+     * @param onError Callback chamado se houver erro no download.
+     */
+    fun downloadTranslationModelIfSupported(
+        onDownloaded: () -> Unit,
+        onError: (Exception) -> Unit
+    ) {
+        val deviceLanguage = Locale.getDefault().language
+        val supportedLanguages = setOf("pt", "es", "fr", "hi")
+
+        if (supportedLanguages.contains(deviceLanguage)) {
+            val options = TranslatorOptions.Builder()
+                .setSourceLanguage(TranslateLanguage.ENGLISH)
+                .setTargetLanguage(deviceLanguage)
+                .build()
+
+            val translator = Translation.getClient(options)
+
+            val conditions = DownloadConditions.Builder()
+                .build()
+
+            translator.downloadModelIfNeeded(conditions)
+                .addOnSuccessListener {
+                    onDownloaded()
+                }
+                .addOnFailureListener { exception ->
+                    onError(exception)
+                }
+        } else {
+            // Ignora se o idioma não for suportado
+            onDownloaded()
+        }
     }
 
     companion object {

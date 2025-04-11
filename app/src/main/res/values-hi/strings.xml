@@ -159,4 +159,6 @@
     <string name="steel">इस्पात</string>
     <string name="water">पानी</string>
     <string name="unknow">अज्ञात</string>
+    <!-- TRANSLATER STATUS -->
+    <string name="loading_translater">पाठ लोड हो रहा है...</string>
 </resources>

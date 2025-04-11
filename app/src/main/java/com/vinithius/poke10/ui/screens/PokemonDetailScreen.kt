@@ -63,7 +63,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.layout.ContentScale
@@ -107,6 +106,7 @@ import com.vinithius.poke10.extension.getListEvolutions
 import com.vinithius.poke10.extension.getSpriteItems
 import com.vinithius.poke10.extension.getStringHabitat
 import com.vinithius.poke10.extension.getStringStat
+import com.vinithius.poke10.extension.translateIfSupported
 import com.vinithius.poke10.ui.MainActivity
 import com.vinithius.poke10.ui.viewmodel.PokemonViewModel
 import com.vinithius.poke10.ui.viewmodel.RequestStateDetail
@@ -193,15 +193,19 @@ fun SharedTransitionScope.PokemonDetailScreen(
         viewModel.getPokemonDetail()
         viewModel.setPokemonColor(pokemonColor)
     }
+
     BackHandler {
         viewModel.setDetailsScreen(false)
         navController?.popBackStack()
     }
+    val context = LocalContext.current
     // Observes
     val pokemonDetail by viewModel.pokemonDetail.observeAsState()
     val choiceOfTheDayStatus by viewModel.choiceOfTheDay.observeAsState(false)
-    val hidePokemonOfTheDayTrigger by viewModel.hidePokemonOfTheDay.observeAsState(false)
     val painter = viewModel.getSharedImage(pokemonId.toString())
+    val loadingShape = stringResource(R.string.three_dots)
+    var shapeName by remember { mutableStateOf(loadingShape) }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -335,11 +339,24 @@ fun SharedTransitionScope.PokemonDetailScreen(
                             Column(
                                 horizontalAlignment = Alignment.CenterHorizontally
                             ) {
+
+                                pokemonDetail?.specie?.shape?.name?.let { data ->
+                                    //shapeName = stringResource(R.string.three_dots)
+                                    data.translateIfSupported(
+                                        onResult = { translatedText ->
+                                            shapeName = translatedText
+                                        },
+                                        onError = { exception ->
+                                            shapeName = data
+                                        }
+                                    )
+                                }
+
                                 Row(horizontalArrangement = Arrangement.spacedBy(2.dp)) {
                                     DefaultFirstCardData(
                                         viewModel = viewModel,
                                         title = stringResource(R.string.shape),
-                                        value = pokemonDetail?.specie?.shape?.name?.capitalize()
+                                        value = shapeName.capitalize()
                                     )
                                 }
                             }
@@ -370,7 +387,7 @@ fun SharedTransitionScope.PokemonDetailScreen(
         PokemonIsABaby()
         PokemonEvolution(navController, pokemonDetail)
         // Tabs
-        TabWithPagerExample(pokemonDetail, viewModel, pokemonColor)
+        TabWithPagerExample(pokemonDetail, viewModel, pokemonColor, context)
     }
 }
 
@@ -378,7 +395,8 @@ fun SharedTransitionScope.PokemonDetailScreen(
 fun TabWithPagerExample(
     pokemonDetail: Pokemon?,
     viewModel: PokemonViewModel = getViewModel(),
-    pokemonColor: String
+    pokemonColor: String,
+    context: Context,
 ) {
     val tabTitles = listOf(
         stringResource(R.string.damage),
@@ -477,7 +495,7 @@ fun TabWithPagerExample(
 
                 4 -> {
                     activity?.trackButtonClick(tabTitles[4])
-                    PokemonEntries(pokemonDetail, viewModel)
+                    PokemonEntries(pokemonDetail, context, viewModel)
                 }
             }
         }
@@ -1409,6 +1427,7 @@ private fun PokemonEncounters(
             GenericBox {
                 if (pokemonDetail?.encounters?.isNotEmpty() == true) {
                     pokemonDetail.encounters?.forEach {
+
                         Row(
                             modifier = Modifier.padding(vertical = 4.dp)
                         ) {
@@ -1426,6 +1445,7 @@ private fun PokemonEncounters(
                                     .padding(8.dp)
                             )
                         }
+
                     }
                 } else {
                     Text(
@@ -1595,8 +1615,11 @@ private fun PokemonAbilities(
 @Composable
 private fun PokemonEntries(
     pokemonDetail: Pokemon?,
-    viewModel: PokemonViewModel = getViewModel()
+    context: Context,
+    viewModel: PokemonViewModel = getViewModel(),
 ) {
+    val loading = stringResource(R.string.loading_translater)
+    var encounterText by remember { mutableStateOf(loading) }
     StateRequest(
         viewModel = viewModel,
         loading = {
@@ -1612,12 +1635,17 @@ private fun PokemonEntries(
             GenericBox {
                 pokemonDetail?.specie?.let { specie ->
                     specie.flavor_text_entries?.let { flavorTextEntries ->
-                        val textList = flavorTextEntries.getFlavorTextForLanguage("en")
-                        textList?.forEach {
-                            Spacer(modifier = Modifier.size(3.dp))
-                            HtmlText(text = it)
-                            Spacer(modifier = Modifier.size(3.dp))
+                        flavorTextEntries.getFlavorTextForLanguage("en")?.run {
+                            translateIfSupported(
+                                onResult = { translatedText ->
+                                    encounterText = translatedText
+                                },
+                                onError = { exception ->
+                                    encounterText = this
+                                }
+                            )
                         }
+                        HtmlText(text = encounterText)
                     }
                 } ?: run {
                     Text(
@@ -1646,7 +1674,12 @@ fun Spanned.toAnnotatedString(): AnnotatedString {
 @Composable
 fun HtmlText(text: String) {
     val spanned = text.getHtmlCompat()
-    Text(text = spanned.toAnnotatedString())
+    Text(
+        text = spanned.toAnnotatedString(),
+        style = MaterialTheme.typography.bodyMedium,
+        modifier = Modifier.padding(8.dp),
+        softWrap = true
+    )
 }
 
 @Composable

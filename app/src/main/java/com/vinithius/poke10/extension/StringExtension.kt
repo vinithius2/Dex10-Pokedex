@@ -7,10 +7,14 @@ import android.text.Html
 import android.text.Spanned
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.stringResource
 import com.google.firebase.crashlytics.FirebaseCrashlytics
+import com.google.mlkit.common.model.DownloadConditions
+import com.google.mlkit.nl.translate.TranslateLanguage
+import com.google.mlkit.nl.translate.Translation
+import com.google.mlkit.nl.translate.TranslatorOptions
 import com.vinithius.poke10.R
 import com.vinithius.poke10.datasource.response.FlavorText
+import java.util.Locale
 import android.graphics.Color as ParseColor
 
 /**
@@ -48,10 +52,17 @@ fun String.getHtmlCompat(): Spanned {
     }
 }
 
-@Composable
-fun List<FlavorText>?.getFlavorTextForLanguage(languageCode: String): List<String>? {
-    return this?.filter { it.language.name == languageCode }?.distinctBy { it.flavor_text }
-        ?.map { item -> "• ${item.flavor_text}" }
+fun List<FlavorText>?.getFlavorTextForLanguage(languageCode: String): String? {
+    return this
+        ?.filter { it.language.name == languageCode }
+        ?.distinctBy { it.flavor_text }
+        ?.joinToString(separator = "\n\n") { item ->
+            val cleanedText = item.flavor_text
+                .replace(Regex("[\r\n]+"), " ") // remove qualquer quebra de linha
+                .replace("\\s+".toRegex(), " ") // remove espaços extras
+                .trim()
+            "• $cleanedText"
+        }
 }
 
 fun String.getStringStat(context: Context): String {
@@ -231,3 +242,39 @@ fun String.getColorByString(): Color {
         Color.Black
     }
 }
+
+/**
+ * Traduz esta String do inglês para o idioma passado, se for suportado.
+ * Requer que o modelo já tenha sido baixado previamente (ex: na MainActivity).
+ *
+ * @param languageCode Código do idioma de destino (ex.: "pt", "es", "fr", "hi")
+ * @param onResult Resultado da tradução, ou o texto original se idioma não suportado
+ * @param onError Callback de erro, se a tradução falhar
+ */
+fun String.translateIfSupported(
+    languageCode: String = Locale.getDefault().language,
+    onResult: (String) -> Unit,
+    onError: (Exception) -> Unit
+) {
+    val supportedLanguages = setOf("pt", "es", "fr", "hi")
+
+    if (supportedLanguages.contains(languageCode)) {
+        val options = TranslatorOptions.Builder()
+            .setSourceLanguage(TranslateLanguage.ENGLISH)
+            .setTargetLanguage(languageCode)
+            .build()
+
+        val translator = Translation.getClient(options)
+
+        translator.translate(this)
+            .addOnSuccessListener { translatedText ->
+                onResult(translatedText)
+            }
+            .addOnFailureListener { exception ->
+                onError(exception)
+            }
+    } else {
+        onResult(this)
+    }
+}
+

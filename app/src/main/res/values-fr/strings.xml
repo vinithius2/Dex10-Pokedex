@@ -161,4 +161,6 @@ Je l\'utilise et je le recommande vivement! 😍</string>
     <string name="steel">Acier</string>
     <string name="water">Eau</string>
     <string name="unknow">Inconnu</string>
+    <!-- TRANSLATER STATUS -->
+    <string name="loading_translater">Chargement du texte...</string>
 </resources>

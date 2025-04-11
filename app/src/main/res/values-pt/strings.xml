@@ -159,4 +159,6 @@ Eu uso e recomendo demais! 😍</string>
     <string name="steel">Aço</string>
     <string name="water">Água</string>
     <string name="unknow">Desconhecido</string>
+    <!-- TRANSLATER STATUS -->
+    <string name="loading_translater">Carregando texto…</string>
 </resources>

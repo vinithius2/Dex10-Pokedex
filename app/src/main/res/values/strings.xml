@@ -162,4 +162,6 @@
     <string name="steel">Steel</string>
     <string name="water">Water</string>
     <string name="unknow">Unknown</string>
+    <!-- TRANSLATER STATUS -->
+    <string name="loading_translater">Loading text…</string>
 </resources>

@@ -159,4 +159,6 @@ Descárgalo ahora:
     <string name="steel">Acero</string>
     <string name="water">Agua</string>
     <string name="unknow">Desconocido</string>
+    <!-- TRANSLATER STATUS -->
+    <string name="loading_translater">Cargando texto...</string>
 </resources>
