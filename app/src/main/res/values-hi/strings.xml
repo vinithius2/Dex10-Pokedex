@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Poke10</string>
+    <string name="app_name">Poke10x</string>
     <string name="loading">लोड हो रहा है</string>
     <string name="is_general_error">ओह, एक त्रुटि हुई!</string>
     <string name="reloading">फिर से लोड हो रहा है</string>
@@ -160,5 +160,5 @@
     <string name="water">पानी</string>
     <string name="unknow">अज्ञात</string>
     <!-- TRANSLATER STATUS -->
-    <string name="loading_translater">पाठ लोड हो रहा है...</string>
+    <string name="loading_translate">पाठ लोड हो रहा है…</string>
 </resources>

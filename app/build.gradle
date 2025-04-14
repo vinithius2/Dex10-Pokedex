@@ -11,11 +11,11 @@ def apikeyProperties = new Properties()
 apikeyProperties.load(new FileInputStream(apikeyPropertiesFile))
 
 android {
-    namespace "com.vinithius.poke10"
-    compileSdk 34
+    namespace "com.vinithius.poke10x"
+    compileSdk 35
 
     defaultConfig {
-        applicationId "com.vinithius.poke10"
+        applicationId "com.vinithius.poke10x"
         minSdk 21
         targetSdk 34
         versionCode 9

@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Poke10</string>
+    <string name="app_name">Poke10x</string>
     <string name="loading">Carregando</string>
     <string name="is_general_error">Ops, houve um erro!</string>
     <string name="reloading">Recarregando</string>
@@ -160,5 +160,5 @@ Eu uso e recomendo demais! 😍</string>
     <string name="water">Água</string>
     <string name="unknow">Desconhecido</string>
     <!-- TRANSLATER STATUS -->
-    <string name="loading_translater">Carregando texto…</string>
+    <string name="loading_translate">Carregando texto…</string>
 </resources>
