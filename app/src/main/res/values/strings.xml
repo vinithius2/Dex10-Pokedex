@@ -164,4 +164,35 @@
     <string name="unknow">Unknown</string>
     <!-- TRANSLATER STATUS -->
     <string name="loading_translate">Loading text…</string>
+    <!-- SHAPES -->
+    <string name="shape_ball">Ball</string>
+    <string name="shape_squiggle">Squiggle</string>
+    <string name="shape_fish">Fish</string>
+    <string name="shape_arms">Arms</string>
+    <string name="shape_blob">Blob</string>
+    <string name="shape_upright">Upright</string>
+    <string name="shape_legs">Legs</string>
+    <string name="shape_quadruped">Quadruped</string>
+    <string name="shape_wings">Wings</string>
+    <string name="shape_tentacles">Tentacles</string>
+    <string name="shape_heads">Heads</string>
+    <string name="shape_humanoid">Humanoid</string>
+    <string name="shape_bug_wings">Bug Wings</string>
+    <string name="shape_armor">Armor</string>
+    <!-- EGGS GROUPS -->
+    <string name="egg_group_monster">Monster</string>
+    <string name="egg_group_water1">Water 1</string>
+    <string name="egg_group_bug">Bug</string>
+    <string name="egg_group_flying">Flying</string>
+    <string name="egg_group_ground">Ground</string>
+    <string name="egg_group_fairy">Fairy</string>
+    <string name="egg_group_plant">Plant</string>
+    <string name="egg_group_humanshape">Humanshape</string>
+    <string name="egg_group_water3">Water 3</string>
+    <string name="egg_group_mineral">Mineral</string>
+    <string name="egg_group_indeterminate">Indeterminate</string>
+    <string name="egg_group_water2">Water 2</string>
+    <string name="egg_group_ditto">Ditto</string>
+    <string name="egg_group_dragon">Dragon</string>
+    <string name="egg_group_no_eggs">No Eggs</string>
 </resources>

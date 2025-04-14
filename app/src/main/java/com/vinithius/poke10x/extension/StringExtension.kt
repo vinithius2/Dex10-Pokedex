@@ -63,6 +63,47 @@ fun List<FlavorText>?.getFlavorTextForLanguage(languageCode: String): String? {
         }
 }
 
+fun String.getStringEggGroup(context: Context): String {
+    val eggGroupMap = mapOf(
+        "monster" to context.getString(R.string.egg_group_monster),
+        "water1" to context.getString(R.string.egg_group_water1),
+        "bug" to context.getString(R.string.egg_group_bug),
+        "flying" to context.getString(R.string.egg_group_flying),
+        "ground" to context.getString(R.string.egg_group_ground),
+        "fairy" to context.getString(R.string.egg_group_fairy),
+        "plant" to context.getString(R.string.egg_group_plant),
+        "humanshape" to context.getString(R.string.egg_group_humanshape),
+        "water3" to context.getString(R.string.egg_group_water3),
+        "mineral" to context.getString(R.string.egg_group_mineral),
+        "indeterminate" to context.getString(R.string.egg_group_indeterminate),
+        "water2" to context.getString(R.string.egg_group_water2),
+        "ditto" to context.getString(R.string.egg_group_ditto),
+        "dragon" to context.getString(R.string.egg_group_dragon),
+        "no-eggs" to context.getString(R.string.egg_group_no_eggs)
+    )
+    return eggGroupMap[this.lowercase()] ?: context.getString(R.string.unknow)
+}
+
+fun String.getStringShape(context: Context): String {
+    val shapeMap = mapOf(
+        "ball" to context.getString(R.string.shape_ball),
+        "squiggle" to context.getString(R.string.shape_squiggle),
+        "fish" to context.getString(R.string.shape_fish),
+        "arms" to context.getString(R.string.shape_arms),
+        "blob" to context.getString(R.string.shape_blob),
+        "upright" to context.getString(R.string.shape_upright),
+        "legs" to context.getString(R.string.shape_legs),
+        "quadruped" to context.getString(R.string.shape_quadruped),
+        "wings" to context.getString(R.string.shape_wings),
+        "tentacles" to context.getString(R.string.shape_tentacles),
+        "heads" to context.getString(R.string.shape_heads),
+        "humanoid" to context.getString(R.string.shape_humanoid),
+        "bug-wings" to context.getString(R.string.shape_bug_wings),
+        "armor" to context.getString(R.string.shape_armor)
+    )
+    return shapeMap[this.lowercase()] ?: context.getString(R.string.unknow)
+}
+
 fun String.getStringStat(context: Context): String {
     val stringMap = mapOf(
         "hp" to context.getString(R.string.hp),

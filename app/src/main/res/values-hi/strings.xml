@@ -161,4 +161,35 @@
     <string name="unknow">अज्ञात</string>
     <!-- TRANSLATER STATUS -->
     <string name="loading_translate">पाठ लोड हो रहा है…</string>
+    <!-- SHAPES -->
+    <string name="shape_ball">गेंद</string>
+    <string name="shape_squiggle">लहरदार</string>
+    <string name="shape_fish">मछली</string>
+    <string name="shape_arms">बाहें</string>
+    <string name="shape_blob">गांठ</string>
+    <string name="shape_upright">सीधा</string>
+    <string name="shape_legs">पैर</string>
+    <string name="shape_quadruped">चौपाया</string>
+    <string name="shape_wings">पंख</string>
+    <string name="shape_tentacles">सूंड़</string>
+    <string name="shape_heads">सिर</string>
+    <string name="shape_humanoid">मानवाकार</string>
+    <string name="shape_bug_wings">कीट पंख</string>
+    <string name="shape_armor">बख़्तर</string>
+    <!-- EGGS GROUPS -->
+    <string name="egg_group_monster">राक्षस</string>
+    <string name="egg_group_water1">पानी 1</string>
+    <string name="egg_group_bug">कीट</string>
+    <string name="egg_group_flying">उड़ने वाला</string>
+    <string name="egg_group_ground">जमीन</string>
+    <string name="egg_group_fairy">परी</string>
+    <string name="egg_group_plant">पौधा</string>
+    <string name="egg_group_humanshape">मानव आकार</string>
+    <string name="egg_group_water3">पानी 3</string>
+    <string name="egg_group_mineral">खनिज</string>
+    <string name="egg_group_indeterminate">अनिर्धारित</string>
+    <string name="egg_group_water2">पानी 2</string>
+    <string name="egg_group_ditto">डिट्टो</string>
+    <string name="egg_group_dragon">ड्रैगन</string>
+    <string name="egg_group_no_eggs">कोई अंडा नहीं</string>
 </resources>

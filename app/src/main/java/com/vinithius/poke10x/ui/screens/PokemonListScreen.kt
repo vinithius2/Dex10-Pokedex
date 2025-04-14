@@ -87,6 +87,7 @@ import com.vinithius.poke10x.datasource.database.Type
 import com.vinithius.poke10x.extension.capitalize
 import com.vinithius.poke10x.extension.getDrawableHabitat
 import com.vinithius.poke10x.extension.getParseColorByString
+import com.vinithius.poke10x.extension.getStringStat
 import com.vinithius.poke10x.ui.MainActivity
 import com.vinithius.poke10x.ui.viewmodel.PokemonViewModel
 import com.vinithius.poke10x.ui.viewmodel.RequestStateList
@@ -553,6 +554,7 @@ fun StatComponent(
     choiceOfTheDayStatus: Boolean = false,
     hidePokemonOfTheDay: Boolean = false
 ) {
+    val context = LocalContext.current
     Column(
         modifier = Modifier.padding(start = 8.dp)
     ) {
@@ -561,7 +563,7 @@ fun StatComponent(
             verticalAlignment = Alignment.CenterVertically
         ) {
             pokemonData.stats.take(3).forEachIndexed { index, stat ->
-                var result = "${stat.name.value.capitalize()}: ${stat.baseStat}"
+                var result = "${stat.name.value.getStringStat(context)}: ${stat.baseStat}"
                 if (hidePokemonOfTheDay && choiceOfTheDayStatus) {
                     result = "${stat.name.value.capitalize()}: ??"
                 }

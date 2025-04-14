@@ -104,7 +104,9 @@ import com.vinithius.poke10x.extension.getFlavorTextForLanguage
 import com.vinithius.poke10x.extension.getHtmlCompat
 import com.vinithius.poke10x.extension.getListEvolutions
 import com.vinithius.poke10x.extension.getSpriteItems
+import com.vinithius.poke10x.extension.getStringEggGroup
 import com.vinithius.poke10x.extension.getStringHabitat
+import com.vinithius.poke10x.extension.getStringShape
 import com.vinithius.poke10x.extension.getStringStat
 import com.vinithius.poke10x.extension.translateIfSupported
 import com.vinithius.poke10x.ui.MainActivity
@@ -204,7 +206,6 @@ fun SharedTransitionScope.PokemonDetailScreen(
     val choiceOfTheDayStatus by viewModel.choiceOfTheDay.observeAsState(false)
     val painter = viewModel.getSharedImage(pokemonId.toString())
     val loadingShape = stringResource(R.string.three_dots)
-    var shapeName by remember { mutableStateOf(loadingShape) }
 
     Column(
         modifier = Modifier
@@ -339,24 +340,13 @@ fun SharedTransitionScope.PokemonDetailScreen(
                             Column(
                                 horizontalAlignment = Alignment.CenterHorizontally
                             ) {
-
-                                pokemonDetail?.specie?.shape?.name?.let { data ->
-                                    //shapeName = stringResource(R.string.three_dots)
-                                    data.translateIfSupported(
-                                        onResult = { translatedText ->
-                                            shapeName = translatedText
-                                        },
-                                        onError = { exception ->
-                                            shapeName = data
-                                        }
-                                    )
-                                }
-
                                 Row(horizontalArrangement = Arrangement.spacedBy(2.dp)) {
                                     DefaultFirstCardData(
                                         viewModel = viewModel,
                                         title = stringResource(R.string.shape),
-                                        value = shapeName.capitalize()
+                                        value = pokemonDetail?.specie?.shape?.name?.getStringShape(
+                                            context
+                                        ) ?: stringResource(R.string.three_dots)
                                     )
                                 }
                             }
@@ -387,7 +377,7 @@ fun SharedTransitionScope.PokemonDetailScreen(
         PokemonIsABaby()
         PokemonEvolution(navController, pokemonDetail)
         // Tabs
-        TabWithPagerExample(pokemonDetail, viewModel, pokemonColor, context)
+        TabWithPagerExample(pokemonDetail, viewModel, pokemonColor)
     }
 }
 
@@ -396,7 +386,6 @@ fun TabWithPagerExample(
     pokemonDetail: Pokemon?,
     viewModel: PokemonViewModel = getViewModel(),
     pokemonColor: String,
-    context: Context,
 ) {
     val tabTitles = listOf(
         stringResource(R.string.damage),
@@ -495,7 +484,7 @@ fun TabWithPagerExample(
 
                 4 -> {
                     activity?.trackButtonClick(tabTitles[4])
-                    PokemonEntries(pokemonDetail, context, viewModel)
+                    PokemonEntries(pokemonDetail, viewModel)
                 }
             }
         }
@@ -1159,9 +1148,7 @@ private fun PokemonIsABaby(
 
 @Preview
 @Composable
-private fun PokemonIsABabyPreview(
-    viewModel: PokemonViewModel = getViewModel()
-) {
+private fun PokemonIsABabyPreview() {
     PokemonIsABaby()
 }
 
@@ -1468,6 +1455,7 @@ private fun PokemonEggs(
     pokemonColor: String,
     viewModel: PokemonViewModel = getViewModel()
 ) {
+    val context = LocalContext.current
     StateRequest(
         viewModel = viewModel,
         loading = {
@@ -1500,7 +1488,7 @@ private fun PokemonEggs(
                                 modifier = Modifier.padding(vertical = 4.dp)
                             ) {
                                 Text(
-                                    text = it.name?.capitalize() ?: "?",
+                                    text = it.name?.getStringEggGroup(context) ?: "?",
                                     style = MaterialTheme.typography.bodyLarge.copy(
                                         color = Color.White
                                     ),
@@ -1574,20 +1562,34 @@ private fun PokemonAbilities(
                         modifier = Modifier.fillMaxWidth()
                     )
                     Spacer(modifier = Modifier.size(5.dp))
-                    pokemonDetail?.abilities?.forEach {
+
+                    pokemonDetail.abilities?.forEach { abilityItem ->
+
+                        val originalName = abilityItem.ability.name?.capitalize() ?: "?"
+                        val translatedText = remember { mutableStateOf<String?>(null) }
+                        val hidden = stringResource(R.string.hidden)
+
+                        LaunchedEffect(originalName) {
+                            originalName.translateIfSupported(
+                                onResult = { result ->
+                                    translatedText.value = if (abilityItem.is_hidden) {
+                                        "$result - $hidden"
+                                    } else {
+                                        result
+                                    }
+                                },
+                                onError = {
+                                    translatedText.value = originalName // fallback
+                                }
+                            )
+                        }
+
                         Row(
                             modifier = Modifier.padding(vertical = 4.dp)
                         ) {
-                            val text = if (it.is_hidden) {
-                                "${it.ability.name?.capitalize()} - ${stringResource(R.string.hidden)}"
-                            } else {
-                                it.ability.name?.capitalize()
-                            }
                             Text(
-                                text = text ?: "?",
-                                style = MaterialTheme.typography.bodyLarge.copy(
-                                    color = Color.White
-                                ),
+                                text = translatedText.value ?: stringResource(R.string.loading_translate),
+                                style = MaterialTheme.typography.bodyLarge.copy(color = Color.White),
                                 fontWeight = FontWeight.Bold,
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -1615,7 +1617,6 @@ private fun PokemonAbilities(
 @Composable
 private fun PokemonEntries(
     pokemonDetail: Pokemon?,
-    context: Context,
     viewModel: PokemonViewModel = getViewModel(),
 ) {
     val loading = stringResource(R.string.loading_translate)

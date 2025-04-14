@@ -161,4 +161,35 @@ Descárgalo ahora:
     <string name="unknow">Desconocido</string>
     <!-- TRANSLATER STATUS -->
     <string name="loading_translate">Cargando texto…</string>
+    <!-- SHAPES -->
+    <string name="shape_ball">Esfera</string>
+    <string name="shape_squiggle">Ondulado</string>
+    <string name="shape_fish">Pez</string>
+    <string name="shape_arms">Brazos</string>
+    <string name="shape_blob">Masa</string>
+    <string name="shape_upright">Erguido</string>
+    <string name="shape_legs">Piernas</string>
+    <string name="shape_quadruped">Cuadrúpedo</string>
+    <string name="shape_wings">Alas</string>
+    <string name="shape_tentacles">Tentáculos</string>
+    <string name="shape_heads">Cabezas</string>
+    <string name="shape_humanoid">Humanoide</string>
+    <string name="shape_bug_wings">Alas de insecto</string>
+    <string name="shape_armor">Armadura</string>
+    <!-- EGGS GROUPS -->
+    <string name="egg_group_monster">Monstruo</string>
+    <string name="egg_group_water1">Agua 1</string>
+    <string name="egg_group_bug">Bicho</string>
+    <string name="egg_group_flying">Volador</string>
+    <string name="egg_group_ground">Tierra</string>
+    <string name="egg_group_fairy">Hada</string>
+    <string name="egg_group_plant">Planta</string>
+    <string name="egg_group_humanshape">Forma Humana</string>
+    <string name="egg_group_water3">Agua 3</string>
+    <string name="egg_group_mineral">Mineral</string>
+    <string name="egg_group_indeterminate">Indeterminado</string>
+    <string name="egg_group_water2">Agua 2</string>
+    <string name="egg_group_ditto">Ditto</string>
+    <string name="egg_group_dragon">Dragón</string>
+    <string name="egg_group_no_eggs">Sin Huevo</string>
 </resources>

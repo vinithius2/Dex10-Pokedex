@@ -163,4 +163,35 @@ Je l\'utilise et je le recommande vivement! 😍</string>
     <string name="unknow">Inconnu</string>
     <!-- TRANSLATER STATUS -->
     <string name="loading_translate">Chargement du texte…</string>
+    <!-- SHAPES -->
+    <string name="shape_ball">Sphère</string>
+    <string name="shape_squiggle">Ondulé</string>
+    <string name="shape_fish">Poisson</string>
+    <string name="shape_arms">Bras</string>
+    <string name="shape_blob">Gélatine</string>
+    <string name="shape_upright">Debout</string>
+    <string name="shape_legs">Jambes</string>
+    <string name="shape_quadruped">Quadrupède</string>
+    <string name="shape_wings">Ailes</string>
+    <string name="shape_tentacles">Tentacules</string>
+    <string name="shape_heads">Têtes</string>
+    <string name="shape_humanoid">Humanoïde</string>
+    <string name="shape_bug_wings">Ailes d\'insecte</string>
+    <string name="shape_armor">Armure</string>
+    <!-- EGGS GROUPS -->
+    <string name="egg_group_monster">Monstre</string>
+    <string name="egg_group_water1">Eau 1</string>
+    <string name="egg_group_bug">Insecte</string>
+    <string name="egg_group_flying">Volant</string>
+    <string name="egg_group_ground">Sol</string>
+    <string name="egg_group_fairy">Fée</string>
+    <string name="egg_group_plant">Plante</string>
+    <string name="egg_group_humanshape">Forme Humaine</string>
+    <string name="egg_group_water3">Eau 3</string>
+    <string name="egg_group_mineral">Minéral</string>
+    <string name="egg_group_indeterminate">Indéterminé</string>
+    <string name="egg_group_water2">Eau 2</string>
+    <string name="egg_group_ditto">Metamorph</string>
+    <string name="egg_group_dragon">Dragon</string>
+    <string name="egg_group_no_eggs">Sans Œuf</string>
 </resources>
