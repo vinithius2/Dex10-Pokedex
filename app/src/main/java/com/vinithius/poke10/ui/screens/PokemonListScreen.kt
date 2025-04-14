@@ -3,6 +3,7 @@ package com.vinithius.poke10.ui.screens
 import GetFilterBar
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.Intent
 import android.os.Build
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.AnimatedVisibilityScope
@@ -60,6 +61,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.net.toUri
 import androidx.navigation.NavController
 import coil.ImageLoader
 import coil.compose.AsyncImagePainter
@@ -74,6 +76,7 @@ import com.vinithius.poke10.components.ErrorStatus
 import com.vinithius.poke10.components.LoadingPokemonList
 import com.vinithius.poke10.components.LoadingProgress
 import com.vinithius.poke10.components.PokeballComponent
+import com.vinithius.poke10.components.TopAlertBanner
 import com.vinithius.poke10.components.TypeListDataBase
 import com.vinithius.poke10.datasource.database.Ability
 import com.vinithius.poke10.datasource.database.PokemonEntity
@@ -144,6 +147,8 @@ fun SharedTransitionScope.PokemonListScreen(
     val context = LocalContext.current
     SetAnalyticScreenName()
 
+    var topAlertMessageDismiss by remember { mutableStateOf(false) }
+    val topAlertMessage by viewModel.topAlertMessage.observeAsState(null)
     val pokemonItems by viewModel.pokemonList.observeAsState(emptyList())
     val isFavoriteFilter by viewModel.isFavoriteFilter.observeAsState(false)
     val isRewarded by viewModel.isRewarded.observeAsState(true)
@@ -160,6 +165,16 @@ fun SharedTransitionScope.PokemonListScreen(
     Column(
         modifier = Modifier.fillMaxSize()
     ) {
+        if (topAlertMessageDismiss.not()) {
+            TopAlertBanner(
+                alert = topAlertMessage,
+                onButtonClick = { url ->
+                    val intent = Intent(Intent.ACTION_VIEW, url.toUri())
+                    context.startActivity(intent)
+                },
+                onClose = { topAlertMessageDismiss = true }
+            )
+        }
         StateRequest(
             viewModel = viewModel,
             loadingFirebase = {
@@ -209,9 +224,13 @@ fun SharedTransitionScope.PokemonListScreen(
                                         if (choiceOfTheDay) {
                                             with(viewModel) {
                                                 if (isRewarded) {
-                                                    adUnitIdChoiceOfTheDayRewardedShow(choiceOfTheDayStatus)
+                                                    adUnitIdChoiceOfTheDayRewardedShow(
+                                                        choiceOfTheDayStatus
+                                                    )
                                                 } else {
-                                                    adUnitIdChoiceOfTheDayInterstitialShow(choiceOfTheDayStatus)
+                                                    adUnitIdChoiceOfTheDayInterstitialShow(
+                                                        choiceOfTheDayStatus
+                                                    )
                                                 }
                                                 setAdDataToDetails(
                                                     PokemonViewModel.AdData(

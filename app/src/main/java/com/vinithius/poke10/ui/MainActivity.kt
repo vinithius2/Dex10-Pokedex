@@ -77,6 +77,7 @@ import com.google.android.play.core.review.ReviewManagerFactory
 import com.google.firebase.analytics.FirebaseAnalytics
 import com.google.firebase.installations.FirebaseInstallations
 import com.google.firebase.remoteconfig.FirebaseRemoteConfig
+import com.google.gson.Gson
 import com.google.mlkit.common.model.DownloadConditions
 import com.google.mlkit.nl.translate.TranslateLanguage
 import com.google.mlkit.nl.translate.Translation
@@ -86,6 +87,7 @@ import com.vinithius.poke10.R
 import com.vinithius.poke10.admobbanners.AdManagerInterstitial
 import com.vinithius.poke10.admobbanners.AdManagerRewarded
 import com.vinithius.poke10.admobbanners.AdmobBanner
+import com.vinithius.poke10.datasource.data.AlertMessage
 import com.vinithius.poke10.extension.getColorByString
 import com.vinithius.poke10.extension.getToolBarColorByString
 import com.vinithius.poke10.ui.screens.PokemonDetailScreen
@@ -239,7 +241,10 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-private fun GetAdUnitId(viewModel: PokemonViewModel = getViewModel()) {
+private fun GetAdUnitId(
+    activity: MainActivity,
+    viewModel: PokemonViewModel = getViewModel()
+) {
     val remoteConfig = FirebaseRemoteConfig.getInstance()
     remoteConfig.fetchAndActivate()
         .addOnCompleteListener { task ->
@@ -270,6 +275,14 @@ private fun GetAdUnitId(viewModel: PokemonViewModel = getViewModel()) {
                 viewModel.setRedditUrl(redditUrl)
                 viewModel.setGoogleForm(googleForm)
                 viewModel.setPaypalId(paypalId)
+                // ALERT MESSAGE
+                try {
+                    val alertMessage = remoteConfig.getString("alert_message")
+                    val alertMessageData = Gson().fromJson(alertMessage, AlertMessage::class.java)
+                    viewModel.setTopAlertMessage(alertMessageData)
+                } catch (e: Exception) {
+                    Log.e("RemoteConfig", "Error converting JSON to AlertMessage", e)
+                }
             }
         }
 }
@@ -280,7 +293,7 @@ fun MainScreen(
     viewModel: PokemonViewModel = getViewModel()
 ) {
     val navController = rememberNavController()
-    GetAdUnitId()
+    GetAdUnitId(activity)
     SetInterstitialOrRewardedAdManager(activity, navController)
     SetupSystemUI(viewModel)
     Scaffold(
@@ -314,13 +327,11 @@ fun SetInterstitialOrRewardedAdManager(
             apply()
         }
 
-
         val adManagerRewarded = remember { AdManagerRewarded(context) }
         val adUnitId by viewModel.adUnitIdChoiceOfTheDayRewarded.observeAsState()
         val isShowingRewarded by viewModel.choiceOfTheDayRewardedShow.observeAsState(false)
         val isAdLoadedRewarded by viewModel.isAdLoadedRewarded.observeAsState(false)
         val adDataToDetails by viewModel.adDataToDetails.observeAsState()
-        val navigationTriggered = remember { mutableStateOf(false) }
 
         LaunchedEffect(adUnitId) {
             adUnitId?.let {

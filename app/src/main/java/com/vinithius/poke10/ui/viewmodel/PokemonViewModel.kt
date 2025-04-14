@@ -24,6 +24,8 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import com.vinithius.poke10.R
+import com.vinithius.poke10.components.TopAlertBanner
+import com.vinithius.poke10.datasource.data.AlertMessage
 
 class PokemonViewModel(private val repository: PokemonRepository) : ViewModel() {
 
@@ -252,6 +254,14 @@ class PokemonViewModel(private val repository: PokemonRepository) : ViewModel() 
 
     fun setPaypalId(value: String) {
         _paypalId.postValue(value)
+    }
+
+    private val _topAlertMessage = MutableLiveData<AlertMessage?>(null)
+    val topAlertMessage: LiveData<AlertMessage?>
+        get() = _topAlertMessage
+
+    fun setTopAlertMessage(data: AlertMessage) {
+        _topAlertMessage.postValue(data)
     }
 
     // FIM - Remote config
