@@ -194,4 +194,7 @@ Je l\'utilise et je le recommande vivement! 😍</string>
     <string name="egg_group_ditto">Metamorph</string>
     <string name="egg_group_dragon">Dragon</string>
     <string name="egg_group_no_eggs">Sans Œuf</string>
+    <!-- ERROR -->
+    <string name="error_title">Une erreur s\'est produite</string>
+    <string name="error_description">Impossible de charger les données. Veuillez réessayer plus tard.</string>
 </resources>

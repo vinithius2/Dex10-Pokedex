@@ -192,4 +192,7 @@
     <string name="egg_group_ditto">डिट्टो</string>
     <string name="egg_group_dragon">ड्रैगन</string>
     <string name="egg_group_no_eggs">कोई अंडा नहीं</string>
+    <!-- ERROR -->
+    <string name="error_title">कुछ गलत हो गया</string>
+    <string name="error_description">डेटा लोड नहीं हो सका। कृपया बाद में पुनः प्रयास करें।</string>
 </resources>

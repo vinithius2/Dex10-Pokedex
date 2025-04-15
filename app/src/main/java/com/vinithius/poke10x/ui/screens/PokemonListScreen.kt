@@ -270,11 +270,7 @@ fun SharedTransitionScope.PokemonListScreen(
                 }
             },
             error = {
-                ErrorStatus(
-                    stringResource(R.string.is_general_error),
-                ) {
-                    viewModel.getPokemonList(context)
-                }
+                ErrorStatus()
             }
         )
     }

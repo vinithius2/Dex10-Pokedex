@@ -69,6 +69,7 @@ import com.airbnb.lottie.compose.rememberLottieComposition
 import com.valentinilk.shimmer.shimmer
 import com.vinithius.poke10x.R
 import com.vinithius.poke10x.extension.capitalize
+import androidx.compose.ui.text.style.TextAlign
 
 // Page list Loading
 
@@ -602,58 +603,44 @@ private fun LoadingProgressPreview() {
 // Error
 
 @Composable
-fun ErrorStatus(
-    msg: String,
-    e: Exception? = null,
-    callBackClick: () -> Unit = {}
-) {
-    val context = LocalContext.current
+fun ErrorStatus() {
+
     val composition by rememberLottieComposition(
         LottieCompositionSpec.Asset("icon_error_animation.json")
     )
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
+    val title = stringResource(id = R.string.error_title)
+    val description = stringResource(id = R.string.error_description)
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(24.dp),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            LottieAnimation(
-                composition = composition,
-                modifier = Modifier.size(180.dp)
-            )
-            Spacer(modifier = Modifier.height(12.dp))
-            Text(
-                text = msg,
-                style = TextStyle(
-                    fontSize = 22.sp,
-                    fontWeight = FontWeight.Bold,
-                    fontStyle = androidx.compose.ui.text.font.FontStyle.Normal,
-                )
-            )
-            Spacer(modifier = Modifier.height(12.dp))
-            e?.message?.run {
-                Text(
-                    text = this,
-                    style = TextStyle(
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.Light,
-                        fontStyle = androidx.compose.ui.text.font.FontStyle.Normal,
-                    )
-                )
-            }
-            Spacer(modifier = Modifier.height(12.dp))
-            ElevatedButton(
-                onClick = { callBackClick.invoke() },
-                modifier = Modifier.padding(16.dp),
-                colors = ButtonDefaults.elevatedButtonColors(
-                    containerColor = Color.Red,
-                    contentColor = Color.White
-                )
-            ) {
-                Text(text = stringResource(R.string.try_again))
-            }
-        }
+        // Imagem de erro (substitua com o recurso que tiver)
+        LottieAnimation(
+            composition = composition,
+            modifier = Modifier.size(180.dp)
+        )
+
+        // Título
+        androidx.compose.material.Text(
+            text = title,
+            style = MaterialTheme.typography.titleLarge,
+            color = MaterialTheme.colorScheme.error,
+            textAlign = TextAlign.Center
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        // Descrição
+        Text(
+            text = description,
+            style = MaterialTheme.typography.bodyLarge,
+            textAlign = TextAlign.Center
+        )
+
     }
 }
 
@@ -666,8 +653,5 @@ private fun ErrorStatusPreview() {
     } catch (e: Exception) {
         e
     }
-    ErrorStatus(
-        stringResource(R.string.is_general_error),
-        exception
-    )
+    ErrorStatus()
 }

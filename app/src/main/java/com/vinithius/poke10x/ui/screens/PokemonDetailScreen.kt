@@ -87,6 +87,7 @@ import coil.decode.ImageDecoderDecoder
 import coil.request.ImageRequest
 import com.valentinilk.shimmer.shimmer
 import com.vinithius.poke10x.R
+import com.vinithius.poke10x.components.ErrorStatus
 import com.vinithius.poke10x.components.TypeItem
 import com.vinithius.poke10x.components.TypeItemShimmer
 import com.vinithius.poke10x.components.TypeListResponse
@@ -200,21 +201,66 @@ fun SharedTransitionScope.PokemonDetailScreen(
         viewModel.setDetailsScreen(false)
         navController?.popBackStack()
     }
-    val context = LocalContext.current
+
     // Observes
     val pokemonDetail by viewModel.pokemonDetail.observeAsState()
     val choiceOfTheDayStatus by viewModel.choiceOfTheDay.observeAsState(false)
     val painter = viewModel.getSharedImage(pokemonId.toString())
-    val loadingShape = stringResource(R.string.three_dots)
 
+    StateRequest(
+        viewModel = viewModel,
+        loading = {
+            MainCard(
+                navController,
+                pokemonId,
+                pokemonName,
+                pokemonColor,
+                animatedVisibilityScope,
+                choiceOfTheDayStatus,
+                pokemonDetail,
+                painter,
+            )
+        },
+        success = {
+            MainCard(
+                navController,
+                pokemonId,
+                pokemonName,
+                pokemonColor,
+                animatedVisibilityScope,
+                choiceOfTheDayStatus,
+                pokemonDetail,
+                painter,
+            )
+        },
+        error = {
+            ErrorStatus()
+        }
+    )
+
+}
+
+@SuppressLint("DefaultLocale")
+@OptIn(ExperimentalSharedTransitionApi::class)
+@Composable
+fun SharedTransitionScope.MainCard(
+    navController: NavController?,
+    pokemonId: Int,
+    pokemonName: String,
+    pokemonColor: String,
+    animatedVisibilityScope: AnimatedVisibilityScope?,
+    choiceOfTheDayStatus: Boolean,
+    pokemonDetail: Pokemon?,
+    painter: AsyncImagePainter? = null,
+    viewModel: PokemonViewModel = getViewModel()
+) {
+    val context = LocalContext.current
     Column(
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
     ) {
-
         ChoiceOfTheDay(choiceOfTheDayStatus)
-
         Card(
             modifier = Modifier
                 .height(320.dp)
@@ -1588,7 +1634,8 @@ private fun PokemonAbilities(
                             modifier = Modifier.padding(vertical = 4.dp)
                         ) {
                             Text(
-                                text = translatedText.value ?: stringResource(R.string.loading_translate),
+                                text = translatedText.value
+                                    ?: stringResource(R.string.loading_translate),
                                 style = MaterialTheme.typography.bodyLarge.copy(color = Color.White),
                                 fontWeight = FontWeight.Bold,
                                 modifier = Modifier

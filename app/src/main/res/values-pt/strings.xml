@@ -192,4 +192,7 @@ Eu uso e recomendo demais! 😍</string>
     <string name="egg_group_ditto">Ditto</string>
     <string name="egg_group_dragon">Dragão</string>
     <string name="egg_group_no_eggs">Sem Ovo</string>
+    <!-- ERROR -->
+    <string name="error_title">Algo deu errado</string>
+    <string name="error_description">Não foi possível carregar os dados. Por favor, tente novamente mais tarde.</string>
 </resources>

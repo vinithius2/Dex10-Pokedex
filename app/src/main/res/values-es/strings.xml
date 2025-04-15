@@ -192,4 +192,7 @@ Descárgalo ahora:
     <string name="egg_group_ditto">Ditto</string>
     <string name="egg_group_dragon">Dragón</string>
     <string name="egg_group_no_eggs">Sin Huevo</string>
+    <!-- ERROR -->
+    <string name="error_title">Algo salió mal</string>
+    <string name="error_description">No se pudieron cargar los datos. Por favor, inténtalo de nuevo más tarde.</string>
 </resources>

@@ -195,4 +195,7 @@
     <string name="egg_group_ditto">Ditto</string>
     <string name="egg_group_dragon">Dragon</string>
     <string name="egg_group_no_eggs">No Eggs</string>
+    <!-- ERROR -->
+    <string name="error_title">Something went wrong</string>
+    <string name="error_description">We couldn\'t load the data. Please try again later.</string>
 </resources>
