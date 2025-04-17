@@ -207,9 +207,11 @@ class MainActivity : ComponentActivity() {
             when (uri.host) {
                 "details" -> {
                     val id = uri.getQueryParameter("id")
-                    if (id != null) {
+                    val name = uri.getQueryParameter("name")
+                    val color = uri.getQueryParameter("color")
+                    if (id != null && name != null && color != null) {
                         // Passar a rota de navegação para o ViewModel
-                        viewModel.setDeeplinkNavigation("pokemonDetail/$id/Unknown/Unknown")
+                        viewModel.setDeeplinkNavigation("pokemonDetail/$id/$name/$color")
                     } else {
                         Log.e("Deeplink", "ID do Pokémon não encontrado no deeplink")
                     }
@@ -221,7 +223,6 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
-
 
     /**
      * Realiza o download do modelo de tradução do inglês para o idioma do dispositivo,
@@ -893,17 +894,17 @@ private fun GetNavHost(
                 )
             }
             composable(
-                route = "pokemonDetail/{pokemonId}/{pokemonName}/{pokemonColor}",
+                route = "pokemonDetail/{id}/{name}/{color}",
                 arguments = listOf(
-                    navArgument("pokemonId") { type = NavType.StringType },
-                    navArgument("pokemonName") { type = NavType.StringType },
-                    navArgument("pokemonColor") { type = NavType.StringType },
+                    navArgument("id") { type = NavType.StringType },
+                    navArgument("name") { type = NavType.StringType },
+                    navArgument("color") { type = NavType.StringType },
                 )
             ) { backStackEntry ->
 
-                val pokemonId = backStackEntry.arguments?.getString("pokemonId")?.toIntOrNull()
-                val pokemonName = backStackEntry.arguments?.getString("pokemonName")
-                val pokemonColor = backStackEntry.arguments?.getString("pokemonColor")
+                val pokemonId = backStackEntry.arguments?.getString("id")?.toIntOrNull()
+                val pokemonName = backStackEntry.arguments?.getString("name")
+                val pokemonColor = backStackEntry.arguments?.getString("color")
 
                 if (pokemonId != null && pokemonName != null && pokemonColor != null) {
                     PokemonDetailScreen(
