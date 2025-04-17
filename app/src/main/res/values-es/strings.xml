@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Poke10x</string>
+    <string name="app_name">Dex10</string>
     <string name="loading">Cargando</string>
     <string name="is_general_error">¡Vaya, ocurrió un error!</string>
     <string name="reloading">Recargando</string>
@@ -79,7 +79,7 @@
     <string name="entries">Entradas</string>
     <string name="no_description_available">No hay descripción disponible.</string>
     <string name="about_abilities_hidden">La habilidad del Pokémon será una de sus habilidades no ocultas. Las habilidades ocultas se introdujeron en la Generación V y son relativamente raras y, por lo general, requieren algún tipo de encuentro especial.</string>
-    <string name="share_app_message">¡Descubre Poke10! 🧡✨
+    <string name="share_app_message">¡Descubre Dex10! 🧡✨
 Explora todos los Pokémon, mira estadísticas, habilidades y estrategias de combate. ¡Favoritos tus favoritos y domina la efectividad de tipos!
 
 Descárgalo ahora:

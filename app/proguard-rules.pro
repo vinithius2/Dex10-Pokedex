@@ -47,8 +47,8 @@
 # With R8 full mode generic signatures are stripped for classes that are not kept.
 -keep,allowobfuscation,allowshrinking class retrofit2.Response
 
--keep class com.vinithius.poke10x.datasource.response.** { *; }
--dontwarn com.vinithius.poke10x.datasource.response.**
+-keep class com.vinithius.dex10.datasource.response.** { *; }
+-dontwarn com.vinithius.dex10.datasource.response.**
 
 -dontwarn android.media.LoudnessCodecController$OnLoudnessCodecUpdateListener
 -dontwarn android.media.LoudnessCodecController

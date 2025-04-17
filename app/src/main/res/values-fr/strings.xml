@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Poke10x</string>
+    <string name="app_name">Dex10</string>
     <string name="loading">Chargement</string>
     <string name="is_general_error">Oups, une erreur s\'est produite!</string>
     <string name="reloading">Rechargement</string>
@@ -80,7 +80,7 @@
     <string name="entries">Entrées</string>
     <string name="no_description_available">Pas de description disponible.</string>
     <string name="about_abilities_hidden">La capacité du Pokémon sera l\'une de ses capacités non cachées. Les capacités cachées ont été introduites dans la Génération V et sont relativement rares, nécessitant généralement une rencontre spéciale.</string>
-    <string name="share_app_message">Découvrez Poke10! 🧡✨
+    <string name="share_app_message">Découvrez Dex10! 🧡✨
 Explorez tous les Pokémon, consultez les statistiques, les capacités et les stratégies de combat. Mettez en favoris vos préférés et maîtrisez l\'efficacité des types!
 
 Téléchargez-le dès maintenant:

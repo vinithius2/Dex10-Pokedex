@@ -11,11 +11,11 @@ def apikeyProperties = new Properties()
 apikeyProperties.load(new FileInputStream(apikeyPropertiesFile))
 
 android {
-    namespace "com.vinithius.poke10x"
+    namespace "com.vinithius.dex10"
     compileSdk 35
 
     defaultConfig {
-        applicationId "com.vinithius.poke10x"
+        applicationId "com.vinithius.dex10"
         minSdk 21
         targetSdk 34
         versionCode 9
@@ -149,4 +149,6 @@ dependencies {
     implementation "io.noties.markwon:core:$markwon_version"
     // Translater
     implementation "com.google.mlkit:translate:17.0.3"
+    // Splash Screen
+    implementation("androidx.core:core-splashscreen:1.0.1")
 }
