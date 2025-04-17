@@ -92,6 +92,7 @@ import com.vinithius.dex10.ui.MainActivity
 import com.vinithius.dex10.ui.viewmodel.PokemonViewModel
 import com.vinithius.dex10.ui.viewmodel.RequestStateList
 import org.koin.androidx.compose.getViewModel
+import androidx.core.content.edit
 
 const val URL_IMAGE = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/"
 
@@ -156,28 +157,28 @@ fun SharedTransitionScope.PokemonListScreen(
     val sharedPreferences = context.getSharedPreferences("pokemon_prefs", Context.MODE_PRIVATE)
     val listState = rememberSaveable(saver = LazyListState.Saver) { LazyListState() }
 
-    var dontShowAgainCopyright by remember { mutableStateOf(false) }
-    dontShowAgainCopyright = sharedPreferences.getBoolean("dont_show_again_copyright", false)
-    var showDialogCopyright by remember { mutableStateOf(true) }
+    val initialDontShow = remember {
+        sharedPreferences.getBoolean("dont_show_again_copyright", false)
+    }
+    var dontShowAgainCopyright by remember { mutableStateOf(initialDontShow) }
+    var showDialogCopyright by remember { mutableStateOf(initialDontShow.not()) }
 
-    if (dontShowAgainCopyright.not() && showDialogCopyright) {
+    if (showDialogCopyright) {
         AdRequirementDialog(
-            onDismiss = { showDialogCopyright = false },
-            onConfirm = { showDialogCopyright = false },
+            onDismiss = {
+                showDialogCopyright = false
+            },
+            onConfirm = {
+                sharedPreferences.edit {
+                    putBoolean("dont_show_again_copyright", dontShowAgainCopyright)
+                }
+                showDialogCopyright = false
+            },
             dontShowAgain = dontShowAgainCopyright,
             onDontShowAgainChanged = {
-                with(sharedPreferences.edit()) {
-                    putBoolean("dont_show_again_copyright", it)
-                    apply()
-                }
                 dontShowAgainCopyright = it
             },
             onDismissButton = {
-                with(sharedPreferences.edit()) {
-                    putBoolean("dont_show_again_copyright", false)
-                    apply()
-                }
-                dontShowAgainCopyright = false
                 showDialogCopyright = false
             },
             title = stringResource(R.string.copyright_title),
