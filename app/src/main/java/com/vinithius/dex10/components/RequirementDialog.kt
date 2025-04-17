@@ -19,19 +19,25 @@ import com.vinithius.dex10.R
 @Composable
 fun AdRequirementDialog(
     onDismiss: () -> Unit,
+    onDismissButton: () -> Unit,
     onConfirm: () -> Unit,
     dontShowAgain: Boolean,
-    onDontShowAgainChanged: (Boolean) -> Unit
+    onDontShowAgainChanged: (Boolean) -> Unit,
+    title: String = stringResource(R.string.know_this_first),
+    message: String = stringResource(R.string.ad_message),
+    dontShowAgainLabel: String = stringResource(R.string.dont_show_again),
+    confirmButtonText: String = stringResource(R.string.ok),
+    dismissButtonText: String? = null
 ) {
     AlertDialog(
-        onDismissRequest = onDismiss,
+        onDismissRequest = { /* Do nothing */ },
         title = {
-            Text(text = stringResource(R.string.know_this_first))
+            Text(text = title)
         },
         text = {
             Column {
                 Text(
-                    text = stringResource(R.string.ad_message)
+                    text = message
                 )
                 Spacer(modifier = Modifier.height(16.dp))
                 Row(
@@ -42,26 +48,28 @@ fun AdRequirementDialog(
                         onCheckedChange = { onDontShowAgainChanged(it) }
                     )
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text(text = stringResource(R.string.dont_show_again))
+                    Text(text = dontShowAgainLabel)
                 }
             }
         },
         confirmButton = {
             TextButton(
                 onClick = {
-                    // Aqui você pode salvar a preferência usando DataStore ou SharedPreferences
                     onConfirm()
                     onDismiss()
-                }
+                },
+                enabled = dontShowAgain
             ) {
-                Text(text = stringResource(R.string.ok))
+                Text(text = confirmButtonText)
             }
         },
         dismissButton = {
-            TextButton(
-                onClick = onDismiss
-            ) {
-                Text(text = stringResource(R.string.cancel))
+            dismissButtonText?.run {
+                TextButton(
+                    onClick = onDismissButton
+                ) {
+                    Text(text = this@run)
+                }
             }
         }
     )

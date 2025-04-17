@@ -156,6 +156,37 @@ fun SharedTransitionScope.PokemonListScreen(
     val sharedPreferences = context.getSharedPreferences("pokemon_prefs", Context.MODE_PRIVATE)
     val listState = rememberSaveable(saver = LazyListState.Saver) { LazyListState() }
 
+    var dontShowAgainCopyright by remember { mutableStateOf(false) }
+    dontShowAgainCopyright = sharedPreferences.getBoolean("dont_show_again_copyright", false)
+    var showDialogCopyright by remember { mutableStateOf(true) }
+
+    if (dontShowAgainCopyright.not() && showDialogCopyright) {
+        AdRequirementDialog(
+            onDismiss = { showDialogCopyright = false },
+            onConfirm = { showDialogCopyright = false },
+            dontShowAgain = dontShowAgainCopyright,
+            onDontShowAgainChanged = {
+                with(sharedPreferences.edit()) {
+                    putBoolean("dont_show_again_copyright", it)
+                    apply()
+                }
+                dontShowAgainCopyright = it
+            },
+            onDismissButton = {
+                with(sharedPreferences.edit()) {
+                    putBoolean("dont_show_again_copyright", false)
+                    apply()
+                }
+                dontShowAgainCopyright = false
+                showDialogCopyright = false
+            },
+            title = stringResource(R.string.copyright_title),
+            message = stringResource(R.string.copyright_description),
+            dontShowAgainLabel = stringResource(R.string.accept_the_terms_and_dont_show_again),
+            confirmButtonText = stringResource(R.string.ok),
+        )
+    }
+
     LaunchedEffect(Unit) {
         if (pokemonItems.isEmpty()) {
             viewModel.getPokemonList(context)
@@ -334,7 +365,16 @@ fun SharedTransitionScope.PokemonListItem(
                     apply()
                 }
                 dontShowAgain = it
-            }
+            },
+            onDismissButton = {
+                with(sharedPreferences.edit()) {
+                    putBoolean("dont_show_again", false)
+                    apply()
+                }
+                dontShowAgain = false
+                showDialog = false
+            },
+            dismissButtonText = stringResource(R.string.cancel),
         )
     }
 

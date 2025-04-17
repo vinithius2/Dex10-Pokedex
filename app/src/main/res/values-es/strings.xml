@@ -195,4 +195,8 @@ Descárgalo ahora:
     <!-- ERROR -->
     <string name="error_title">Algo salió mal</string>
     <string name="error_description">No se pudieron cargar los datos. Por favor, inténtalo de nuevo más tarde.</string>
+    <!-- COPYRIGHT -->
+    <string name="copyright_title">Aviso sobre Derechos de Autor</string>
+    <string name="copyright_description">Dex10 - Pokédex es una aplicación hecha por y para fans de la franquicia Pokémon. Todo el contenido relacionado con Pokémon, incluidos nombres, imágenes, datos y otros elementos presentados en esta aplicación, es propiedad intelectual de Nintendo, GAME FREAK y The Pokémon Company. No reclamamos autoría ni propiedad sobre estos materiales. Se utilizan bajo el principio de uso justo (fair use), con fines exclusivamente informativos, educativos y sin fines comerciales. Esta aplicación no está afiliada, patrocinada ni respaldada por Nintendo, GAME FREAK ni The Pokémon Company. El desarrollador no se responsabiliza por posibles problemas legales derivados del uso de marcas registradas o contenidos protegidos por derechos de autor de la franquicia Pokémon.</string>
+    <string name="accept_the_terms_and_dont_show_again">Acepto los términos y no deseo ver este mensaje nuevamente</string>
 </resources>

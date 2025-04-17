@@ -198,4 +198,8 @@
     <!-- ERROR -->
     <string name="error_title">Something went wrong</string>
     <string name="error_description">We couldn\'t load the data. Please try again later.</string>
+    <!-- COPYRIGHT -->
+    <string name="copyright_title">Copyright Notice</string>
+    <string name="copyright_description">Dex10 - Pokédex is a fan-made app created by and for fans of the Pokémon franchise. All content related to Pokémon, including names, images, data, and other elements presented in this app, is the intellectual property of Nintendo, GAME FREAK, and The Pokémon Company. We do not claim authorship or ownership over these materials. They are used under the fair use principle for informational, educational, and non-commercial purposes only. This app is not affiliated with, sponsored, or endorsed by Nintendo, GAME FREAK, or The Pokémon Company. The developer assumes no responsibility for any legal issues arising from the use of trademarks or copyrighted content from the Pokémon franchise.</string>
+    <string name="accept_the_terms_and_dont_show_again">I accept the terms and do not wish to see this message again</string>
 </resources>
