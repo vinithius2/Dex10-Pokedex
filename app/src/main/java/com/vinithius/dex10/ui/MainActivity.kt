@@ -2,7 +2,6 @@ package com.vinithius.dex10.ui
 
 import AlertMessage
 import android.Manifest
-import android.animation.ObjectAnimator
 import android.app.Activity
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -13,14 +12,13 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
-import android.view.View
-import android.view.animation.AnticipateInterpolator
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionLayout
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
@@ -64,6 +62,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -99,8 +98,6 @@ import com.vinithius.dex10.ui.viewmodel.PokemonViewModel
 import com.vinithius.dex10.ui.viewmodel.RequestStateDetail
 import org.koin.androidx.compose.getViewModel
 import org.koin.androidx.viewmodel.ext.android.viewModel
-import java.text.SimpleDateFormat
-import java.util.Date
 import java.util.Locale
 
 
@@ -115,7 +112,6 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         sharedPreferences = getSharedPreferences("pokemon_prefs", MODE_PRIVATE)
 
-        // Keep the splash screen visible for this Activity
         val splashScreen = installSplashScreen()
 
         setContent {
@@ -127,6 +123,7 @@ class MainActivity : ComponentActivity() {
         }
         analytics = FirebaseAnalytics.getInstance(this)
         MobileAds.initialize(this@MainActivity)
+
         requestNotificationPermission()
         pushNotification()
         downloadTranslationModelIfSupported(
@@ -137,15 +134,10 @@ class MainActivity : ComponentActivity() {
                 Log.e("MLKit", "Error downloading translation template", it)
             }
         )
-    }
 
-    override fun onResume() {
-        super.onResume()
-        val lastSelectionDate = sharedPreferences.getString("last_selection_date", null)
-        val currentDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
-        lastSelectionDate?.takeIf { it != currentDate }?.run {
-            viewModel.getPokemonList(this@MainActivity)
-        }
+
+        // Processar deeplink recebido ao iniciar a Activity
+        handleDeeplink(intent)
     }
 
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
@@ -202,6 +194,34 @@ class MainActivity : ComponentActivity() {
         bundle.putString(FirebaseAnalytics.Param.SCREEN_NAME, screenName)
         analytics.logEvent(FirebaseAnalytics.Event.SCREEN_VIEW, bundle)
     }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        // Processar deeplink recebido enquanto o app já está aberto
+        handleDeeplink(intent)
+    }
+
+    // Método para processar deeplinks
+    private fun handleDeeplink(intent: Intent?) {
+        intent?.data?.let { uri ->
+            when (uri.host) {
+                "details" -> {
+                    val id = uri.getQueryParameter("id")
+                    if (id != null) {
+                        // Passar a rota de navegação para o ViewModel
+                        viewModel.setDeeplinkNavigation("pokemonDetail/$id/Unknown/Unknown")
+                    } else {
+                        Log.e("Deeplink", "ID do Pokémon não encontrado no deeplink")
+                    }
+                }
+
+                else -> {
+                    Log.w("Deeplink", "Host desconhecido no deeplink: ${uri.host}")
+                }
+            }
+        }
+    }
+
 
     /**
      * Realiza o download do modelo de tradução do inglês para o idioma do dispositivo,
@@ -285,7 +305,8 @@ private fun GetAdUnitId(
                 // ALERT MESSAGE
                 try {
                     val alertMessageJson = remoteConfig.getString("alert_message")
-                    val alertMessageData = Gson().fromJson(alertMessageJson, AlertMessage::class.java)
+                    val alertMessageData =
+                        Gson().fromJson(alertMessageJson, AlertMessage::class.java)
                     val languageCode = Locale.getDefault().language
                     val localized = alertMessageData.getLocalizedContent(languageCode)
                     val localizedAlert = AlertMessage(
@@ -308,6 +329,16 @@ fun MainScreen(
     viewModel: PokemonViewModel = getViewModel()
 ) {
     val navController = rememberNavController()
+    val deeplinkRoute by viewModel.deeplinkNavigation.observeAsState()
+
+    // Deeplink
+    LaunchedEffect(deeplinkRoute) {
+        deeplinkRoute?.let { route ->
+            navController.navigate(route)
+            viewModel.clearDeeplinkNavigation()
+        }
+    }
+
     GetAdUnitId(activity)
     SetInterstitialOrRewardedAdManager(activity, navController)
     SetupSystemUI(viewModel)
@@ -584,13 +615,11 @@ private fun GetTopBar(
                             ),
                         )
                     } else {
-                        /*
                         Image(
-                            painter = painterResource(id = R.drawable.pokemon_logo_small),
+                            painter = painterResource(id = R.drawable.ico_start_toolbar_dex_10),
                             contentDescription = stringResource(id = R.string.app_name),
                             modifier = Modifier.size(40.dp)
                         )
-                        */
                     }
                 },
                 modifier = Modifier.windowInsetsPadding(WindowInsets.statusBars),

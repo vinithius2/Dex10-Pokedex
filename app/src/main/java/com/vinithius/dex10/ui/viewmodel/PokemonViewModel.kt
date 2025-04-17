@@ -97,6 +97,18 @@ class PokemonViewModel(private val repository: PokemonRepository) : ViewModel() 
     private val _sharedPokemonImages = MutableLiveData<Map<String, AsyncImagePainter>>()
     val sharedPokemonImages: LiveData<Map<String, AsyncImagePainter>> = _sharedPokemonImages
 
+    // Deeplinks
+    private val _deeplinkNavigation = MutableLiveData<String?>()
+    val deeplinkNavigation: LiveData<String?> = _deeplinkNavigation
+
+    fun setDeeplinkNavigation(route: String?) {
+        _deeplinkNavigation.value = route
+    }
+
+    fun clearDeeplinkNavigation() {
+        _deeplinkNavigation.value = null
+    }
+
     // Remote config
 
     private val _adUnitIdList = MutableLiveData(String())
