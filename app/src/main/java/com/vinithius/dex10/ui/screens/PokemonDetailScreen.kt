@@ -4,7 +4,7 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.os.Build
 import android.text.Spanned
-import androidx.activity.compose.BackHandler
+import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
@@ -93,6 +93,7 @@ import com.vinithius.dex10.components.TypeListResponse
 import com.vinithius.dex10.datasource.mapper.fromDefaultToListType
 import com.vinithius.dex10.datasource.response.Pokemon
 import com.vinithius.dex10.datasource.response.Type
+import com.vinithius.dex10.extension.LoadGifWithCoil
 import com.vinithius.dex10.extension.LoadGifWithCoilToSprite
 import com.vinithius.dex10.extension.SpriteItem
 import com.vinithius.dex10.extension.capitalize
@@ -297,7 +298,7 @@ fun SharedTransitionScope.MainCard(
                                 ),
                         )
                     } else {
-                        CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+                        pokemonId.LoadGifWithCoil(viewModel)
                     }
                     // weight and height
                     Column(

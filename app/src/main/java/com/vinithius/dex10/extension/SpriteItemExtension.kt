@@ -9,7 +9,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -21,6 +23,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import coil.ImageLoader
 import coil.compose.AsyncImagePainter
@@ -29,6 +33,7 @@ import coil.decode.GifDecoder
 import coil.decode.ImageDecoderDecoder
 import coil.decode.SvgDecoder
 import coil.request.ImageRequest
+import com.vinithius.dex10.ui.viewmodel.PokemonViewModel
 
 @Composable
 fun SpriteItem.LoadGifWithCoilToSprite(
@@ -167,5 +172,98 @@ private fun LoadGifWithCoilToSpriteSupportZoom(
                     translationY = offset.y
                 )
         )
+    }
+}
+
+@Composable
+fun Int.LoadGifWithCoil(
+    viewModel: PokemonViewModel?,
+    modifier: Modifier = Modifier,
+    fallbackDrawableRes: Int = android.R.drawable.ic_menu_report_image
+) {
+    val urlBase =
+        "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/showdown/"
+    val urlAnother = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/"
+
+    val gifUrl = "$urlBase$this.gif"
+    val pngUrl = "$urlAnother$this.png"
+
+    var currentData by remember { mutableStateOf<Any>(gifUrl) }
+    var hasTriedPng by remember { mutableStateOf(false) }
+
+    val context = LocalContext.current
+    val imageLoader = ImageLoader.Builder(context)
+        .components {
+            if (Build.VERSION.SDK_INT >= 28) add(ImageDecoderDecoder.Factory())
+            else add(GifDecoder.Factory())
+        }
+        .build()
+
+    fun buildRequest(data: Any): ImageRequest =
+        ImageRequest.Builder(context)
+            .data(data)
+            .crossfade(true)
+            .build()
+
+    val painter = rememberAsyncImagePainter(
+        model = buildRequest(currentData),
+        imageLoader = imageLoader
+    )
+
+    LaunchedEffect(painter.state) {
+        when (painter.state) {
+            is AsyncImagePainter.State.Error -> {
+                when (currentData) {
+                    gifUrl -> {
+                        currentData = pngUrl
+                        hasTriedPng = true
+                    }
+
+                    pngUrl -> {
+                        currentData = fallbackDrawableRes
+                    }
+                }
+            }
+
+            is AsyncImagePainter.State.Success -> {
+                viewModel?.updateSharedImage(
+                    this@LoadGifWithCoil.toString(),
+                    painter
+                )
+            }
+
+            else -> {
+                // Do nothing
+            }
+        }
+    }
+
+    Box(
+        modifier = modifier,
+        contentAlignment = Alignment.Center
+    ) {
+        when (currentData) {
+            is Int -> {
+                Icon(
+                    painter = painterResource(id = currentData as Int),
+                    contentDescription = null,
+                    modifier = Modifier.fillMaxSize()
+                )
+            }
+
+            else -> {
+                if (painter.state is AsyncImagePainter.State.Loading) {
+                    CircularProgressIndicator(
+                        color = Color.White,
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
+                Image(
+                    painter = painter,
+                    contentDescription = "Pokemon $this",
+                    modifier = Modifier.fillMaxSize()
+                )
+            }
+        }
     }
 }
