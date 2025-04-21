@@ -4,7 +4,6 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.os.Build
 import android.text.Spanned
-import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.AnimatedVisibilityScope
@@ -186,26 +185,29 @@ private fun getActivity(): MainActivity? {
 fun SharedTransitionScope.PokemonDetailScreen(
     navController: NavController?,
     pokemonId: Int,
-    pokemonName: String,
-    pokemonColor: String,
     animatedVisibilityScope: AnimatedVisibilityScope?,
     viewModel: PokemonViewModel = getViewModel()
 ) {
-    SetAnalyticScreenName(pokemonName)
-    LaunchedEffect(Unit) {
-        viewModel.getPokemonDetail()
-        viewModel.setPokemonColor(pokemonColor)
-    }
-
-    BackHandler {
-        viewModel.setDetailsScreen(false)
-        navController?.popBackStack()
-    }
-
     // Observes
+    val id by viewModel.idPokemon.observeAsState()
     val pokemonDetail by viewModel.pokemonDetail.observeAsState()
+    val color by viewModel.pokemonColor.observeAsState()
     val choiceOfTheDayStatus by viewModel.choiceOfTheDay.observeAsState(false)
     val painter = viewModel.getSharedImage(pokemonId.toString())
+
+    LaunchedEffect(id) {
+        if (id != null) {
+            viewModel.getPokemonDetail()
+        }
+    }
+
+    LaunchedEffect(pokemonId) {
+        viewModel.setIdPokemon(pokemonId)
+    }
+
+    pokemonDetail?.name?.let { name ->
+        SetAnalyticScreenName(name)
+    }
 
     StateRequest(
         viewModel = viewModel,
@@ -213,11 +215,10 @@ fun SharedTransitionScope.PokemonDetailScreen(
             MainCard(
                 navController,
                 pokemonId,
-                pokemonName,
-                pokemonColor,
                 animatedVisibilityScope,
                 choiceOfTheDayStatus,
                 pokemonDetail,
+                color.toString(),
                 painter,
             )
         },
@@ -225,11 +226,10 @@ fun SharedTransitionScope.PokemonDetailScreen(
             MainCard(
                 navController,
                 pokemonId,
-                pokemonName,
-                pokemonColor,
                 animatedVisibilityScope,
                 choiceOfTheDayStatus,
                 pokemonDetail,
+                color.toString(),
                 painter,
             )
         },
@@ -246,11 +246,10 @@ fun SharedTransitionScope.PokemonDetailScreen(
 fun SharedTransitionScope.MainCard(
     navController: NavController?,
     pokemonId: Int,
-    pokemonName: String,
-    pokemonColor: String,
     animatedVisibilityScope: AnimatedVisibilityScope?,
     choiceOfTheDayStatus: Boolean,
     pokemonDetail: Pokemon?,
+    color: String,
     painter: AsyncImagePainter? = null,
     viewModel: PokemonViewModel = getViewModel()
 ) {
@@ -279,7 +278,7 @@ fun SharedTransitionScope.MainCard(
                         .weight(1f), // Gives weight to expand proportionally
                 ) {
                     // Habitat Image
-                    PokemonHabitat(viewModel, pokemonDetail, pokemonName)
+                    PokemonHabitat(viewModel, pokemonDetail)
                     // Pokemon Image
                     if (painter != null) {
                         Image(
@@ -419,19 +418,19 @@ fun SharedTransitionScope.MainCard(
         }
         Spacer(modifier = Modifier.size(5.dp))
         PokemonArts(viewModel, pokemonDetail)
-        PokemonChart(viewModel, pokemonDetail, pokemonColor)
+        PokemonChart(viewModel, color, pokemonDetail)
         PokemonIsABaby()
         PokemonEvolution(navController, pokemonDetail)
         // Tabs
-        TabWithPagerExample(pokemonDetail, viewModel, pokemonColor)
+        TabWithPagerExample(pokemonDetail, color, viewModel)
     }
 }
 
 @Composable
 fun TabWithPagerExample(
     pokemonDetail: Pokemon?,
+    color: String,
     viewModel: PokemonViewModel = getViewModel(),
-    pokemonColor: String,
 ) {
     val tabTitles = listOf(
         stringResource(R.string.damage),
@@ -452,7 +451,7 @@ fun TabWithPagerExample(
     ) {
         items(tabTitles.size) { index ->
             val isSelected = pagerState.currentPage == index
-            val color = getButtonColor(isSelected, pokemonColor)
+            val color = getButtonColor(isSelected, color)
 
             StateRequest(
                 viewModel = viewModel,
@@ -515,17 +514,17 @@ fun TabWithPagerExample(
 
                 1 -> {
                     activity?.trackButtonClick(tabTitles[1])
-                    PokemonEncounters(pokemonDetail, pokemonColor, viewModel)
+                    PokemonEncounters(pokemonDetail, color, viewModel)
                 }
 
                 2 -> {
                     activity?.trackButtonClick(tabTitles[2])
-                    PokemonEggs(pokemonDetail, pokemonColor, viewModel)
+                    PokemonEggs(pokemonDetail, color, viewModel)
                 }
 
                 3 -> {
                     activity?.trackButtonClick(tabTitles[3])
-                    PokemonAbilities(pokemonDetail, pokemonColor, viewModel)
+                    PokemonAbilities(pokemonDetail, color, viewModel)
                 }
 
                 4 -> {
@@ -584,18 +583,17 @@ private fun DefaultSuccessComposable(title: String, value: String?) {
 private fun PokemonHabitat(
     viewModel: PokemonViewModel,
     pokemonDetail: Pokemon?,
-    pokemonName: String
 ) {
     StateRequest(
         viewModel = viewModel,
-        loading = { PokemonHabitatLoadingComposable(pokemonName) },
-        success = { PokemonHabitatSuccessComposable(pokemonDetail, pokemonName) },
+        loading = { PokemonHabitatLoadingComposable() },
+        success = { PokemonHabitatSuccessComposable(pokemonDetail) },
         error = { /* Do nothing yet */ }
     )
 }
 
 @Composable
-private fun PokemonHabitatSuccessComposable(pokemonDetail: Pokemon?, pokemonName: String) {
+private fun PokemonHabitatSuccessComposable(pokemonDetail: Pokemon?) {
     val context = LocalContext.current
     val habitatImg =
         pokemonDetail?.specie?.habitat?.name?.getDrawableHabitat() ?: R.drawable.unknow_habitat
@@ -614,7 +612,7 @@ private fun PokemonHabitatSuccessComposable(pokemonDetail: Pokemon?, pokemonName
             )
         }
         Text(
-            text = pokemonName.capitalize(),
+            text = pokemonDetail?.name?.capitalize() ?: String(),
             modifier = Modifier
                 .padding(start = 12.dp, top = 12.dp)
                 .align(Alignment.TopStart),
@@ -658,7 +656,7 @@ private fun PokemonHabitatSuccessComposable(pokemonDetail: Pokemon?, pokemonName
 }
 
 @Composable
-private fun PokemonHabitatLoadingComposable(pokemonName: String) {
+private fun PokemonHabitatLoadingComposable() {
     Box(
         modifier = Modifier
             .shimmer()
@@ -668,7 +666,7 @@ private fun PokemonHabitatLoadingComposable(pokemonName: String) {
         contentAlignment = Alignment.Center
     ) {
         Text(
-            text = pokemonName.capitalize(),
+            text = stringResource(R.string.loading),
             modifier = Modifier
                 .padding(start = 12.dp, top = 12.dp)
                 .align(Alignment.TopStart),
@@ -1002,8 +1000,8 @@ private fun PokemonArts(
 @Composable
 private fun PokemonChart(
     viewModel: PokemonViewModel,
+    color: String?,
     pokemonDetail: Pokemon?,
-    pokemonColor: String
 ) {
     Card(
         modifier = Modifier
@@ -1015,7 +1013,7 @@ private fun PokemonChart(
         StateRequest(
             viewModel = viewModel,
             loading = { ChartLoadingComposable() },
-            success = { ChartSuccessComposable(pokemonDetail, pokemonColor) },
+            success = { ChartSuccessComposable(pokemonDetail, color) },
             error = { /* Do nothing yet */ }
         )
     }
@@ -1029,7 +1027,7 @@ private fun getStatsLabels(pokemonDetail: Pokemon?, context: Context): List<Stri
 
 private fun getStats(
     pokemonDetail: Pokemon?,
-    pokemonColor: String,
+    pokemonColor: String?,
     context: Context
 ): List<Bars> {
     if (pokemonDetail != null) {
@@ -1041,7 +1039,7 @@ private fun getStats(
                     Bars.Data(
                         label = stat.stat.name?.uppercase(),
                         value = stat.base_stat.toDouble(),
-                        color = SolidColor(pokemonColor.getColorByString())
+                        color = SolidColor(pokemonColor?.getColorByString() ?: Color.Black)
                     ),
                 ),
             )
@@ -1052,9 +1050,9 @@ private fun getStats(
 }
 
 @Composable
-private fun ChartSuccessComposable(pokemonDetail: Pokemon?, pokemonColor: String) {
+private fun ChartSuccessComposable(pokemonDetail: Pokemon?, color: String?) {
     val context = LocalContext.current
-    val stats = getStats(pokemonDetail, pokemonColor, context)
+    val stats = getStats(pokemonDetail, color, context)
     RowChart(
         modifier = Modifier
             .fillMaxSize()
@@ -1204,7 +1202,6 @@ private fun PokemonEvolution(
     pokemonDetail: Pokemon?,
     viewModel: PokemonViewModel = getViewModel()
 ) {
-    val context = LocalContext.current
     val activity = getActivity()
     StateRequest(
         viewModel = viewModel,
@@ -1283,25 +1280,15 @@ private fun PokemonEvolution(
                                     shape = RoundedCornerShape(8.dp),
                                     elevation = CardDefaults.elevatedCardElevation(4.dp),
                                     onClick = {
-                                        /*
-                                        // AINDA POR FAZER!!!
                                         if (pokemonId != data.first) {
                                             viewModel.pokemonList.value?.find { item ->
                                                 item.pokemon.name == data.second
                                             }?.run {
                                                 val id = this.pokemon.id
-                                                val name = this.pokemon.name
-                                                val colorPokemon = this.pokemon.color
-                                                navController?.navigate("pokemonDetail/$id/$name/$colorPokemon/${false}")
+                                                viewModel.setIdPokemon(id)
+                                                navController?.navigate("pokemonDetail/$id")
                                             }
                                         }
-                                        */
-                                        Toast.makeText(
-                                            context,
-                                            data.second.capitalize(),
-                                            Toast.LENGTH_SHORT
-                                        ).show()
-
                                         activity?.trackButtonClick("Evolution: ${data.second.capitalize()}")
                                     }
                                 ) {
@@ -1431,7 +1418,7 @@ private fun PokemonDamage(
 @Composable
 private fun PokemonEncounters(
     pokemonDetail: Pokemon?,
-    pokemonColor: String,
+    color: String?,
     viewModel: PokemonViewModel = getViewModel()
 ) {
     StateRequest(
@@ -1450,7 +1437,7 @@ private fun PokemonEncounters(
                         modifier = Modifier
                             .fillMaxWidth()
                             .clip(RoundedCornerShape(8.dp))
-                            .background(pokemonColor.getColorByString())
+                            .background(color?.getColorByString() ?: Color.Black)
                             .padding(8.dp)
                     )
                 }
@@ -1474,7 +1461,7 @@ private fun PokemonEncounters(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .clip(RoundedCornerShape(8.dp))
-                                    .background(pokemonColor.getColorByString())
+                                    .background(color?.getColorByString() ?: Color.Black)
                                     .padding(8.dp)
                             )
                         }
@@ -1498,7 +1485,7 @@ private fun PokemonEncounters(
 @Composable
 private fun PokemonEggs(
     pokemonDetail: Pokemon?,
-    pokemonColor: String,
+    color: String?,
     viewModel: PokemonViewModel = getViewModel()
 ) {
     val context = LocalContext.current
@@ -1518,7 +1505,7 @@ private fun PokemonEggs(
                         modifier = Modifier
                             .fillMaxWidth()
                             .clip(RoundedCornerShape(8.dp))
-                            .background(pokemonColor.getColorByString())
+                            .background(color?.getColorByString() ?: Color.Black)
                             .padding(8.dp)
                     )
                 }
@@ -1542,7 +1529,7 @@ private fun PokemonEggs(
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .clip(RoundedCornerShape(8.dp))
-                                        .background(pokemonColor.getColorByString())
+                                        .background(color?.getColorByString() ?: Color.Black)
                                         .padding(8.dp)
                                 )
                             }
@@ -1566,7 +1553,7 @@ private fun PokemonEggs(
 @Composable
 private fun PokemonAbilities(
     pokemonDetail: Pokemon?,
-    pokemonColor: String,
+    color: String?,
     viewModel: PokemonViewModel = getViewModel()
 ) {
     StateRequest(
@@ -1592,7 +1579,7 @@ private fun PokemonAbilities(
                         modifier = Modifier
                             .fillMaxWidth()
                             .clip(RoundedCornerShape(8.dp))
-                            .background(pokemonColor.getColorByString())
+                            .background(color?.getColorByString() ?: Color.Black)
                             .padding(8.dp)
                     )
                 }
@@ -1641,7 +1628,7 @@ private fun PokemonAbilities(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .clip(RoundedCornerShape(8.dp))
-                                    .background(pokemonColor.getColorByString())
+                                    .background(color?.getColorByString() ?: Color.Black)
                                     .padding(8.dp)
                             )
                         }

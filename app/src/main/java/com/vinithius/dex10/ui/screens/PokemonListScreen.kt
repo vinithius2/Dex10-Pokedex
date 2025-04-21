@@ -256,7 +256,7 @@ fun SharedTransitionScope.PokemonListScreen(
                                         }
                                     },
                                     choiceOfTheDayStatus = choiceOfTheDay,
-                                    onClickDetail = { id, name, color, choiceOfTheDayStatus ->
+                                    onClickDetail = { id, choiceOfTheDayStatus ->
                                         if (choiceOfTheDay) {
                                             with(viewModel) {
                                                 if (isRewarded) {
@@ -271,8 +271,6 @@ fun SharedTransitionScope.PokemonListScreen(
                                                 setAdDataToDetails(
                                                     PokemonViewModel.AdData(
                                                         id,
-                                                        name,
-                                                        color,
                                                         choiceOfTheDayStatus
                                                     )
                                                 )
@@ -283,8 +281,6 @@ fun SharedTransitionScope.PokemonListScreen(
                                                 activity,
                                                 viewModel,
                                                 id,
-                                                name,
-                                                color,
                                                 choiceOfTheDayStatus
                                             )
                                         }
@@ -313,14 +309,12 @@ private fun goToDetails(
     activity: MainActivity?,
     viewModel: PokemonViewModel,
     id: Int,
-    name: String,
-    color: String,
     choiceOfTheDayStatus: Boolean
 ) {
-    activity?.trackButtonClick("Click button detail: $name")
+    activity?.trackButtonClick("Click button detail ID: $id")
     viewModel.setIdPokemon(id)
     viewModel.setChoiceOfTheDay(choiceOfTheDayStatus)
-    navController.navigate("pokemonDetail/$id/$name/$color")
+    navController.navigate("pokemonDetail/$id")
 }
 
 fun getFilterBarData(
@@ -339,7 +333,7 @@ fun SharedTransitionScope.PokemonListItem(
     animatedVisibilityScope: AnimatedVisibilityScope?,
     choiceOfTheDayStatus: Boolean = false,
     onCallBackFinishAnimation: (() -> Unit)?,
-    onClickDetail: ((Int, String, String, Boolean) -> Unit)?,
+    onClickDetail: ((Int, Boolean) -> Unit)?,
     onClickFavorite: ((PokemonWithDetails) -> Unit)?
 ) {
     val context = LocalContext.current
@@ -413,12 +407,11 @@ private fun clickAndGoToDetails(
     viewModel: PokemonViewModel?,
     pokemonData: PokemonWithDetails,
     choiceOfTheDayStatus: Boolean = false,
-    onClickDetail: ((Int, String, String, Boolean) -> Unit)?
+    onClickDetail: ((Int, Boolean) -> Unit)?
 ) {
     pokemonData.pokemon.let {
         if (onClickDetail != null) {
-            viewModel?.setDetailsScreen(true)
-            onClickDetail(it.id, it.name, it.color, choiceOfTheDayStatus)
+            onClickDetail(it.id, choiceOfTheDayStatus)
         }
     }
 }

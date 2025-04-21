@@ -66,6 +66,9 @@ interface PokemonDao {
     @Query("SELECT * FROM pokemon WHERE id = :id")
     suspend fun getPokemonById(id: Int): PokemonEntity?
 
+    @Query("SELECT color FROM pokemon WHERE id = :id")
+    suspend fun getPokemonColorById(id: Int): String?
+
     @Query("SELECT * FROM pokemon_type WHERE pokemon_id = :pokemonId")
     suspend fun getTypesByPokemonId(pokemonId: Int): List<PokemonType>
 

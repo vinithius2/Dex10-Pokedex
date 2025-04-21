@@ -10,6 +10,7 @@ import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import com.vinithius.dex10.R
 import com.vinithius.dex10.ui.MainActivity
+import androidx.core.net.toUri
 
 class Dex10FirebaseMessagingService : FirebaseMessagingService() {
 
@@ -27,10 +28,10 @@ class Dex10FirebaseMessagingService : FirebaseMessagingService() {
     private fun sendNotification(title: String?, messageBody: String?, data: Map<String, String>) {
         val intent: Intent
         if (data.containsKey("deeplink")) {
-            intent = Intent(Intent.ACTION_VIEW, Uri.parse(data["deeplink"]))
+            intent = Intent(Intent.ACTION_VIEW, data["deeplink"]?.toUri())
             intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
         } else if (data.containsKey("url")) {
-            intent = Intent(Intent.ACTION_VIEW, Uri.parse(data["url"]))
+            intent = Intent(Intent.ACTION_VIEW, data["url"]?.toUri())
         } else {
             intent = Intent(this, MainActivity::class.java)
             intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)

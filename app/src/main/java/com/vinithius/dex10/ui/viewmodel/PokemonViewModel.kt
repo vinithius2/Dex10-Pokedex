@@ -187,8 +187,6 @@ class PokemonViewModel(private val repository: PokemonRepository) : ViewModel() 
 
     data class AdData(
         val id: Int,
-        val name: String,
-        val color: String,
         val choiceOfTheDayStatus: Boolean
     )
 
@@ -277,7 +275,7 @@ class PokemonViewModel(private val repository: PokemonRepository) : ViewModel() 
     // FIM - Remote config
 
     private val _pokemonColor = MutableLiveData(String())
-    val pokemonColor: LiveData<String?>
+    val pokemonColor: LiveData<String>
         get() = _pokemonColor
 
     fun setPokemonColor(color: String?) {
@@ -286,14 +284,6 @@ class PokemonViewModel(private val repository: PokemonRepository) : ViewModel() 
 
     fun getPokemonColor(): String? {
         return _pokemonColor.value
-    }
-
-    private val _isDetailScreen = MutableLiveData(false)
-    val isDetailScreen: LiveData<Boolean>
-        get() = _isDetailScreen
-
-    fun setDetailsScreen(isDetails: Boolean) {
-        _isDetailScreen.postValue(isDetails)
     }
 
     private val _isDetailFavorite = MutableLiveData(false)
@@ -618,6 +608,9 @@ class PokemonViewModel(private val repository: PokemonRepository) : ViewModel() 
 
                 _stateDetail.postValue(RequestStateDetail.Success)
                 _pokemonDetail.postValue(pokemon)
+                repository.getPokemonColorById(id)?.let {
+                    _pokemonColor.postValue(it)
+                }
                 getDetailFavorite()
 
             } catch (e: Exception) {

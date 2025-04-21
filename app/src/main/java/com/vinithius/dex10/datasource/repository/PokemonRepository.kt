@@ -135,6 +135,10 @@ class PokemonRepository(
         return localDataSource.getPokemonWithDetailsById(id)
     }
 
+    suspend fun getPokemonColorById(id: Int): String? {
+        return localDataSource.getPokemonColorById(id)
+    }
+
     suspend fun insertPokemonCard(pokemon: Pokemon) {
         val pokemonEntity = pokemon.toEntity()
         val statEntityList = pokemon.toStatEntities()
