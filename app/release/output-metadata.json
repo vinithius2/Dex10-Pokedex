@@ -4,15 +4,15 @@
     "type": "APK",
     "kind": "Directory"
   },
-  "applicationId": "com.vinithius.poke10",
+  "applicationId": "com.vinithius.dex10",
   "variantName": "release",
   "elements": [
     {
       "type": "SINGLE",
       "filters": [],
       "attributes": [],
-      "versionCode": 6,
-      "versionName": "1.2.1",
+      "versionCode": 9,
+      "versionName": "1.2.4",
       "outputFile": "app-release.apk"
     }
   ],

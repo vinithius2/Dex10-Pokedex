@@ -8,7 +8,7 @@ class DatabaseHelper(context: Context) :
     SQLiteOpenHelper(context, DATABASE_NAME, null, DATABASE_VERSION) {
 
     companion object {
-        private const val DATABASE_NAME = "pokemon_database.db"
+        private const val DATABASE_NAME = "dex10_database.db"
         private const val DATABASE_VERSION = 1
 
         const val TABLE_POKEMON = "pokemon"
