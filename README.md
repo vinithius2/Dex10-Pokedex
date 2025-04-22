@@ -22,7 +22,7 @@
 <h1 align="center" dir="auto"></h1>
 
 <p align="center" dir="auto">
-dex10 is the best pokemon information app, it has the complete list with more than a thousand pokemons to explore, on the details screen you can see important information such as height, weight, type, habitat, damage type, evolution, description and places to find pokemon, this app is constantly evolving and will always be updated.
+Dex10 is the best pokemon information app, it has the complete list with more than a thousand pokemons to explore, on the details screen you can see important information such as height, weight, type, habitat, damage type, evolution, description and places to find pokemon, this app is constantly evolving and will always be updated.
 </p>
 
 <p align="center" dir="auto">
@@ -59,4 +59,4 @@ The project is simple to run, just let Gradle work and then run the project.
 
 # About the project
 
-The project uses MVVM in its architecture, coded 100% in Kotlin and uses some libraries such as Coroutines, Koin, Retrofit, Compose and among other important libraries.
+The project uses MVVM in its architecture, coded 100% in Kotlin and uses some libraries such as Coroutines, Koin, Retrofit, Compose UI and among other important libraries.
