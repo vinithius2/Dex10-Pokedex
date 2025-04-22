@@ -277,8 +277,7 @@ private fun GetAdUnitId(
         .addOnCompleteListener { task ->
             if (task.isSuccessful) {
                 // Ads
-                val adUnitIdList = remoteConfig.getString("adUnitId_list")
-                val adUnitIdDetails = remoteConfig.getString("adUnitId_details")
+                val adUnitIdList = remoteConfig.getString("adUnitId_banner")
                 val isRewarded = remoteConfig.getBoolean("isRewarded")
                 val adUnitIdChoiceOfTheDayInterstitial =
                     remoteConfig.getString("adUnitId_choiceOfTheDay_interstitial")
@@ -286,7 +285,6 @@ private fun GetAdUnitId(
                     remoteConfig.getString("adUnitId_choiceOfTheDay_rewarded")
                 // Viewmodel set
                 viewModel.setAdUnitIdList(adUnitIdList)
-                viewModel.setAdUnitIdDetails(adUnitIdDetails)
                 viewModel.setIsRewarded(isRewarded)
                 viewModel.setAdUnitIdChoiceOfTheDayInterstitial(adUnitIdChoiceOfTheDayInterstitial)
                 viewModel.setAdUnitIdChoiceOfTheDayRewarded(adUnitIdChoiceOfTheDayRewarded)

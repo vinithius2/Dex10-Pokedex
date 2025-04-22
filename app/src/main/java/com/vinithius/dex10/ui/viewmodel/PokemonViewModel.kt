@@ -10,6 +10,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import coil.compose.AsyncImagePainter
 import com.google.firebase.crashlytics.FirebaseCrashlytics
+import com.vinithius.dex10.R
 import com.vinithius.dex10.datasource.database.PokemonWithDetails
 import com.vinithius.dex10.datasource.repository.PokemonRepository
 import com.vinithius.dex10.datasource.response.Damage
@@ -23,7 +24,6 @@ import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-import com.vinithius.dex10.R
 
 class PokemonViewModel(private val repository: PokemonRepository) : ViewModel() {
 
@@ -111,20 +111,12 @@ class PokemonViewModel(private val repository: PokemonRepository) : ViewModel() 
 
     // Remote config
 
-    private val _adUnitIdList = MutableLiveData(String())
-    val adUnitIdList: LiveData<String>
-        get() = _adUnitIdList
+    private val _adUnitIdBanner = MutableLiveData(String())
+    val adUnitIdBanner: LiveData<String>
+        get() = _adUnitIdBanner
 
     fun setAdUnitIdList(value: String) {
-        _adUnitIdList.postValue(value)
-    }
-
-    private val _adUnitIdDetails = MutableLiveData(String())
-    val adUnitIdDetails: LiveData<String>
-        get() = _adUnitIdDetails
-
-    fun setAdUnitIdDetails(value: String) {
-        _adUnitIdDetails.postValue(value)
+        _adUnitIdBanner.postValue(value)
     }
 
     // Is Rewarded
@@ -423,7 +415,7 @@ class PokemonViewModel(private val repository: PokemonRepository) : ViewModel() 
     private fun makeFilter(
         pokemonList: List<PokemonWithDetails>,
         context: Context
-        ) {
+    ) {
         val checkboxStateMapTypes = checkboxStateMap(
             pokemonList.flatMap { pokemon -> pokemon.types.map { it.typeName } }
         )
@@ -504,7 +496,7 @@ class PokemonViewModel(private val repository: PokemonRepository) : ViewModel() 
     fun getPokemonSearch(
         search: String,
         context: Context,
-        ) {
+    ) {
         _searchNameFilter.value = search
         getFilterPokemon(context)
     }
@@ -512,7 +504,7 @@ class PokemonViewModel(private val repository: PokemonRepository) : ViewModel() 
     fun getPokemonFavoriteList(
         isFavorite: Boolean,
         context: Context,
-        ) {
+    ) {
         _isFavoriteFilter.value = isFavorite
         getFilterPokemon(context)
     }
@@ -520,7 +512,7 @@ class PokemonViewModel(private val repository: PokemonRepository) : ViewModel() 
     fun updateFilterState(
         filter: Map<String, SnapshotStateMap<String, Boolean>>,
         context: Context,
-        ) {
+    ) {
         _filterMap.value = filter
         getFilterPokemon(context)
     }

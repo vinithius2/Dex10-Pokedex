@@ -18,8 +18,8 @@ import org.koin.androidx.compose.getViewModel
 private val adUnitIdTeste = "ca-app-pub-3940256099942544/6300978111"
 
 @Composable
-fun AdmobBanner(typeScreen: Int = 1) {
-    val adUnitId = getTypeAdUnitScreen(typeScreen)
+fun AdmobBanner() {
+    val adUnitId = getTypeAdUnitScreen()
     adUnitId?.takeIf { it.isNotEmpty() }?.let { validAdUnitId ->
         AndroidView(
             modifier = Modifier
@@ -45,18 +45,11 @@ fun AdmobBanner(typeScreen: Int = 1) {
 
 @Composable
 private fun getTypeAdUnitScreen(
-    typeScreen: Int,
     viewModel: PokemonViewModel = getViewModel()
 ): String? {
     return if (BuildConfig.DEBUG) {
         adUnitIdTeste
     } else {
-        when (typeScreen) {
-            // Screen List
-            1 -> viewModel.adUnitIdList.observeAsState().value
-            // Detail List
-            2 -> viewModel.adUnitIdDetails.observeAsState().value
-            else -> null
-        }
+        viewModel.adUnitIdBanner.observeAsState().value
     }
 }
