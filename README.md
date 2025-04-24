@@ -11,7 +11,7 @@
 </p>
 
 <p align="center" dir="auto">
-    <a href="https://play.google.com/store/apps/details?id=com.vinithius.dex10" rel="nofollow">
+<a href="https://play.google.com/store/apps/details?id=com.vinithius.dex10" rel="nofollow">
         <img alt="Get it on Google Play" title="Google Play"
             src="https://user-images.githubusercontent.com/7644485/150062548-5584cee0-4637-4da2-bba6-f40b195611ad.png"
             width="140" style="max-width: 100%;">

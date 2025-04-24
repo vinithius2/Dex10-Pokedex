@@ -11,15 +11,15 @@ def apikeyProperties = new Properties()
 apikeyProperties.load(new FileInputStream(apikeyPropertiesFile))
 
 android {
-    namespace "com.vinithius.poke10"
-    compileSdk 34
+    namespace "com.vinithius.dex10"
+    compileSdk 35
 
     defaultConfig {
-        applicationId "com.vinithius.poke10"
+        applicationId "com.vinithius.dex10"
         minSdk 21
         targetSdk 34
-        versionCode 9
-        versionName "1.2.4"
+        versionCode 10
+        versionName "1.2.5"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
@@ -147,4 +147,8 @@ dependencies {
     implementation "com.airbnb.android:lottie-compose:$lottie_version"
     def markwon_version = "4.6.2"
     implementation "io.noties.markwon:core:$markwon_version"
+    // Translater
+    implementation "com.google.mlkit:translate:17.0.3"
+    // Splash Screen
+    implementation("androidx.core:core-splashscreen:1.0.1")
 }

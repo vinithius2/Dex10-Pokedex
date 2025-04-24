@@ -1,0 +1,202 @@
+<resources>
+    <string name="app_name">Dex10</string>
+    <string name="loading">लोड हो रहा है</string>
+    <string name="is_general_error">ओह, एक त्रुटि हुई!</string>
+    <string name="reloading">फिर से लोड हो रहा है</string>
+    <string name="pikachu_sad">पिकाचू उदास</string>
+    <string name="pikachu">पिकाचू</string>
+    <string name="unknown">अज्ञात</string>
+    <string name="capture_rate">कैप्चर दर:</string>
+    <string name="shape">आकार:</string>
+    <string name="base_exp">बेस एक्सप:</string>
+    <string name="generation">पीढ़ी:</string>
+    <string name="ico_mythical">पौराणिक आइकन</string>
+    <string name="is_a_baby">यह एक शिशु है!</string>
+    <string name="ico_left">बायां आइकन</string>
+    <string name="title_encounters">मुहिमें</string>
+    <string name="arrow">तीर</string>
+    <string name="unhidden">अनछिपा</string>
+    <string name="hidden">छिपा हुआ</string>
+    <string name="title_abilities">क्षमताएँ</string>
+    <string name="ico_type">प्रकार आइकन</string>
+    <string name="title_damage">%1$s प्रकार का नुकसान</string>
+    <string name="pokemon_evolution">पोकेमॉन विकास</string>
+    <string name="ico_status_damage">स्थिति नुकसान आइकन</string>
+    <string name="title_effective_damage_from">से प्रभावी नुकसान</string>
+    <string name="title_effective_damage_to">को प्रभावी नुकसान</string>
+    <string name="title_habitat">आवास</string>
+    <string name="title_ineffective_damage_from">से अप्रभावी नुकसान</string>
+    <string name="title_ineffective_damage_to">को अप्रभावी नुकसान</string>
+    <string name="title_no_damage_from">से कोई नुकसान नहीं</string>
+    <string name="title_no_damage_to">को कोई नुकसान नहीं</string>
+    <string name="title_text_entries">प्रविष्टियाँ</string>
+    <string name="title_egg_groups">अंडे समूह</string>
+    <string name="description">विवरण</string>
+    <string name="kg_lbs" translatable="false">"%1$s kg (%2$s lbs)"</string>
+    <string name="m_inch" translatable="false">"%1$s m (%2$s″)"</string>
+    <string name="kg_lbs_loading" translatable="false">"… kg (… lbs)"</string>
+    <string name="m_inch_loading" translatable="false">"… m (…″)"</string>
+    <string name="toast_baby">यह एक बेबी पोकेमॉन है!</string>
+    <string name="toast_mythical">यह एक पौराणिक पोकेमॉन है!</string>
+    <string name="toast_legendary">यह एक लीजेंडरी पोकेमॉन है!</string>
+    <string name="close">बंद करें</string>
+    <string name="search">खोजें</string>
+    <string name="donate_to_developer">डेवलपर को दान करें ❤️</string>
+    <string name="suggestions_or_bugs">सुझाव या बग</string>
+    <string name="feedback_and_support">प्रतिक्रिया और सहायता</string>
+    <string name="social_media">सोशल मीडिया</string>
+    <string name="rate_app">ऐप रेट करें ★★★★★</string>
+    <string name="share_app">ऐप साझा करें</string>
+    <string name="interaction">इंटरेक्शन</string>
+    <string name="changelog_whats_new">परिवर्तन लॉग (क्या नया है)</string>
+    <string name="night_mode">रात का मोड:</string>
+    <string name="enabled">सक्रिय</string>
+    <string name="disabled">निष्क्रिय</string>
+    <string name="settings">सेटिंग्स</string>
+    <string name="favorite">पसंदीदा</string>
+    <string name="clear_search">खोज साफ़ करें</string>
+    <string name="search_icon">खोज आइकन</string>
+    <string name="more_options">और विकल्प</string>
+    <string name="loading_three_dots">लोड हो रहा है…</string>
+    <string name="three_dots" translatable="false">…</string>
+    <string name="clear_all">सभी साफ़ करें</string>
+    <string name="no_pokemons">अरे, कोई पोकेमॉन नहीं!</string>
+    <string name="try_again">फिर से कोशिश करें</string>
+    <string name="empty_list">खाली सूची</string>
+    <string name="dont_close_app">कृपया ऐप बंद न करें, और सोने की कोशिश न करें, ठीक है?</string>
+    <string name="back">पीछे</string>
+    <string name="from">से:</string>
+    <string name="to">तक:</string>
+    <string name="no_damage">कोई नुकसान नहीं</string>
+    <string name="effective_damage">प्रभावी नुकसान</string>
+    <string name="ineffective_damage">अप्रभावी नुकसान</string>
+    <string name="damage">नुकसान</string>
+    <string name="encounters">मुठभेड़ें</string>
+    <string name="no_data">कोई डेटा नहीं</string>
+    <string name="eggs">अंडे</string>
+    <string name="abilities">क्षमताएँ</string>
+    <string name="info">जानकारी</string>
+    <string name="entries">प्रविष्टियाँ</string>
+    <string name="no_description_available">कोई विवरण उपलब्ध नहीं।</string>
+    <string name="about_abilities_hidden">पोकेमॉन की क्षमता उसकी नॉन-हिडन क्षमताओं में से एक होगी। छुपी हुई क्षमताएँ जेनेरेशन V में पेश की गई थीं और अपेक्षाकृत दुर्लभ होती हैं तथा आमतौर पर किसी विशेष मुहिम की आवश्यकता होती है।</string>
+    <string name="share_app_message">Dex10 को देखें! 🧡✨
+सभी पोकेमॉन का अन्वेषण करें, आंकड़े, क्षमताएँ और युद्ध रणनीतियाँ देखें। अपने पसंदीदा पोकेमॉन को चुनें और प्रकार की प्रभावशीलता में माहिर बनें!
+
+अभी डाउनलोड करें:
+📲 %1$s
+
+मैं इसे इस्तेमाल करता हूँ और पूरी तरह से इसकी सिफारिश करता हूँ! 😍</string>
+    <string name="share_app_via">ऐप को इस जरिए साझा करें</string>
+    <string name="instagran">इंस्टाग्राम</string>
+    <string name="facebook">Facebook</string>
+    <string name="reddit">रेडिट</string>
+    <string name="jigglypuff_songs">कृपया, सो मत जाओ!</string>
+    <string name="title_back_default">पीछे</string>
+    <string name="title_back_female">पीछे (महिला)</string>
+    <string name="title_back_shiny">पीछे चमकीला</string>
+    <string name="title_back_shiny_female">पीछे (महिला) चमकीला</string>
+    <string name="title_front_default">सामने</string>
+    <string name="title_front_female">सामने (महिला)</string>
+    <string name="title_front_shiny">सामने चमकीला</string>
+    <string name="title_front_shiny_female">सामने (महिला) चमकीला</string>
+    <string name="title_dream_world_front">ड्रीम वर्ल्ड - सामने</string>
+    <string name="title_dream_world_back">ड्रीम वर्ल्ड - पीछे</string>
+    <string name="title_home_front_default">होम - सामने</string>
+    <string name="title_home_front_shiny">होम - सामने चमकीला</string>
+    <string name="title_official_artwork">आधिकारिक कलाकृति</string>
+    <string name="title_showdown_front">शोडाऊन - सामने</string>
+    <string name="title_showdown_back">शोडाऊन - पीछे</string>
+    <string name="title_showdown_front_shiny">शोडाऊन - सामने चमकीला</string>
+    <string name="title_showdown_back_shiny">शोडाऊन - पीछे चमकीला</string>
+    <string name="choice_of_the_day">आज का चयन</string>
+    <string name="ad_message">जब आप आज के चयन पर टैप करते हैं, तो उसे अनलॉक करने के लिए एक विज्ञापन देखना होगा। प्रत्येक चयन केवल अपने निर्दिष्ट दिन पर उपलब्ध होता है और क्लिक किए जाने तक छिपा रहता है। विज्ञापन देखने से, आप डेवलपर को ऐप को बेहतर बनाने में समर्थन करते हैं। धन्यवाद!</string>
+    <string name="dont_show_again">फिर से यह संदेश न दिखाएं</string>
+    <string name="know_this_first">हम चाहते हैं कि आप पहले यह जान लें</string>
+    <string name="ok">ठीक है</string>
+    <string name="cancel">रद्द करें</string>
+
+    <!-- FILTER -->
+    <string name="type">प्रकार</string>
+    <string name="ability">क्षमता</string>
+    <string name="color">रंग</string>
+    <string name="habitat">आवास</string>
+
+    <!-- STATS -->
+    <string name="hp">Hp</string>
+    <string name="attack">हमला</string>
+    <string name="defense">रक्षा</string>
+    <string name="special_attack">विशेष हमला</string>
+    <string name="special_defense">विशेष रक्षा</string>
+    <string name="speed">गति</string>
+
+    <!-- Habitat -->
+    <string name="cave">गुफा</string>
+    <string name="forest">जंगल</string>
+    <string name="grassland">घास का मैदान</string>
+    <string name="mountain">पहाड़</string>
+    <string name="rare">दुर्लभ</string>
+    <string name="rough_terrain">खराब इलाका</string>
+    <string name="sea">समुंदर</string>
+    <string name="urban">शहरी</string>
+    <string name="waters_edge">जल का किनारा</string>
+
+    <!-- TYPE -->
+    <string name="bug">कीट</string>
+    <string name="dark">अंधेरा</string>
+    <string name="dragon">ड्रैगन</string>
+    <string name="electric">बिजली</string>
+    <string name="fairy">परी</string>
+    <string name="fighting">लड़ाई</string>
+    <string name="fire">आग</string>
+    <string name="flying">उड़ान</string>
+    <string name="ghost">भूत</string>
+    <string name="grass">घास</string>
+    <string name="ground">भूमि</string>
+    <string name="ice">बर्फ</string>
+    <string name="poison">जहर</string>
+    <string name="psychic">मनोवैज्ञानिक</string>
+    <string name="rock">पत्थर</string>
+    <string name="steel">इस्पात</string>
+    <string name="water">पानी</string>
+    <string name="unknow">अज्ञात</string>
+    <!-- TRANSLATER STATUS -->
+    <string name="loading_translate">पाठ लोड हो रहा है…</string>
+    <!-- SHAPES -->
+    <string name="shape_ball">गेंद</string>
+    <string name="shape_squiggle">लहरदार</string>
+    <string name="shape_fish">मछली</string>
+    <string name="shape_arms">बाहें</string>
+    <string name="shape_blob">गांठ</string>
+    <string name="shape_upright">सीधा</string>
+    <string name="shape_legs">पैर</string>
+    <string name="shape_quadruped">चौपाया</string>
+    <string name="shape_wings">पंख</string>
+    <string name="shape_tentacles">सूंड़</string>
+    <string name="shape_heads">सिर</string>
+    <string name="shape_humanoid">मानवाकार</string>
+    <string name="shape_bug_wings">कीट पंख</string>
+    <string name="shape_armor">बख़्तर</string>
+    <!-- EGGS GROUPS -->
+    <string name="egg_group_monster">राक्षस</string>
+    <string name="egg_group_water1">पानी 1</string>
+    <string name="egg_group_bug">कीट</string>
+    <string name="egg_group_flying">उड़ने वाला</string>
+    <string name="egg_group_ground">जमीन</string>
+    <string name="egg_group_fairy">परी</string>
+    <string name="egg_group_plant">पौधा</string>
+    <string name="egg_group_humanshape">मानव आकार</string>
+    <string name="egg_group_water3">पानी 3</string>
+    <string name="egg_group_mineral">खनिज</string>
+    <string name="egg_group_indeterminate">अनिर्धारित</string>
+    <string name="egg_group_water2">पानी 2</string>
+    <string name="egg_group_ditto">डिट्टो</string>
+    <string name="egg_group_dragon">ड्रैगन</string>
+    <string name="egg_group_no_eggs">कोई अंडा नहीं</string>
+    <!-- ERROR -->
+    <string name="error_title">कुछ गलत हो गया</string>
+    <string name="error_description">डेटा लोड नहीं हो सका। कृपया बाद में पुनः प्रयास करें।</string>
+    <!-- COPYRIGHT -->
+    <string name="copyright_title">कॉपीराइट नोटिस</string>
+    <string name="copyright_description">Dex10 - Pokédex एक प्रशंसकों द्वारा और प्रशंसकों के लिए बनाया गया ऐप है, जो Pokémon फ्रैंचाइज़ी को समर्पित है। Pokémon से संबंधित सभी सामग्री, जैसे नाम, चित्र, डेटा और अन्य तत्व, Nintendo, GAME FREAK और The Pokémon Company की बौद्धिक संपत्ति हैं। हम इन सामग्रियों पर किसी प्रकार के स्वामित्व या लेखन का दावा नहीं करते हैं। इन्हें केवल जानकारीपूर्ण, शैक्षिक और गैर-व्यावसायिक उद्देश्यों के लिए "उचित उपयोग" सिद्धांत के तहत उपयोग किया गया है। यह ऐप Nintendo, GAME FREAK या The Pokémon Company से संबद्ध, प्रायोजित या अनुमोदित नहीं है। डेवलपर Pokémon फ्रैंचाइज़ी की ट्रेडमार्क या कॉपीराइट सामग्री के उपयोग से उत्पन्न किसी भी कानूनी मुद्दे के लिए जिम्मेदार नहीं है।</string>
+    <string name="accept_the_terms_and_dont_show_again">मैं शर्तों को स्वीकार करता हूँ और इस संदेश को फिर से नहीं देखना चाहता</string>
+</resources>
