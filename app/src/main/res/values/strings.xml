@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Poke10</string>
+    <string name="app_name">Dex10</string>
     <string name="loading">Loading</string>
     <string name="is_general_error">Oops, there was an error!</string>
     <string name="reloading">Reloading</string>
@@ -32,10 +32,10 @@
     <string name="title_text_entries">Registrations</string>
     <string name="title_egg_groups">Egg Groups</string>
     <string name="description">description</string>
-    <string name="kg_lbs">"%1$s kg (%2$s lbs)"</string>
-    <string name="m_inch">"%1$s m (%2$s″)"</string>
-    <string name="kg_lbs_loading">"… kg (… lbs)"</string>
-    <string name="m_inch_loading">"… m (…″)"</string>
+    <string name="kg_lbs" translatable="false">"%1$s kg (%2$s lbs)"</string>
+    <string name="m_inch" translatable="false">"%1$s m (%2$s″)"</string>
+    <string name="kg_lbs_loading" translatable="false">"… kg (… lbs)"</string>
+    <string name="m_inch_loading" translatable="false">"… m (…″)"</string>
     <string name="toast_baby">This is a baby pokemon!</string>
     <string name="toast_mythical">This is a Mythical pokemon!</string>
     <string name="toast_legendary">This is a legendary pokemon!</string>
@@ -59,7 +59,7 @@
     <string name="search_icon">Search Icon</string>
     <string name="more_options">More options</string>
     <string name="loading_three_dots">Loading…</string>
-    <string name="three_dots">…</string>
+    <string name="three_dots" translatable="false">…</string>
     <string name="clear_all">Clear All</string>
     <string name="no_pokemons">Hey, no Pokémons!</string>
     <string name="try_again">Try again</string>
@@ -80,7 +80,7 @@
     <string name="entries">Entries</string>
     <string name="no_description_available">No description available.</string>
     <string name="about_abilities_hidden">The Pokémon\'s Ability will be one of its non-hidden abilities. Hidden abilities were introduced in Generation V and are relatively rare and usually require some type of special encounter.</string>
-    <string name="share_app_message">Check out Poke10! 🧡✨\nExplore all Pokémon, view stats, abilities, and battle strategies. Favorite your favorites and master type effectiveness!\n\nDownload now:\n📲 %1$s\n\nI use it and totally recommend it! 😍</string>
+    <string name="share_app_message">Check out Dex10! 🧡✨\nExplore all Pokémon, view stats, abilities, and battle strategies. Favorite your favorites and master type effectiveness!\n\nDownload now:\n📲 %1$s\n\nI use it and totally recommend it! 😍</string>
     <string name="share_app_via">Share app via</string>
     <string name="instagran">Instagran</string>
     <string name="facebook">Facebook</string>
@@ -108,4 +108,98 @@
     <string name="title_showdown_back_shiny">Showdown - Back Shiny</string>
 
     <string name="choice_of_the_day">Choice of the day</string>
+
+    <string name="ad_message">When you tap on the choice of the day, you must watch an ad to unlock it. Each choice is available only on its designated day and remains hidden until clicked. By watching, you\'re supporting the developer to keep improving the app. Thank you!</string>
+    <string name="dont_show_again">Don\'t show this message again</string>
+    <string name="know_this_first">We\'d like you to know this first</string>
+    <string name="ok">Ok</string>
+    <string name="cancel">Cancel</string>
+
+    <!-- FILTER -->
+    <string name="type">Type</string>
+    <string name="ability">Ability</string>
+    <string name="color">Color</string>
+    <string name="habitat">Habitat</string>
+
+    <!-- STATS -->
+
+    <string name="hp">Hp</string>
+    <string name="attack">Attack</string>
+    <string name="defense">Defense</string>
+    <string name="special_attack">Special attack</string>
+    <string name="special_defense">Special defense</string>
+    <string name="speed">Speed</string>
+
+    <!-- Habitat -->
+
+    <string name="cave">Cave</string>
+    <string name="forest">Forest</string>
+    <string name="grassland">Grassland</string>
+    <string name="mountain">Mountain</string>
+    <string name="rare">Rare</string>
+    <string name="rough_terrain">Rough Terrain</string>
+    <string name="sea">Sea</string>
+    <string name="urban">Urban</string>
+    <string name="waters_edge">Waters Edge</string>
+
+    <!-- TYPE -->
+
+    <string name="bug">Bug</string>
+    <string name="dark">Dark</string>
+    <string name="dragon">Dragon</string>
+    <string name="electric">Electric</string>
+    <string name="fairy">Fairy</string>
+    <string name="fighting">Fighting</string>
+    <string name="fire">Fire</string>
+    <string name="flying">Flying</string>
+    <string name="ghost">Ghost</string>
+    <string name="grass">Grass</string>
+    <string name="ground">Ground</string>
+    <string name="ice">Ice</string>
+    <string name="poison">Poison</string>
+    <string name="psychic">Psychic</string>
+    <string name="rock">Rock</string>
+    <string name="steel">Steel</string>
+    <string name="water">Water</string>
+    <string name="unknow">Unknown</string>
+    <!-- TRANSLATER STATUS -->
+    <string name="loading_translate">Loading text…</string>
+    <!-- SHAPES -->
+    <string name="shape_ball">Ball</string>
+    <string name="shape_squiggle">Squiggle</string>
+    <string name="shape_fish">Fish</string>
+    <string name="shape_arms">Arms</string>
+    <string name="shape_blob">Blob</string>
+    <string name="shape_upright">Upright</string>
+    <string name="shape_legs">Legs</string>
+    <string name="shape_quadruped">Quadruped</string>
+    <string name="shape_wings">Wings</string>
+    <string name="shape_tentacles">Tentacles</string>
+    <string name="shape_heads">Heads</string>
+    <string name="shape_humanoid">Humanoid</string>
+    <string name="shape_bug_wings">Bug Wings</string>
+    <string name="shape_armor">Armor</string>
+    <!-- EGGS GROUPS -->
+    <string name="egg_group_monster">Monster</string>
+    <string name="egg_group_water1">Water 1</string>
+    <string name="egg_group_bug">Bug</string>
+    <string name="egg_group_flying">Flying</string>
+    <string name="egg_group_ground">Ground</string>
+    <string name="egg_group_fairy">Fairy</string>
+    <string name="egg_group_plant">Plant</string>
+    <string name="egg_group_humanshape">Humanshape</string>
+    <string name="egg_group_water3">Water 3</string>
+    <string name="egg_group_mineral">Mineral</string>
+    <string name="egg_group_indeterminate">Indeterminate</string>
+    <string name="egg_group_water2">Water 2</string>
+    <string name="egg_group_ditto">Ditto</string>
+    <string name="egg_group_dragon">Dragon</string>
+    <string name="egg_group_no_eggs">No Eggs</string>
+    <!-- ERROR -->
+    <string name="error_title">Something went wrong</string>
+    <string name="error_description">We couldn\'t load the data. Please try again later.</string>
+    <!-- COPYRIGHT -->
+    <string name="copyright_title">Copyright Notice</string>
+    <string name="copyright_description">Dex10 - Pokédex is a fan-made app created by and for fans of the Pokémon franchise. All content related to Pokémon, including names, images, data, and other elements presented in this app, is the intellectual property of Nintendo, GAME FREAK, and The Pokémon Company. We do not claim authorship or ownership over these materials. They are used under the fair use principle for informational, educational, and non-commercial purposes only. This app is not affiliated with, sponsored, or endorsed by Nintendo, GAME FREAK, or The Pokémon Company. The developer assumes no responsibility for any legal issues arising from the use of trademarks or copyrighted content from the Pokémon franchise.</string>
+    <string name="accept_the_terms_and_dont_show_again">I accept the terms and do not wish to see this message again</string>
 </resources>

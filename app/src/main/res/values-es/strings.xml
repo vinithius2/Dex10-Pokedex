@@ -1,0 +1,202 @@
+<resources>
+    <string name="app_name">Dex10</string>
+    <string name="loading">Cargando</string>
+    <string name="is_general_error">¡Vaya, ocurrió un error!</string>
+    <string name="reloading">Recargando</string>
+    <string name="pikachu_sad">Pikachu Triste</string>
+    <string name="pikachu">Pikachu</string>
+    <string name="unknown">Desconocido</string>
+    <string name="capture_rate">Tasa de captura:</string>
+    <string name="shape">Forma:</string>
+    <string name="base_exp">Exp. Base:</string>
+    <string name="generation">Generación:</string>
+    <string name="ico_mythical">Ícono mítico</string>
+    <string name="is_a_baby">¡ES UN BEBÉ!</string>
+    <string name="ico_left">Ícono izquierdo</string>
+    <string name="title_encounters">Encuentros</string>
+    <string name="arrow">Flecha</string>
+    <string name="unhidden">No oculto</string>
+    <string name="hidden">Oculto</string>
+    <string name="title_abilities">Habilidades</string>
+    <string name="ico_type">Icono tipo</string>
+    <string name="title_damage">%1$s daño de tipo</string>
+    <string name="pokemon_evolution">Evolución de Pokémon</string>
+    <string name="ico_status_damage">Icono de estado de daño</string>
+    <string name="title_effective_damage_from">Daño efectivo de</string>
+    <string name="title_effective_damage_to">Daño efectivo a</string>
+    <string name="title_habitat">Hábitat</string>
+    <string name="title_ineffective_damage_from">Daño ineficaz de</string>
+    <string name="title_ineffective_damage_to">Daño ineficaz a</string>
+    <string name="title_no_damage_from">Sin daño de</string>
+    <string name="title_no_damage_to">Sin daño a</string>
+    <string name="title_text_entries">Registros</string>
+    <string name="title_egg_groups">Grupos de huevos</string>
+    <string name="description">descripción</string>
+    <string name="kg_lbs" translatable="false">"%1$s kg (%2$s lbs)"</string>
+    <string name="m_inch" translatable="false">"%1$s m (%2$s″)"</string>
+    <string name="kg_lbs_loading" translatable="false">"… kg (… lbs)"</string>
+    <string name="m_inch_loading" translatable="false">"… m (…″)"</string>
+    <string name="toast_baby">¡Este es un Pokémon bebé!</string>
+    <string name="toast_mythical">¡Este es un Pokémon mítico!</string>
+    <string name="toast_legendary">¡Este es un Pokémon legendario!</string>
+    <string name="close">Cerrar</string>
+    <string name="search">Buscar</string>
+    <string name="donate_to_developer">Donar al desarrollador ❤️</string>
+    <string name="suggestions_or_bugs">Sugerencias o errores</string>
+    <string name="feedback_and_support">Comentarios y soporte</string>
+    <string name="social_media">Redes sociales</string>
+    <string name="rate_app">Calificar la aplicación ★★★★★</string>
+    <string name="share_app">Compartir aplicación</string>
+    <string name="interaction">Interacción</string>
+    <string name="changelog_whats_new">Registro de cambios (Novedades)</string>
+    <string name="night_mode">Modo nocturno:</string>
+    <string name="enabled">Activado</string>
+    <string name="disabled">Desactivado</string>
+    <string name="settings">Configuración</string>
+    <string name="favorite">Favorito</string>
+    <string name="clear_search">Limpiar búsqueda</string>
+    <string name="search_icon">Icono de búsqueda</string>
+    <string name="more_options">Más opciones</string>
+    <string name="loading_three_dots">Cargando…</string>
+    <string name="three_dots" translatable="false">…</string>
+    <string name="clear_all">Limpiar todo</string>
+    <string name="no_pokemons">¡Oye, no hay Pokémons!</string>
+    <string name="try_again">Inténtalo de nuevo</string>
+    <string name="empty_list">Lista vacía</string>
+    <string name="dont_close_app">Por favor, no cierres la aplicación, y trata de no quedarte dormido, ¿vale?</string>
+    <string name="back">Atrás</string>
+    <string name="from">Desde:</string>
+    <string name="to">Hasta:</string>
+    <string name="no_damage">Sin daño</string>
+    <string name="effective_damage">Daño efectivo</string>
+    <string name="ineffective_damage">Daño ineficaz</string>
+    <string name="damage">Daño</string>
+    <string name="encounters">Encuentros</string>
+    <string name="no_data">Sin datos</string>
+    <string name="eggs">Huevos</string>
+    <string name="abilities">Habilidades</string>
+    <string name="info">Información</string>
+    <string name="entries">Entradas</string>
+    <string name="no_description_available">No hay descripción disponible.</string>
+    <string name="about_abilities_hidden">La habilidad del Pokémon será una de sus habilidades no ocultas. Las habilidades ocultas se introdujeron en la Generación V y son relativamente raras y, por lo general, requieren algún tipo de encuentro especial.</string>
+    <string name="share_app_message">¡Descubre Dex10! 🧡✨
+Explora todos los Pokémon, mira estadísticas, habilidades y estrategias de combate. ¡Favoritos tus favoritos y domina la efectividad de tipos!
+
+Descárgalo ahora:
+📲 %1$s
+
+¡Lo uso y lo recomiendo totalmente! 😍</string>
+    <string name="share_app_via">Compartir aplicación a través de</string>
+    <string name="instagran">Instagran</string>
+    <string name="facebook">Facebook</string>
+    <string name="reddit">Reddit</string>
+    <string name="jigglypuff_songs">¡Por favor, no te duermas!</string>
+    <string name="title_back_default">Atrás</string>
+    <string name="title_back_female">Atrás (femenino)</string>
+    <string name="title_back_shiny">Atrás Brillante</string>
+    <string name="title_back_shiny_female">Atrás Brillante (femenino)</string>
+    <string name="title_front_default">Frente</string>
+    <string name="title_front_female">Frente (femenino)</string>
+    <string name="title_front_shiny">Frente Brillante</string>
+    <string name="title_front_shiny_female">Frente Brillante (femenino)</string>
+    <string name="title_dream_world_front">Dream World - Frente</string>
+    <string name="title_dream_world_back">Dream World - Atrás</string>
+    <string name="title_home_front_default">Inicio - Frente</string>
+    <string name="title_home_front_shiny">Inicio - Frente Brillante</string>
+    <string name="title_official_artwork">Arte oficial</string>
+    <string name="title_showdown_front">Showdown - Frente</string>
+    <string name="title_showdown_back">Showdown - Atrás</string>
+    <string name="title_showdown_front_shiny">Showdown - Frente Brillante</string>
+    <string name="title_showdown_back_shiny">Showdown - Atrás Brillante</string>
+    <string name="choice_of_the_day">Elección del día</string>
+    <string name="ad_message">Cuando tocas la elección del día, debes ver un anuncio para desbloquearla. Cada elección está disponible solo en su día designado y permanece oculta hasta que se hace clic. Al ver el anuncio, apoyas al desarrollador para seguir mejorando la aplicación. ¡Gracias!</string>
+    <string name="dont_show_again">No mostrar este mensaje nuevamente</string>
+    <string name="know_this_first">Nos gustaría que supieras esto primero</string>
+    <string name="ok">Ok</string>
+    <string name="cancel">Cancelar</string>
+
+    <!-- FILTER -->
+    <string name="type">Tipo</string>
+    <string name="ability">Habilidad</string>
+    <string name="color">Color</string>
+    <string name="habitat">Hábitat</string>
+
+    <!-- STATS -->
+    <string name="hp">Hp</string>
+    <string name="attack">Ataque</string>
+    <string name="defense">Defensa</string>
+    <string name="special_attack">Ataque especial</string>
+    <string name="special_defense">Defensa especial</string>
+    <string name="speed">Velocidad</string>
+
+    <!-- Habitat -->
+    <string name="cave">Cueva</string>
+    <string name="forest">Bosque</string>
+    <string name="grassland">Pradera</string>
+    <string name="mountain">Montaña</string>
+    <string name="rare">Raro</string>
+    <string name="rough_terrain">Terreno accidentado</string>
+    <string name="sea">Mar</string>
+    <string name="urban">Urbano</string>
+    <string name="waters_edge">Orilla del agua</string>
+
+    <!-- TYPE -->
+    <string name="bug">Bicho</string>
+    <string name="dark">Oscuro</string>
+    <string name="dragon">Dragón</string>
+    <string name="electric">Eléctrico</string>
+    <string name="fairy">Hada</string>
+    <string name="fighting">Lucha</string>
+    <string name="fire">Fuego</string>
+    <string name="flying">Volador</string>
+    <string name="ghost">Fantasma</string>
+    <string name="grass">Planta</string>
+    <string name="ground">Tierra</string>
+    <string name="ice">Hielo</string>
+    <string name="poison">Veneno</string>
+    <string name="psychic">Psíquico</string>
+    <string name="rock">Roca</string>
+    <string name="steel">Acero</string>
+    <string name="water">Agua</string>
+    <string name="unknow">Desconocido</string>
+    <!-- TRANSLATER STATUS -->
+    <string name="loading_translate">Cargando texto…</string>
+    <!-- SHAPES -->
+    <string name="shape_ball">Esfera</string>
+    <string name="shape_squiggle">Ondulado</string>
+    <string name="shape_fish">Pez</string>
+    <string name="shape_arms">Brazos</string>
+    <string name="shape_blob">Masa</string>
+    <string name="shape_upright">Erguido</string>
+    <string name="shape_legs">Piernas</string>
+    <string name="shape_quadruped">Cuadrúpedo</string>
+    <string name="shape_wings">Alas</string>
+    <string name="shape_tentacles">Tentáculos</string>
+    <string name="shape_heads">Cabezas</string>
+    <string name="shape_humanoid">Humanoide</string>
+    <string name="shape_bug_wings">Alas de insecto</string>
+    <string name="shape_armor">Armadura</string>
+    <!-- EGGS GROUPS -->
+    <string name="egg_group_monster">Monstruo</string>
+    <string name="egg_group_water1">Agua 1</string>
+    <string name="egg_group_bug">Bicho</string>
+    <string name="egg_group_flying">Volador</string>
+    <string name="egg_group_ground">Tierra</string>
+    <string name="egg_group_fairy">Hada</string>
+    <string name="egg_group_plant">Planta</string>
+    <string name="egg_group_humanshape">Forma Humana</string>
+    <string name="egg_group_water3">Agua 3</string>
+    <string name="egg_group_mineral">Mineral</string>
+    <string name="egg_group_indeterminate">Indeterminado</string>
+    <string name="egg_group_water2">Agua 2</string>
+    <string name="egg_group_ditto">Ditto</string>
+    <string name="egg_group_dragon">Dragón</string>
+    <string name="egg_group_no_eggs">Sin Huevo</string>
+    <!-- ERROR -->
+    <string name="error_title">Algo salió mal</string>
+    <string name="error_description">No se pudieron cargar los datos. Por favor, inténtalo de nuevo más tarde.</string>
+    <!-- COPYRIGHT -->
+    <string name="copyright_title">Aviso sobre Derechos de Autor</string>
+    <string name="copyright_description">Dex10 - Pokédex es una aplicación hecha por y para fans de la franquicia Pokémon. Todo el contenido relacionado con Pokémon, incluidos nombres, imágenes, datos y otros elementos presentados en esta aplicación, es propiedad intelectual de Nintendo, GAME FREAK y The Pokémon Company. No reclamamos autoría ni propiedad sobre estos materiales. Se utilizan bajo el principio de uso justo (fair use), con fines exclusivamente informativos, educativos y sin fines comerciales. Esta aplicación no está afiliada, patrocinada ni respaldada por Nintendo, GAME FREAK ni The Pokémon Company. El desarrollador no se responsabiliza por posibles problemas legales derivados del uso de marcas registradas o contenidos protegidos por derechos de autor de la franquicia Pokémon.</string>
+    <string name="accept_the_terms_and_dont_show_again">Acepto los términos y no deseo ver este mensaje nuevamente</string>
+</resources>
