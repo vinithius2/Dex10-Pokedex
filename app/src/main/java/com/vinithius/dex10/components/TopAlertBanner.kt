@@ -53,7 +53,7 @@ fun TopAlertBanner(
 
     // Obtem o idioma atual
     val languageCode = Locale.getDefault().language
-    val localized = alert.getLocalizedContent(languageCode)
+    val localized = alert.getLocalizedContent(languageCode, context)
 
     Surface(
         modifier = modifier

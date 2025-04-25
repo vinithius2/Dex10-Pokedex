@@ -124,7 +124,6 @@ class MainActivity : ComponentActivity() {
         }
         analytics = FirebaseAnalytics.getInstance(this)
         MobileAds.initialize(this@MainActivity)
-
         requestNotificationPermission()
         pushNotification()
         downloadTranslationModelIfSupported(
@@ -133,7 +132,8 @@ class MainActivity : ComponentActivity() {
             },
             onError = {
                 Log.e("MLKit", "Error downloading translation template", it)
-            }
+            },
+            context = this
         )
 
 
@@ -232,10 +232,14 @@ class MainActivity : ComponentActivity() {
      */
     fun downloadTranslationModelIfSupported(
         onDownloaded: () -> Unit,
-        onError: (Exception) -> Unit
+        onError: (Exception) -> Unit,
+        context: Context
     ) {
         val deviceLanguage = Locale.getDefault().language
-        val supportedLanguages = setOf("pt", "es", "fr", "hi")
+
+        val supportedLanguages = context.resources.getStringArray(
+            R.array.supported_languages
+        ).toSet()
 
         if (supportedLanguages.contains(deviceLanguage)) {
             val options = TranslatorOptions.Builder()
@@ -269,7 +273,7 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 private fun GetAdUnitId(
-    activity: MainActivity,
+    context: Context,
     viewModel: PokemonViewModel = getViewModel()
 ) {
     val remoteConfig = FirebaseRemoteConfig.getInstance()
@@ -306,7 +310,7 @@ private fun GetAdUnitId(
                     val alertMessageData =
                         Gson().fromJson(alertMessageJson, AlertMessage::class.java)
                     val languageCode = Locale.getDefault().language
-                    val localized = alertMessageData.getLocalizedContent(languageCode)
+                    val localized = alertMessageData.getLocalizedContent(languageCode, context)
                     val localizedAlert = AlertMessage(
                         show = alertMessageData.show,
                         version_code = alertMessageData.version_code,
@@ -336,8 +340,8 @@ fun MainScreen(
             viewModel.clearDeeplinkNavigation()
         }
     }
-
-    GetAdUnitId(activity)
+    val context = LocalContext.current
+    GetAdUnitId(context)
     SetInterstitialOrRewardedAdManager(activity, navController)
     SetupSystemUI(viewModel)
     Scaffold(

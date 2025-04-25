@@ -1557,6 +1557,7 @@ private fun PokemonAbilities(
     color: String?,
     viewModel: PokemonViewModel = getViewModel()
 ) {
+    val context = LocalContext.current
     StateRequest(
         viewModel = viewModel,
         loading = {
@@ -1614,7 +1615,8 @@ private fun PokemonAbilities(
                                 },
                                 onError = {
                                     translatedText.value = originalName // fallback
-                                }
+                                },
+                                context = context
                             )
                         }
 
@@ -1678,7 +1680,8 @@ private fun PokemonEntries(
                                 },
                                 onError = { exception ->
                                     encounterText = this
-                                }
+                                },
+                                context = LocalContext.current
                             )
                         }
                         HtmlText(text = encounterText)

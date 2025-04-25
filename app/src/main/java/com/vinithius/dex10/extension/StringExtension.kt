@@ -293,9 +293,13 @@ fun String.getColorByString(): Color {
 fun String.translateIfSupported(
     languageCode: String = Locale.getDefault().language,
     onResult: (String) -> Unit,
-    onError: (Exception) -> Unit
+    onError: (Exception) -> Unit,
+    context: Context
 ) {
-    val supportedLanguages = setOf("pt", "es", "fr", "hi")
+
+    val supportedLanguages = context.resources.getStringArray(
+        R.array.supported_languages
+    ).toSet()
 
     if (supportedLanguages.contains(languageCode)) {
         val options = TranslatorOptions.Builder()
@@ -316,4 +320,3 @@ fun String.translateIfSupported(
         onResult(this)
     }
 }
-
