@@ -16,6 +16,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -61,6 +62,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.edit
 import androidx.core.net.toUri
 import androidx.navigation.NavController
 import coil.ImageLoader
@@ -92,7 +94,6 @@ import com.vinithius.dex10.ui.MainActivity
 import com.vinithius.dex10.ui.viewmodel.PokemonViewModel
 import com.vinithius.dex10.ui.viewmodel.RequestStateList
 import org.koin.androidx.compose.getViewModel
-import androidx.core.content.edit
 
 const val URL_IMAGE = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/"
 
@@ -438,13 +439,15 @@ fun SharedTransitionScope.Holder(
     val modifierBackground = if (choiceOfTheDayStatus && hidePokemonOfTheDay) {
         Modifier
     } else {
+        val valueOne = if (isSystemInDarkTheme()) 0.4f else 0.8f
+        val valueTwo = if (isSystemInDarkTheme()) 0.1f else 0.3f
         Modifier.drawWithContent {
             drawContent()
             drawRect(
                 brush = Brush.horizontalGradient(
                     colors = listOf(
-                        Color.Black.copy(alpha = 0.8f),
-                        Color.Black.copy(alpha = 0.3f),
+                        Color.Black.copy(alpha = valueOne),
+                        Color.Black.copy(alpha = valueTwo),
                         Color.Transparent
                     ),
                     startX = size.width * 0.1f,

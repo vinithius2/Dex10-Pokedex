@@ -2,77 +2,66 @@ package com.vinithius.dex10.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-// Cores do tema claro
-val md_theme_light_primary = Color(0xFFBF3B28) // Vermelho Pokémon (Pokébola)
-val md_theme_light_onPrimary = Color(0xFFFFFFFF) // Texto em cima da cor primária
-val md_theme_light_primaryContainer = Color(0xFFFFA6A2) // Vermelho claro (inspirado em Pokémon)
-val md_theme_light_onPrimaryContainer = Color(0xFF4E0800) // Texto escuro para fundo claro
 
-val md_theme_light_secondary = Color(0xFF3D7A1A) // Verde Pokémon
-val md_theme_light_onSecondary = Color(0xFFFFFFFF) // Texto em cima da cor secundária
-val md_theme_light_secondaryContainer = Color(0xFFA4D65E) // Verde claro
-val md_theme_light_onSecondaryContainer = Color(0xFF003500) // Texto escuro para fundo claro
+// Cores claras (Light Theme)
+val LightText = Color(0xFF000000)   // preto
+val LightPrimary = Color(0xFFFF0000)
+val LightOnPrimary = Color.White
+val LightSecondary = Color(0xFFEAEAEA)
+val LightOnSecondary = Color(0xFF363636)
+val LightTertiary = Color(0xFF770000)
+val LightOnTertiary = Color.White
+val LightBackground = Color(0xFFDEDEDE)
+val LightOnBackground = Color(0xFF838282)
+val LightSurface = Color(0xFFE1E1E1)
+val LightOnSurface = Color.Black
 
-val md_theme_light_tertiary = Color(0xFF5C8BC1) // Azul (inspirado em Pokémon)
-val md_theme_light_onTertiary = Color(0xFFFFFFFF) // Texto em cima da cor terciária
-val md_theme_light_tertiaryContainer = Color(0xFFA4D7E1) // Azul claro
-val md_theme_light_onTertiaryContainer = Color(0xFF002C3E) // Texto escuro para fundo claro
+// Cores escuras (Dark Theme)
+val DarkText  = Color(0xFFFFFFFF)   // branco
+val DarkPrimary = Color(0xFFB01818)
+val DarkOnPrimary = Color.Black
+val DarkSecondary = Color(0xFF2C2C2C)
+val DarkOnSecondary = Color.White
+val DarkTertiary = Color(0xFFB00020)
+val DarkOnTertiary = Color.White
+val DarkBackground = Color(0xFF121212)
+val DarkOnBackground = Color(0xFFE0E0E0)
+val DarkSurface = Color(0xFF1E1E1E)
+val DarkOnSurface = Color.White
 
-val md_theme_light_error = Color(0xFFBA1A1A) // Vermelho para erro
-val md_theme_light_errorContainer = Color(0xFFFFDAD6) // Fundo de erro
-val md_theme_light_onError = Color(0xFFFFFFFF) // Texto em cima do erro
-val md_theme_light_onErrorContainer = Color(0xFF410002) // Texto escuro para fundo de erro
-
-val md_theme_light_background = Color(0xFFF0F4F8) // Fundo suave
-val md_theme_light_onBackground = Color(0xFF191C1A) // Texto em fundo claro
-val md_theme_light_surface = Color(0xFFF0F4F8) // Superfície suave
-val md_theme_light_onSurface = Color(0xFF191C1A) // Texto em superfícies
-
-val md_theme_light_surfaceVariant = Color(0xFFDBE5DD) // Variante de superfície
-val md_theme_light_onSurfaceVariant = Color(0xFF404943) // Texto em variante de superfície
-val md_theme_light_outline = Color(0xFF707973) // Cor do contorno
-val md_theme_light_inverseOnSurface = Color(0xFFEFF1ED) // Inverso em superfície
-val md_theme_light_inverseSurface = Color(0xFF2E312F) // Inverso de superfície
-val md_theme_light_inversePrimary = Color(0xFFFF6A6A) // Inverso da primária
-val md_theme_light_shadow = Color(0xFF000000) // Sombra
-val md_theme_light_surfaceTint = Color(0xFFBF3B28) // Tinta de superfície
-val md_theme_light_outlineVariant = Color(0xFFBFC9C2) // Variante de contorno
-val md_theme_light_scrim = Color(0xFF000000) // Scrim (camada)
+// Extras do antigo color.xml
+val Red200 = Color(0xFFFC8686)
+val Red500 = Color(0xFFEE0000)
+val Red700 = Color(0xFFB30000)
+val RedBlack = Color(0xFF7B0000)
+val Yellow200 = Color(0xFFDAB603)
+val Yellow700 = Color(0xFF876A01)
+val Gray95 = Color(0xFFF2F2F2)
+val Gray = Color(0xFF8E8E8E)
+val PureBlack = Color(0xFF000000)
+val PureWhite = Color(0xFFFFFFFF)
 
 
-// Cores do tema escuro
-val md_theme_dark_primary = Color(0xFFFFA6A2) // Vermelho Pokémon claro
-val md_theme_dark_onPrimary = Color(0xFF4E0800) // Texto escuro para primária
-val md_theme_dark_primaryContainer = Color(0xFFBF3B28) // Vermelho forte
-val md_theme_dark_onPrimaryContainer = Color(0xFFFFFFFF) // Texto claro para fundo escuro
+// Map de cores por string - Light Mode
+val LightBlack = PureBlack
+val LightBlue = Color(0xFF00008C)
+val LightBrown = Color(0xFF8B3D05)
+val LightGray = Color(0xFF565656)
+val LightGreen = Color(0xFF00C400)
+val LightPink = Color(0xFFE2A5B0)
+val LightPurple = Color(0xFF650067)
+val LightRed = Color(0xFF770000)
+val LightWhite = Color(0xFF8C8C8C)
+val LightYellow = Color(0xFFC0B525)
 
-val md_theme_dark_secondary = Color(0xFF3D7A1A) // Verde Pokémon
-val md_theme_dark_onSecondary = Color(0xFFFFFFFF) // Texto claro para secundária
-val md_theme_dark_secondaryContainer = Color(0xFFA4D65E) // Verde claro
-val md_theme_dark_onSecondaryContainer = Color(0xFF003500) // Texto escuro para fundo escuro
-
-val md_theme_dark_tertiary = Color(0xFFA4D7E1) // Azul claro
-val md_theme_dark_onTertiary = Color(0xFF002C3E) // Texto escuro para terciária
-val md_theme_dark_tertiaryContainer = Color(0xFF5C8BC1) // Azul forte
-val md_theme_dark_onTertiaryContainer = Color(0xFFFFFFFF) // Texto claro para fundo escuro
-
-val md_theme_dark_error = Color(0xFFFFB4AB) // Erro suave
-val md_theme_dark_errorContainer = Color(0xFF93000A) // Fundo de erro escuro
-val md_theme_dark_onError = Color(0xFF690005) // Texto escuro para erro
-val md_theme_dark_onErrorContainer = Color(0xFFFFDAD6) // Texto claro para fundo de erro
-
-val md_theme_dark_background = Color(0xFF191C1A) // Fundo escuro
-val md_theme_dark_onBackground = Color(0xFFE1E3DF) // Texto claro em fundo escuro
-val md_theme_dark_surface = Color(0xFF191C1A) // Superfície escura
-val md_theme_dark_onSurface = Color(0xFFE1E3DF) // Texto claro em superfície escura
-
-val md_theme_dark_surfaceVariant = Color(0xFF404943) // Variante de superfície escura
-val md_theme_dark_onSurfaceVariant = Color(0xFFBFC9C2) // Texto claro em variante de superfície
-val md_theme_dark_outline = Color(0xFF8A938C) // Cor do contorno escuro
-val md_theme_dark_inverseOnSurface = Color(0xFF191C1A) // Inverso em superfície escura
-val md_theme_dark_inverseSurface = Color(0xFFE1E3DF) // Inverso de superfície escura
-val md_theme_dark_inversePrimary = Color(0xFFBF3B28) // Inverso da primária
-val md_theme_dark_shadow = Color(0xFF000000) // Sombra
-val md_theme_dark_surfaceTint = Color(0xFFFFA6A2) // Tinta de superfície escura
-val md_theme_dark_outlineVariant = Color(0xFF404943) // Variante de contorno escuro
-val md_theme_dark_scrim = Color(0xFF000000) // Scrim escuro
+// Map de cores por string - Dark Mode (20% mais escuro)
+val DarkBlack = Color(0xFF444444)
+val DarkBlue = Color(0xFF000070)
+val DarkBrown = Color(0xFF6F3004)
+val DarkGray = Color(0xFF444444)
+val DarkGreen = Color(0xFF009C00)
+val DarkPink = Color(0xFFB4848C)
+val DarkPurple = Color(0xFF500052)
+val DarkRed = Color(0xFF5F0000)
+val DarkWhite = Color(0xFF707070)
+val DarkYellow = Color(0xFF99901D)

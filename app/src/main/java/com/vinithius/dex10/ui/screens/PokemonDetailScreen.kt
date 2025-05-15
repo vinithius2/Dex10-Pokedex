@@ -4,7 +4,6 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.os.Build
 import android.text.Spanned
-import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
@@ -20,6 +19,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -62,6 +62,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.layout.ContentScale
@@ -111,6 +112,7 @@ import com.vinithius.dex10.extension.getStringShape
 import com.vinithius.dex10.extension.getStringStat
 import com.vinithius.dex10.extension.translateIfSupported
 import com.vinithius.dex10.ui.MainActivity
+import com.vinithius.dex10.ui.theme.text
 import com.vinithius.dex10.ui.viewmodel.PokemonViewModel
 import com.vinithius.dex10.ui.viewmodel.RequestStateDetail
 import ir.ehsannarmani.compose_charts.RowChart
@@ -540,7 +542,7 @@ fun TabWithPagerExample(
 @Composable
 private fun getButtonColor(isSelected: Boolean, pokemonColor: String): Pair<Color, Color> {
     val result = Pair(
-        if (isSelected) pokemonColor.getColorByString() else MaterialTheme.colorScheme.secondary,
+        if (isSelected) pokemonColor.getColorByString(isSystemInDarkTheme()) else MaterialTheme.colorScheme.secondary,
         if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSecondary
     )
     return result
@@ -717,7 +719,8 @@ private fun HeightSuccessComposable(pokemonDetail: Pokemon?) {
     Image(
         painter = painterResource(id = R.drawable.height),
         contentDescription = "height",
-        modifier = Modifier.size(20.dp)
+        modifier = Modifier.size(20.dp),
+        colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.text)
     )
     Spacer(modifier = Modifier.size(2.dp))
     Text(
@@ -741,7 +744,8 @@ private fun HeightLoadingComposable() {
         contentDescription = "height",
         modifier = Modifier
             .size(20.dp)
-            .shimmer()
+            .shimmer(),
+        colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.text)
     )
     Spacer(modifier = Modifier.size(2.dp))
     Text(
@@ -763,7 +767,8 @@ private fun WeightSuccessComposable(pokemonDetail: Pokemon?) {
     Image(
         painter = painterResource(id = R.drawable.weight),
         contentDescription = "height",
-        modifier = Modifier.size(20.dp)
+        modifier = Modifier.size(20.dp),
+        colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.text)
     )
     Spacer(modifier = Modifier.size(2.dp))
     Text(
@@ -789,7 +794,8 @@ private fun WeightLoadingComposable() {
         contentDescription = "weight",
         modifier = Modifier
             .size(20.dp)
-            .shimmer()
+            .shimmer(),
+        colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.text)
     )
     Spacer(modifier = Modifier.size(2.dp))
     Text(
@@ -950,7 +956,7 @@ private fun PokemonArts(
         Dialog(onDismissRequest = { showBottomSheet = false }) {
             Surface(
                 shape = RoundedCornerShape(16.dp),
-                color = Color.LightGray,
+                color = if(isSystemInDarkTheme()) Color.DarkGray else Color.LightGray ,
                 modifier = Modifier
                     .fillMaxWidth()
                     .fillMaxHeight(0.8f)
@@ -969,7 +975,8 @@ private fun PokemonArts(
                                 text = data.title.capitalize(),
                                 style = MaterialTheme.typography.bodyLarge,
                                 fontWeight = FontWeight.Bold,
-                                textAlign = TextAlign.Center
+                                textAlign = TextAlign.Center,
+                                color = if(isSystemInDarkTheme()) Color.LightGray else Color.DarkGray
                             )
 
                             Box(modifier = Modifier.weight(1f)) {
@@ -1029,7 +1036,8 @@ private fun getStatsLabels(pokemonDetail: Pokemon?, context: Context): List<Stri
 private fun getStats(
     pokemonDetail: Pokemon?,
     pokemonColor: String?,
-    context: Context
+    context: Context,
+    isDark: Boolean,
 ): List<Bars> {
     if (pokemonDetail != null) {
         val labels = getStatsLabels(pokemonDetail, context)
@@ -1040,7 +1048,7 @@ private fun getStats(
                     Bars.Data(
                         label = stat.stat.name?.uppercase(),
                         value = stat.base_stat.toDouble(),
-                        color = SolidColor(pokemonColor?.getColorByString() ?: Color.Black)
+                        color = SolidColor(pokemonColor?.getColorByString(isDark) ?: Color.Black)
                     ),
                 ),
             )
@@ -1053,7 +1061,7 @@ private fun getStats(
 @Composable
 private fun ChartSuccessComposable(pokemonDetail: Pokemon?, color: String?) {
     val context = LocalContext.current
-    val stats = getStats(pokemonDetail, color, context)
+    val stats = getStats(pokemonDetail, color, context, isSystemInDarkTheme())
     RowChart(
         modifier = Modifier
             .fillMaxSize()
@@ -1070,7 +1078,10 @@ private fun ChartSuccessComposable(pokemonDetail: Pokemon?, color: String?) {
         ),
         labelProperties = LabelProperties(
             enabled = true,
-            textStyle = MaterialTheme.typography.labelSmall,
+            textStyle = TextStyle(
+                color = MaterialTheme.colorScheme.text,
+                fontSize = 12.sp
+            ),
             padding = 12.dp,
             labels = getStatsLabels(pokemonDetail, context),
         ),
@@ -1079,8 +1090,12 @@ private fun ChartSuccessComposable(pokemonDetail: Pokemon?, color: String?) {
             stiffness = Spring.StiffnessLow
         ),
         labelHelperProperties = LabelHelperProperties(
-            enabled = false
-        )
+            enabled = false,
+            textStyle = TextStyle(
+                color = MaterialTheme.colorScheme.text,
+                fontSize = 12.sp
+            ),
+        ),
     )
 }
 
@@ -1258,7 +1273,8 @@ private fun PokemonEvolution(
                     .padding(6.dp),
             ) {
                 val pokemonId = pokemonDetail?.id ?: 0
-                val color = viewModel.getPokemonColor()?.getColorByString() ?: Color.Black
+                val color = viewModel.getPokemonColor()?.getColorByString(isSystemInDarkTheme())
+                    ?: Color.Black
                 val evolutions = pokemonDetail?.evolution?.getListEvolutions()
                 evolutions?.let { evolutionsItem ->
                     viewModel.getIdByNames(evolutionsItem)?.run {
@@ -1438,7 +1454,9 @@ private fun PokemonEncounters(
                         modifier = Modifier
                             .fillMaxWidth()
                             .clip(RoundedCornerShape(8.dp))
-                            .background(color?.getColorByString() ?: Color.Black)
+                            .background(
+                                color?.getColorByString(isSystemInDarkTheme()) ?: Color.Black
+                            )
                             .padding(8.dp)
                     )
                 }
@@ -1462,7 +1480,10 @@ private fun PokemonEncounters(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .clip(RoundedCornerShape(8.dp))
-                                    .background(color?.getColorByString() ?: Color.Black)
+                                    .background(
+                                        color?.getColorByString(isSystemInDarkTheme())
+                                            ?: Color.Black
+                                    )
                                     .padding(8.dp)
                             )
                         }
@@ -1506,7 +1527,9 @@ private fun PokemonEggs(
                         modifier = Modifier
                             .fillMaxWidth()
                             .clip(RoundedCornerShape(8.dp))
-                            .background(color?.getColorByString() ?: Color.Black)
+                            .background(
+                                color?.getColorByString(isSystemInDarkTheme()) ?: Color.Black
+                            )
                             .padding(8.dp)
                     )
                 }
@@ -1530,7 +1553,10 @@ private fun PokemonEggs(
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .clip(RoundedCornerShape(8.dp))
-                                        .background(color?.getColorByString() ?: Color.Black)
+                                        .background(
+                                            color?.getColorByString(isSystemInDarkTheme())
+                                                ?: Color.Black
+                                        )
                                         .padding(8.dp)
                                 )
                             }
@@ -1581,7 +1607,9 @@ private fun PokemonAbilities(
                         modifier = Modifier
                             .fillMaxWidth()
                             .clip(RoundedCornerShape(8.dp))
-                            .background(color?.getColorByString() ?: Color.Black)
+                            .background(
+                                color?.getColorByString(isSystemInDarkTheme()) ?: Color.Black
+                            )
                             .padding(8.dp)
                     )
                 }
@@ -1631,7 +1659,10 @@ private fun PokemonAbilities(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .clip(RoundedCornerShape(8.dp))
-                                    .background(color?.getColorByString() ?: Color.Black)
+                                    .background(
+                                        color?.getColorByString(isSystemInDarkTheme())
+                                            ?: Color.Black
+                                    )
                                     .padding(8.dp)
                             )
                         }

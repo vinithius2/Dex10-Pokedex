@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- Splash Screen - Remove after become compose -->
-    <color name="red_200">#FC8686</color>
-    <color name="red_700">#B30000</color>
-    <color name="red_black">#7b0000</color>
+    <color name="red_200">#620000</color>
+    <color name="red_700">#3A0000</color>
+    <color name="red_black">#210000</color>
     <color name="white">#FFFFFF</color>
 </resources>

@@ -19,6 +19,7 @@ import androidx.annotation.RequiresApi
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionLayout
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
@@ -113,7 +114,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         sharedPreferences = getSharedPreferences("pokemon_prefs", MODE_PRIVATE)
 
-        val splashScreen = installSplashScreen()
+        val splashScreen = installSplashScreen() // Keep this splashScreen variable
 
         setContent {
             ThemeDex10 {
@@ -136,8 +137,6 @@ class MainActivity : ComponentActivity() {
             context = this
         )
 
-
-        // Processar deeplink recebido ao iniciar a Activity
         handleDeeplink(intent)
     }
 
@@ -513,7 +512,8 @@ private fun getInterstitial(
 fun SetupSystemUI(viewModel: PokemonViewModel) {
     val systemUiController = rememberSystemUiController()
     val color by viewModel.pokemonColor.observeAsState()
-    val statusBarColor = color?.getColorByString() ?: MaterialTheme.colorScheme.tertiary
+    ThemeDex10 {  }
+    val statusBarColor = color?.getColorByString(isSystemInDarkTheme()) ?: MaterialTheme.colorScheme.tertiary
     systemUiController.setStatusBarColor(
         color = statusBarColor,
         darkIcons = statusBarColor.luminance() > 0.5
@@ -547,17 +547,18 @@ private fun GetTopBar(
                 }) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = stringResource(R.string.back)
+                        contentDescription = stringResource(R.string.back),
+                        tint = Color.White
                     )
                 }
             },
             modifier = Modifier.windowInsetsPadding(WindowInsets.statusBars),
             colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                containerColor = color?.getToolBarColorByString()
+                containerColor = color?.getToolBarColorByString(isSystemInDarkTheme())
                     ?: MaterialTheme.colorScheme.primary,
                 titleContentColor = MaterialTheme.colorScheme.onPrimary,
                 actionIconContentColor = MaterialTheme.colorScheme.onPrimary,
-                scrolledContainerColor = color?.getToolBarColorByString()
+                scrolledContainerColor = color?.getToolBarColorByString(isSystemInDarkTheme())
                     ?: MaterialTheme.colorScheme.primary,
                 navigationIconContentColor = MaterialTheme.colorScheme.onPrimary
             ),
@@ -642,7 +643,8 @@ private fun GetTopBar(
                         }) {
                             Icon(
                                 imageVector = Icons.Default.Search,
-                                contentDescription = stringResource(R.string.search)
+                                contentDescription = stringResource(R.string.search),
+                                tint = Color.White
                             )
                         }
                     }
@@ -704,7 +706,8 @@ private fun AppMenuPageList(
     }) {
         Icon(
             Icons.Default.MoreVert,
-            contentDescription = stringResource(id = R.string.more_options)
+            contentDescription = stringResource(id = R.string.more_options),
+            tint = Color.White
         )
     }
     DropDownMenuRight(
