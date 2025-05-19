@@ -214,6 +214,16 @@ class PokemonViewModel(private val repository: PokemonRepository) : ViewModel() 
         _isAdLoadedRewarded.postValue(value)
     }
 
+    // Privacy Policy
+
+    private val _privacyPolicy = MutableLiveData(String())
+    val privacyPolicy: LiveData<String>
+        get() = _privacyPolicy
+
+    fun setPrivacyPolicy(value: String) {
+        _privacyPolicy.postValue(value)
+    }
+
     // Donate
 
     private val _hasDonate = MutableLiveData(false)

@@ -85,6 +85,7 @@
     <string name="instagran">Instagram</string>
     <string name="facebook">Facebook</string>
     <string name="reddit">Reddit</string>
+    <string name="privacy_policy">隐私政策</string>
     <string name="jigglypuff_songs">请，别睡！</string>
     <!-- Titles for Pokémon sprites -->
     <string name="title_back_default">背面</string>
@@ -199,4 +200,5 @@
     <string name="copyright_title">版权声明</string>
     <string name="copyright_description">Dex10 – 图鉴为粉丝制作，仅供宝可梦爱好者使用。应用中所有宝可梦相关内容（名称、图片、数据等）均为任天堂、GAME FREAK 及宝可梦公司的知识产权。我们不主张对这些素材拥有著作权，仅以合理使用原则用于信息、教育及非商业目的。本应用与任天堂、GAME FREAK 或宝可梦公司无任何关联、赞助或背书。开发者对使用宝可梦商标或版权内容产生的任何法律问题概不负责。</string>
     <string name="accept_the_terms_and_dont_show_again">我已接受条款，不再显示此消息</string>
+    <string name="version">版本</string>
 </resources>

@@ -28,6 +28,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.Divider
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Clear
@@ -93,6 +94,8 @@ import com.vinithius.dex10.admobbanners.AdManagerRewarded
 import com.vinithius.dex10.admobbanners.AdmobBanner
 import com.vinithius.dex10.extension.getColorByString
 import com.vinithius.dex10.extension.getToolBarColorByString
+import com.vinithius.dex10.extension.getVersionCode
+import com.vinithius.dex10.extension.getVersionName
 import com.vinithius.dex10.ui.screens.PokemonDetailScreen
 import com.vinithius.dex10.ui.screens.PokemonListScreen
 import com.vinithius.dex10.ui.theme.ThemeDex10
@@ -287,6 +290,7 @@ class MainActivity : ComponentActivity() {
         const val REVIEW_HAUWEI = "review_hauwei_url"
         const val GOOGLE_FORM = "google_form"
         const val ALERT_MESSAGE = "alert_message"
+        const val PRIVACY_POLICY = "privacy_policy"
     }
 }
 
@@ -316,6 +320,7 @@ private fun GetAdUnitId(
                 val instagranUrl = remoteConfig.getString(MainActivity.INSTAGRAN)
                 val redditUrl = remoteConfig.getString(MainActivity.REDDIT)
                 val hasDonate = remoteConfig.getBoolean(MainActivity.HAS_DONATE)
+                val privacyPolicy = remoteConfig.getString(MainActivity.PRIVACY_POLICY)
                 // Review
                 val reviewUrl = when (BuildConfig.FLAVOR) {
                     MainActivity.GOOGLE -> remoteConfig.getString(MainActivity.REVIEW_GOOGLE)
@@ -333,6 +338,7 @@ private fun GetAdUnitId(
                 viewModel.setInstagranUrl(instagranUrl)
                 viewModel.setRedditUrl(redditUrl)
                 viewModel.setGoogleForm(googleForm)
+                viewModel.setPrivacyPolicy(privacyPolicy)
 
                 // ALERT MESSAGE
                 try {
@@ -748,7 +754,7 @@ private fun AppMenuPageList(
         onDismissRequest = { expanded = false },
         onShareAppClick = {
             activity?.trackButtonClick("Menu toolbar: share app")
-            shareApp(context)
+            shareApp(reviewUrl.toString(), context)
         },
         onRateAppClick = {
             getIntentToUrl(reviewUrl.toString(), context)
@@ -756,7 +762,7 @@ private fun AppMenuPageList(
         onSuggestionsClick = {
             googleForm?.takeIf { it.isNotEmpty() }?.run {
                 activity?.trackButtonClick("Menu toolbar: google form")
-                suggestionsClick(googleForm!!, context)
+                getIntentToUrl(googleForm!!, context)
             }
         },
         onDonateClick = {
@@ -764,15 +770,19 @@ private fun AppMenuPageList(
         },
         onInstagranClick = { url ->
             activity?.trackButtonClick("Menu toolbar: instagran")
-            instagranClick(url, context)
+            getIntentToUrl(url, context)
         },
         onFacebookClick = { url ->
             activity?.trackButtonClick("Menu toolbar: facebook")
-            facebookClick(url, context)
+            getIntentToUrl(url, context)
         },
         onRedditClick = { url ->
             activity?.trackButtonClick("Menu toolbar: reddit")
-            redditClick(url, context)
+            getIntentToUrl(url, context)
+        },
+        onPrivacyPolicyClick = { url ->
+            activity?.trackButtonClick("Menu toolbar: Privacy Policy")
+            getIntentToUrl(url, context)
         }
     )
 }
@@ -834,6 +844,7 @@ private fun DropDownMenuRight(
     onInstagranClick: (url: String) -> Unit,
     onFacebookClick: (url: String) -> Unit,
     onRedditClick: (url: String) -> Unit,
+    onPrivacyPolicyClick: (url: String) -> Unit,
 ) {
     val hasDonate by viewModel.hasDonate.observeAsState(true)
     DropdownMenu(
@@ -884,10 +895,10 @@ private fun DropDownMenuRight(
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
         )
         with(viewModel) {
-            val reviewUrl by reviewUrl.observeAsState()
             val facebookUrl by facebookUrl.observeAsState()
             val instagranUrl by instagranUrl.observeAsState()
             val redditUrl by redditUrl.observeAsState()
+            val privacyPolicy by privacyPolicy.observeAsState()
             if (instagranUrl.isNullOrEmpty().not()) {
                 DropdownMenuItem(
                     text = { Text(stringResource(id = R.string.instagran)) },
@@ -906,6 +917,25 @@ private fun DropDownMenuRight(
                     onClick = { redditUrl?.let { onRedditClick(it) } }
                 )
             }
+            if (privacyPolicy.isNullOrEmpty().not()) {
+                Text(
+                    text = stringResource(id = R.string.info),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                )
+                DropdownMenuItem(
+                    text = { Text(stringResource(id = R.string.privacy_policy)) },
+                    onClick = { privacyPolicy?.let { onPrivacyPolicyClick(it) } }
+                )
+            }
+            Divider()
+            val version = LocalContext.current.getVersionName()
+            DropdownMenuItem(
+                text = { Text("Versão $version") },
+                onClick = {},
+                enabled = false
+            )
         }
     }
 }
@@ -943,12 +973,10 @@ private fun GetNavHost(
     }
 }
 
-fun shareApp(context: Context) {
-    val appPackageName = context.packageName
-    val appPlayStoreLink = "https://play.google.com/store/apps/details?id=$appPackageName"
+fun shareApp(reviewUrl: String, context: Context) {
     val shareMessage = String.format(
         context.getString(R.string.share_app_message),
-        appPlayStoreLink
+        reviewUrl
     )
     val shareIntent = Intent().apply {
         action = Intent.ACTION_SEND
@@ -970,22 +998,6 @@ fun requestInAppReview(context: Context) {
             reviewManager.launchReviewFlow(context as Activity, it.result)
         }
     }
-}
-
-fun suggestionsClick(googleForm: String, context: Context) {
-    getIntentToUrl(googleForm, context)
-}
-
-fun instagranClick(url: String, context: Context) {
-    getIntentToUrl(url, context)
-}
-
-fun facebookClick(url: String, context: Context) {
-    getIntentToUrl(url, context)
-}
-
-fun redditClick(url: String, context: Context) {
-    getIntentToUrl(url, context)
 }
 
 fun getIntentToUrl(url: String, context: Context) {

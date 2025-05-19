@@ -12,3 +12,7 @@ fun Context.getVersionCode(): Long {
         this.packageManager.getPackageInfo(this.packageName, 0).versionCode.toLong()
     }
 }
+
+fun Context.getVersionName(): String? {
+    return this.packageManager.getPackageInfo(this.packageName, 0).versionName
+}
