@@ -8,7 +8,6 @@ import android.app.NotificationManager
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
-import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
@@ -67,6 +66,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.core.net.toUri
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -267,6 +267,26 @@ class MainActivity : ComponentActivity() {
     companion object {
         const val FAVORITES = "FAVORITES"
         const val MAX_POKEMONS = "MAX_POKEMONS"
+
+        // Flavours
+        const val GOOGLE = "google"
+        const val AMAZON = "amazon"
+        const val HAUWEI = "hauwei"
+
+        // Keys Remote Config
+        const val RC_BANNER = "adUnitId_banner"
+        const val IS_REWARD = "isRewarded"
+        const val RC_BANNER_INTERSTITIAL = "adUnitId_choiceOfTheDay_interstitial"
+        const val RC_BANNER_REWARDED = "adUnitId_choiceOfTheDay_rewarded"
+        const val FACEBOOK = "facebook_url"
+        const val INSTAGRAN = "instagran_url"
+        const val REDDIT = "reddit_url"
+        const val HAS_DONATE = "has_donate"
+        const val REVIEW_GOOGLE = "review_google_url"
+        const val REVIEW_AMAZON = "review_amazon_url"
+        const val REVIEW_HAUWEI = "review_hauwei_url"
+        const val GOOGLE_FORM = "google_form"
+        const val ALERT_MESSAGE = "alert_message"
     }
 }
 
@@ -280,32 +300,43 @@ private fun GetAdUnitId(
         .addOnCompleteListener { task ->
             if (task.isSuccessful) {
                 // Ads
-                val adUnitIdList = remoteConfig.getString("adUnitId_banner")
-                val isRewarded = remoteConfig.getBoolean("isRewarded")
+                val adUnitIdList = remoteConfig.getString(MainActivity.RC_BANNER)
+                val isRewarded = remoteConfig.getBoolean(MainActivity.IS_REWARD)
                 val adUnitIdChoiceOfTheDayInterstitial =
-                    remoteConfig.getString("adUnitId_choiceOfTheDay_interstitial")
+                    remoteConfig.getString(MainActivity.RC_BANNER_INTERSTITIAL)
                 val adUnitIdChoiceOfTheDayRewarded =
-                    remoteConfig.getString("adUnitId_choiceOfTheDay_rewarded")
+                    remoteConfig.getString(MainActivity.RC_BANNER_REWARDED)
                 // Viewmodel set
                 viewModel.setAdUnitIdList(adUnitIdList)
                 viewModel.setIsRewarded(isRewarded)
                 viewModel.setAdUnitIdChoiceOfTheDayInterstitial(adUnitIdChoiceOfTheDayInterstitial)
                 viewModel.setAdUnitIdChoiceOfTheDayRewarded(adUnitIdChoiceOfTheDayRewarded)
                 // Social media
-                val facebookUrl = remoteConfig.getString("facebook_url")
-                val instagranUrl = remoteConfig.getString("instagran_url")
-                val redditUrl = remoteConfig.getString("reddit_url")
-                val googleForm = remoteConfig.getString("google_form")
-                val paypalId = remoteConfig.getString("paypal_id")
+                val facebookUrl = remoteConfig.getString(MainActivity.FACEBOOK)
+                val instagranUrl = remoteConfig.getString(MainActivity.INSTAGRAN)
+                val redditUrl = remoteConfig.getString(MainActivity.REDDIT)
+                val hasDonate = remoteConfig.getBoolean(MainActivity.HAS_DONATE)
+                // Review
+                val reviewUrl = when (BuildConfig.FLAVOR) {
+                    MainActivity.GOOGLE -> remoteConfig.getString(MainActivity.REVIEW_GOOGLE)
+                    MainActivity.AMAZON -> remoteConfig.getString(MainActivity.REVIEW_AMAZON)
+                    MainActivity.HAUWEI -> remoteConfig.getString(MainActivity.REVIEW_HAUWEI)
+                    else -> remoteConfig.getString(MainActivity.REVIEW_GOOGLE)
+                }
+
+                val googleForm = remoteConfig.getString(MainActivity.GOOGLE_FORM)
+
                 // Viewmodel set
+                viewModel.setHasDonate(hasDonate)
+                viewModel.setReviewUrl(reviewUrl)
                 viewModel.setFacebookUrl(facebookUrl)
                 viewModel.setInstagranUrl(instagranUrl)
                 viewModel.setRedditUrl(redditUrl)
                 viewModel.setGoogleForm(googleForm)
-                viewModel.setPaypalId(paypalId)
+
                 // ALERT MESSAGE
                 try {
-                    val alertMessageJson = remoteConfig.getString("alert_message")
+                    val alertMessageJson = remoteConfig.getString(MainActivity.ALERT_MESSAGE)
                     val alertMessageData =
                         Gson().fromJson(alertMessageJson, AlertMessage::class.java)
                     val languageCode = Locale.getDefault().language
@@ -512,8 +543,9 @@ private fun getInterstitial(
 fun SetupSystemUI(viewModel: PokemonViewModel) {
     val systemUiController = rememberSystemUiController()
     val color by viewModel.pokemonColor.observeAsState()
-    ThemeDex10 {  }
-    val statusBarColor = color?.getColorByString(isSystemInDarkTheme()) ?: MaterialTheme.colorScheme.tertiary
+    ThemeDex10 { }
+    val statusBarColor =
+        color?.getColorByString(isSystemInDarkTheme()) ?: MaterialTheme.colorScheme.tertiary
     systemUiController.setStatusBarColor(
         color = statusBarColor,
         darkIcons = statusBarColor.luminance() > 0.5
@@ -688,7 +720,7 @@ private fun AppMenuPageList(
     val activity = context as? MainActivity
     val favoriteFilter by viewModel.isFavoriteFilter.observeAsState(false)
     val googleForm by viewModel.googleForm.observeAsState()
-    val paypalId by viewModel.paypalId.observeAsState()
+    val reviewUrl by viewModel.reviewUrl.observeAsState()
     var expanded by remember { mutableStateOf(false) }
     IconButton(onClick = {
         activity?.trackButtonClick("Menu toolbar: favorites -> ${favoriteFilter.not()}")
@@ -719,8 +751,7 @@ private fun AppMenuPageList(
             shareApp(context)
         },
         onRateAppClick = {
-            activity?.trackButtonClick("Menu toolbar: rate app")
-            requestInAppReview(context)
+            getIntentToUrl(reviewUrl.toString(), context)
         },
         onSuggestionsClick = {
             googleForm?.takeIf { it.isNotEmpty() }?.run {
@@ -729,10 +760,7 @@ private fun AppMenuPageList(
             }
         },
         onDonateClick = {
-            paypalId?.takeIf { it.isNotEmpty() }?.run {
-                activity?.trackButtonClick("Menu toolbar: donate")
-                donateClick(paypalId!!, context)
-            }
+            // Do nothing yet
         },
         onInstagranClick = { url ->
             activity?.trackButtonClick("Menu toolbar: instagran")
@@ -807,6 +835,7 @@ private fun DropDownMenuRight(
     onFacebookClick: (url: String) -> Unit,
     onRedditClick: (url: String) -> Unit,
 ) {
+    val hasDonate by viewModel.hasDonate.observeAsState(true)
     DropdownMenu(
         expanded = expanded,
         onDismissRequest = onDismissRequest
@@ -837,11 +866,15 @@ private fun DropDownMenuRight(
             text = { Text(stringResource(id = R.string.suggestions_or_bugs)) },
             onClick = onSuggestionsClick
         )
+        if (hasDonate) {
+            DropdownMenuItem(
+                text = {
+                    Text(stringResource(id = R.string.donate_to_developer))
+                },
+                onClick = onDonateClick
+            )
+        }
 
-        DropdownMenuItem(
-            text = { Text(stringResource(id = R.string.donate_to_developer)) },
-            onClick = onDonateClick
-        )
         HorizontalDivider()
         // Social media
         Text(
@@ -851,6 +884,7 @@ private fun DropDownMenuRight(
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
         )
         with(viewModel) {
+            val reviewUrl by reviewUrl.observeAsState()
             val facebookUrl by facebookUrl.observeAsState()
             val instagranUrl by instagranUrl.observeAsState()
             val redditUrl by redditUrl.observeAsState()
@@ -955,21 +989,14 @@ fun redditClick(url: String, context: Context) {
 }
 
 fun getIntentToUrl(url: String, context: Context) {
-    val intent =
-        Intent(
-            Intent.ACTION_VIEW,
-            Uri.parse(url)
-        )
-    context.startActivity(intent)
-}
-
-fun donateClick(paypalId: String, context: Context) {
-    val intent =
-        Intent(
-            Intent.ACTION_VIEW,
-            Uri.parse("https://www.paypal.com/donate/?hosted_button_id=$paypalId")
-        )
-    context.startActivity(intent)
+    url.takeIf { it.isNotEmpty() }?.run {
+        val intent =
+            Intent(
+                Intent.ACTION_VIEW,
+                url.toUri()
+            )
+        context.startActivity(intent)
+    }
 }
 
 @Preview(showBackground = true)

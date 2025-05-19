@@ -214,6 +214,26 @@ class PokemonViewModel(private val repository: PokemonRepository) : ViewModel() 
         _isAdLoadedRewarded.postValue(value)
     }
 
+    // Donate
+
+    private val _hasDonate = MutableLiveData(false)
+    val hasDonate: LiveData<Boolean>
+        get() = _hasDonate
+
+    fun setHasDonate(value: Boolean) {
+        _hasDonate.postValue(value)
+    }
+
+    // Review
+
+    private val _reviewUrl = MutableLiveData(String())
+    val reviewUrl: LiveData<String>
+        get() = _reviewUrl
+
+    fun setReviewUrl(value: String) {
+        _reviewUrl.postValue(value)
+    }
+
     // Social Media
 
     private val _facebookUrl = MutableLiveData(String())
@@ -246,14 +266,6 @@ class PokemonViewModel(private val repository: PokemonRepository) : ViewModel() 
 
     fun setGoogleForm(value: String) {
         _googleForm.postValue(value)
-    }
-
-    private val _paypalId = MutableLiveData(String())
-    val paypalId: LiveData<String>
-        get() = _paypalId
-
-    fun setPaypalId(value: String) {
-        _paypalId.postValue(value)
     }
 
     private val _topAlertMessage = MutableLiveData<AlertMessage?>(null)

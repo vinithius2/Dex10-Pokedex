@@ -12,29 +12,48 @@ apikeyProperties.load(new FileInputStream(apikeyPropertiesFile))
 
 android {
     namespace "com.vinithius.dex10"
-    compileSdk 35
+    compileSdk 36
+
+    flavorDimensions "store"
 
     defaultConfig {
+        missingDimensionStrategy "store", "google"
         applicationId "com.vinithius.dex10"
         minSdk 21
-        targetSdk 34
+        targetSdk 36
         versionCode 10
         versionName "1.2.6"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
-
         buildConfigField "String", "WEBHOOK_KEY", apikeyProperties['WEBHOOK_KEY']
     }
 
-    buildTypes {
-        release {
-            minifyEnabled true
-            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+    productFlavors {
+        google {
+            dimension "store"
+            versionNameSuffix "-google"
+        }
+        amazon {
+            dimension "store"
+            versionNameSuffix "-amazon"
+        }
+        huawei {
+            dimension "store"
+            versionNameSuffix "-huawei"
         }
     }
-    composeOptions {
-        kotlinCompilerExtensionVersion '1.4.7'
+
+    buildTypes {
+        debug {
+            minifyEnabled false
+        }
+        release {
+            minifyEnabled true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'),
+                    'proguard-rules.pro'
+        }
     }
+
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17
         targetCompatibility JavaVersion.VERSION_17
@@ -42,113 +61,95 @@ android {
     kotlinOptions {
         jvmTarget = '17'
     }
+
+    composeOptions {
+        kotlinCompilerExtensionVersion '1.4.7'
+    }
+
     buildFeatures {
-        buildConfig = true
+        buildConfig true
         compose true
         dataBinding true
     }
 }
 
 dependencies {
-    implementation 'com.google.firebase:firebase-database-ktx:21.0.0'
-
-    // COMPOSE
+    // Common dependencies
     def composeBom = platform('androidx.compose:compose-bom:2024.11.00')
     implementation composeBom
     androidTestImplementation composeBom
-
-    implementation "com.google.accompanist:accompanist-systemuicontroller:0.30.1"
-
-    implementation("io.coil-kt:coil-compose:2.5.0") // Coil para Compose
-    implementation("io.coil-kt:coil-gif:2.4.0")     // Suporte para GIFs
-    implementation("io.coil-kt:coil-svg:2.4.0")     // Suporte para SVGs
-
-    implementation 'com.google.android.play:review:2.0.2'
-    implementation 'com.google.android.play:review-ktx:2.0.2'
-
-    // Firebase
-    implementation 'com.google.firebase:firebase-crashlytics-ktx:19.3.0'
-    implementation 'com.google.firebase:firebase-analytics-ktx:22.1.2'
-    implementation 'com.google.firebase:firebase-database-ktx:21.0.0'
-    implementation 'com.google.firebase:firebase-config-ktx:22.0.1'
-    implementation("com.google.android.gms:play-services-ads:23.6.0")
-
-    implementation "androidx.paging:paging-compose:3.3.4"
-    implementation "androidx.navigation:navigation-compose:2.8.4"
-    implementation "androidx.activity:activity-compose:1.9.3"
     implementation "androidx.compose.runtime:runtime"
     implementation "androidx.compose.animation:animation:1.7.5"
     implementation "androidx.compose.foundation:foundation-layout"
     implementation "androidx.compose.runtime:runtime-livedata"
-    implementation 'com.google.firebase:firebase-messaging:24.1.0'
-    implementation 'com.google.firebase:firebase-installations'
+    implementation "androidx.compose.foundation:foundation"
+    implementation "androidx.compose.material3:material3"
+    implementation "androidx.compose.material:material"
+    implementation "androidx.compose.ui:ui"
+    implementation "androidx.compose.ui:ui-tooling-preview"
+    debugImplementation "androidx.compose.ui:ui-tooling"
+    androidTestImplementation "androidx.compose.ui:ui-test-junit4"
+    debugImplementation "androidx.compose.ui:ui-test-manifest"
+    implementation "androidx.activity:activity-compose:1.9.3"
+    implementation "com.google.accompanist:accompanist-systemuicontroller:0.30.1"
+    implementation "io.coil-kt:coil-compose:2.5.0"
+    implementation "io.coil-kt:coil-gif:2.4.0"
+    implementation "io.coil-kt:coil-svg:2.4.0"
 
-    // Choose one of the following:
-    // Material Design 3
-    implementation 'androidx.compose.material3:material3'
-    // or Material Design 2
-    implementation 'androidx.compose.material:material'
-    // or skip Material Design and build directly on top of foundational components
-    implementation 'androidx.compose.foundation:foundation'
-    // or only import the main APIs for the underlying toolkit systems,
-    // such as input and measurement/layout
-    implementation 'androidx.compose.ui:ui'
-
-    // Android Studio Preview support
-    implementation 'androidx.compose.ui:ui-tooling-preview'
-    debugImplementation 'androidx.compose.ui:ui-tooling'
-
-    // UI Tests
-    androidTestImplementation 'androidx.compose.ui:ui-test-junit4'
-    debugImplementation 'androidx.compose.ui:ui-test-manifest'
-    // Room
+    implementation "androidx.paging:paging-compose:3.3.4"
+    implementation "androidx.navigation:navigation-compose:2.8.4"
     implementation "androidx.room:room-runtime:2.6.1"
     kapt "androidx.room:room-compiler:2.6.1"
     implementation "androidx.room:room-ktx:2.6.1"
-    // SQLite
     implementation "androidx.sqlite:sqlite:2.3.1"
-
-    implementation 'androidx.core:core-ktx:1.7.0'
-    implementation 'androidx.appcompat:appcompat:1.4.2'
-    implementation 'com.google.android.material:material:1.6.1'
-    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
-    testImplementation 'junit:junit:4.13.2'
-    androidTestImplementation 'androidx.test.ext:junit:1.1.3'
-    androidTestImplementation 'androidx.test.espresso:espresso-core:3.4.0'
-    // Koin for Android
-    var koin_version = '3.2.0'
-    implementation "io.insert-koin:koin-android:$koin_version"
-    implementation "io.insert-koin:koin-androidx-compose:$koin_version"
-    // Retrofit
-    var retrofit_version = '2.9.0'
-    implementation "com.squareup.retrofit2:retrofit:$retrofit_version"
-    implementation "com.squareup.retrofit2:converter-gson:$retrofit_version"
+    implementation "io.insert-koin:koin-android:3.2.0"
+    implementation "io.insert-koin:koin-androidx-compose:3.2.0"
+    implementation "com.squareup.retrofit2:retrofit:2.9.0"
+    implementation "com.squareup.retrofit2:converter-gson:2.9.0"
     implementation "com.squareup.okhttp3:logging-interceptor:4.7.2"
-    // Navigation
-    var nav_version = "2.4.2"
-    implementation "androidx.navigation:navigation-fragment-ktx:$nav_version"
-    implementation "androidx.navigation:navigation-ui-ktx:$nav_version"
-    // Picasso
-    var picasso_version = '2.8'
-    implementation "com.squareup.picasso:picasso:$picasso_version"
-    // Paging 3
-    def paging_version = "3.3.2"
-    //implementation "androidx.paging:paging-runtime:$paging_version"
-    implementation "androidx.paging:paging-compose:3.3.2"
-    // Palette
-    def palette_version = "1.0.0"
-    implementation "androidx.palette:palette:$palette_version"
-    // Charts
-    def chart_version = "0.1.2"
-    implementation "io.github.ehsannarmani:compose-charts:$chart_version"
-    def shimmer_version = "1.3.1"
-    implementation "com.valentinilk.shimmer:compose-shimmer:$shimmer_version"
-    def lottie_version = "6.0.0"
-    implementation "com.airbnb.android:lottie-compose:$lottie_version"
-    def markwon_version = "4.6.2"
-    implementation "io.noties.markwon:core:$markwon_version"
-    // Translater
+
+    implementation "androidx.core:core-ktx:1.7.0"
+    implementation "androidx.appcompat:appcompat:1.4.2"
+    implementation "com.google.android.material:material:1.6.1"
+    implementation "androidx.constraintlayout:constraintlayout:2.1.4"
+
+    implementation "androidx.palette:palette:1.0.0"
+    implementation "com.squareup.picasso:picasso:2.8"
+    implementation "io.github.ehsannarmani:compose-charts:0.1.2"
+    implementation "com.valentinilk.shimmer:compose-shimmer:1.3.1"
+    implementation "com.airbnb.android:lottie-compose:6.0.0"
+    implementation "io.noties.markwon:core:4.6.2"
     implementation "com.google.mlkit:translate:17.0.3"
-    // Splash Screen
-    implementation("androidx.core:core-splashscreen:1.0.1")
+    implementation "androidx.core:core-splashscreen:1.0.1"
+
+    testImplementation "junit:junit:4.13.2"
+    androidTestImplementation "androidx.test.ext:junit:1.1.3"
+    androidTestImplementation "androidx.test.espresso:espresso-core:3.4.0"
+
+    // Google & Firebase for google and amazon flavors
+    googleImplementation 'com.google.firebase:firebase-database-ktx:21.0.0'
+    googleImplementation 'com.google.firebase:firebase-crashlytics-ktx:19.3.0'
+    googleImplementation 'com.google.firebase:firebase-analytics-ktx:22.1.2'
+    googleImplementation 'com.google.firebase:firebase-config-ktx:22.0.1'
+    googleImplementation 'com.google.firebase:firebase-messaging:24.1.0'
+    googleImplementation 'com.google.firebase:firebase-installations:17.0.0'
+    googleImplementation 'com.google.android.gms:play-services-ads:23.6.0'
+    googleImplementation 'com.google.android.play:review:2.0.2'
+    googleImplementation 'com.google.android.play:review-ktx:2.0.2'
+
+    amazonImplementation 'com.google.firebase:firebase-database-ktx:21.0.0'
+    amazonImplementation 'com.google.firebase:firebase-crashlytics-ktx:19.3.0'
+    amazonImplementation 'com.google.firebase:firebase-analytics-ktx:22.1.2'
+    amazonImplementation 'com.google.firebase:firebase-config-ktx:22.0.1'
+    amazonImplementation 'com.google.firebase:firebase-messaging:24.1.0'
+    amazonImplementation 'com.google.firebase:firebase-installations:17.0.0'
+    amazonImplementation 'com.google.android.gms:play-services-ads:23.6.0'
+    amazonImplementation 'com.google.android.play:review:2.0.2'
+    amazonImplementation 'com.google.android.play:review-ktx:2.0.2'
+
+    // HMS Core for huawei flavor
+    huaweiImplementation 'com.huawei.hms:base:6.8.0.300'
+    huaweiImplementation 'com.huawei.hms:ads:6.8.0.300'
+    huaweiImplementation 'com.huawei.hms:analytics:6.8.0.300'
+    huaweiImplementation 'com.huawei.hms:push:6.8.0.300'
 }
