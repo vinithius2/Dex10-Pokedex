@@ -5,6 +5,7 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.os.Build
+import androidx.activity.ComponentActivity
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
@@ -20,6 +21,7 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -28,11 +30,18 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
-import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyGridState
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.itemsIndexed as listItemsIndexed
+import androidx.compose.foundation.lazy.grid.itemsIndexed as gridItemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Card
 import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.Text
+import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
+import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
+import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -58,6 +67,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -139,6 +149,22 @@ private fun getActivity(): MainActivity? {
     return activity
 }
 
+@OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
+@Composable
+fun rememberWindowColumns(): Int {
+    val activity = LocalContext.current as ComponentActivity
+
+    val windowSizeClass = calculateWindowSizeClass(activity)
+
+    return when (windowSizeClass.widthSizeClass) {
+        WindowWidthSizeClass.Compact -> 1
+        WindowWidthSizeClass.Medium,
+        WindowWidthSizeClass.Expanded -> 2
+
+        else -> 1
+    }
+}
+
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun SharedTransitionScope.PokemonListScreen(
@@ -157,6 +183,7 @@ fun SharedTransitionScope.PokemonListScreen(
     val isRewarded by viewModel.isRewarded.observeAsState(true)
     val sharedPreferences = context.getSharedPreferences("pokemon_prefs", Context.MODE_PRIVATE)
     val listState = rememberSaveable(saver = LazyListState.Saver) { LazyListState() }
+    val gridState = rememberSaveable(saver = LazyGridState.Saver) { LazyGridState() }
 
     val initialDontShow = remember {
         sharedPreferences.getBoolean("dont_show_again_copyright", false)
@@ -212,6 +239,8 @@ fun SharedTransitionScope.PokemonListScreen(
             )
         }
 
+        val columns = rememberWindowColumns()
+
         StateRequest(
             viewModel = viewModel,
             loadingFirebase = {
@@ -230,70 +259,67 @@ fun SharedTransitionScope.PokemonListScreen(
                         getFilterBarData(it, viewModel, context)
                     }
                 )
+
                 if (pokemonItems.isNotEmpty()) {
-                    val pokemonOfTheDayName =
-                        sharedPreferences.getString("pokemon_of_the_day", null)
+                    var isVisible by remember { mutableStateOf(true) }
+                    val pokemonOfTheDayName = sharedPreferences.getString(
+                        "pokemon_of_the_day",
+                        null
+                    )
 
-                    LazyColumn(state = listState) {
-                        itemsIndexed(
-                            items = pokemonItems,
-                            key = { _, data -> data.pokemon.id }
-                        ) { _, pokemonData ->
-                            var isVisible by remember { mutableStateOf(true) }
-                            val choiceOfTheDay = pokemonOfTheDayName == pokemonData.pokemon.name
-
-                            AnimatedVisibility(
-                                visible = isVisible,
-                                exit = scaleOut(animationSpec = tween(durationMillis = 300))
-                            ) {
-                                PokemonListItem(
-                                    viewModel = viewModel,
-                                    pokemonData = pokemonData,
-                                    animatedVisibilityScope = animatedVisibilityScope,
-                                    onCallBackFinishAnimation = {
-                                        if (isFavoriteFilter) {
-                                            isVisible = false
-                                            viewModel.removeItemIfNotIsFavorite(context)
-                                        }
+                    if (columns == 1) {
+                        LazyColumn(state = listState) {
+                            listItemsIndexed(
+                                items = pokemonItems,
+                                key = { _, data -> data.pokemon.id }
+                            ) { _, pokemonData ->
+                                val choiceOfTheDay = pokemonOfTheDayName == pokemonData.pokemon.name
+                                AnimatedItem(
+                                    context,
+                                    isFavoriteFilter,
+                                    viewModel,
+                                    choiceOfTheDay,
+                                    isRewarded,
+                                    isVisible,
+                                    animatedVisibilityScope,
+                                    pokemonData,
+                                    navController,
+                                    activity,
+                                    onCallBackIsVisible = {
+                                        isVisible = it
                                     },
-                                    choiceOfTheDayStatus = choiceOfTheDay,
-                                    onClickDetail = { id, choiceOfTheDayStatus ->
-                                        if (choiceOfTheDay) {
-                                            with(viewModel) {
-                                                if (isRewarded) {
-                                                    adUnitIdChoiceOfTheDayRewardedShow(
-                                                        choiceOfTheDayStatus
-                                                    )
-                                                } else {
-                                                    adUnitIdChoiceOfTheDayInterstitialShow(
-                                                        choiceOfTheDayStatus
-                                                    )
-                                                }
-                                                setAdDataToDetails(
-                                                    PokemonViewModel.AdData(
-                                                        id,
-                                                        choiceOfTheDayStatus
-                                                    )
-                                                )
-                                            }
-                                        } else {
-                                            goToDetails(
-                                                navController,
-                                                activity,
-                                                viewModel,
-                                                id,
-                                                choiceOfTheDayStatus
-                                            )
-                                        }
+                                )
+                            }
+                        }
+                    } else {
+                        LazyVerticalGrid(
+                            columns = GridCells.Fixed(columns),
+                            state = gridState,
+                        ) {
+                            gridItemsIndexed(
+                                items = pokemonItems,
+                                key = { _, data -> data.pokemon.id }
+                            ) { _, pokemonData ->
+                                val choiceOfTheDay = pokemonOfTheDayName == pokemonData.pokemon.name
+                                AnimatedItem(
+                                    context,
+                                    isFavoriteFilter,
+                                    viewModel,
+                                    choiceOfTheDay,
+                                    isRewarded,
+                                    isVisible,
+                                    animatedVisibilityScope,
+                                    pokemonData,
+                                    navController,
+                                    activity,
+                                    onCallBackIsVisible = {
+                                        isVisible = it
                                     },
-                                    onClickFavorite = { pokemonFavorite ->
-                                        activity?.trackButtonClick("Click favorite item list: ${pokemonFavorite.pokemon.name}")
-                                        viewModel.setFavorite(pokemonFavorite.pokemon.id)
-                                    }
                                 )
                             }
                         }
                     }
+
                 } else {
                     EmptyListStatus()
                 }
@@ -301,6 +327,107 @@ fun SharedTransitionScope.PokemonListScreen(
             error = {
                 ErrorStatus()
             }
+        )
+    }
+}
+
+@Composable
+@OptIn(ExperimentalSharedTransitionApi::class)
+private fun SharedTransitionScope.AnimatedItem(
+    context: Context,
+    isFavoriteFilter: Boolean,
+    viewModel: PokemonViewModel,
+    choiceOfTheDay: Boolean,
+    isRewarded: Boolean,
+    isVisible: Boolean,
+    animatedVisibilityScope: AnimatedVisibilityScope?,
+    pokemonData: PokemonWithDetails,
+    navController: NavController,
+    activity: MainActivity?,
+    onCallBackIsVisible: (Boolean) -> Unit,
+) {
+    AnimatedVisibility(
+        visible = isVisible,
+        exit = scaleOut(animationSpec = tween(durationMillis = 300))
+    ) {
+        PokemonListItem(
+            viewModel = viewModel,
+            pokemonData = pokemonData,
+            animatedVisibilityScope = animatedVisibilityScope,
+            onCallBackFinishAnimation = {
+                val isVisible = onCallBackFinishAnimation(
+                    context,
+                    isFavoriteFilter,
+                    viewModel,
+                )
+                onCallBackIsVisible(isVisible)
+            },
+            choiceOfTheDayStatus = choiceOfTheDay,
+            onClickDetail = { id, choiceOfTheDayStatus ->
+                onClickDetails(
+                    viewModel,
+                    choiceOfTheDayStatus,
+                    choiceOfTheDay,
+                    isRewarded,
+                    id,
+                    navController,
+                    activity,
+                )
+            },
+            onClickFavorite = { pokemonFavorite ->
+                activity?.trackButtonClick("Click favorite item list: ${pokemonFavorite.pokemon.name}")
+                viewModel.setFavorite(pokemonFavorite.pokemon.id)
+            }
+        )
+    }
+}
+
+private fun onCallBackFinishAnimation(
+    context: Context,
+    isFavoriteFilter: Boolean,
+    viewModel: PokemonViewModel,
+): Boolean {
+    if (isFavoriteFilter) {
+        viewModel.removeItemIfNotIsFavorite(context)
+        return false
+    }
+    return true
+}
+
+private fun onClickDetails(
+    viewModel: PokemonViewModel,
+    choiceOfTheDayStatus: Boolean,
+    choiceOfTheDay: Boolean,
+    isRewarded: Boolean,
+    id: Int,
+    navController: NavController,
+    activity: MainActivity?,
+) {
+    if (choiceOfTheDay) {
+        with(viewModel) {
+            if (isRewarded) {
+                adUnitIdChoiceOfTheDayRewardedShow(
+                    choiceOfTheDayStatus
+                )
+            } else {
+                adUnitIdChoiceOfTheDayInterstitialShow(
+                    choiceOfTheDayStatus
+                )
+            }
+            setAdDataToDetails(
+                PokemonViewModel.AdData(
+                    id,
+                    choiceOfTheDayStatus
+                )
+            )
+        }
+    } else {
+        goToDetails(
+            navController,
+            activity,
+            viewModel,
+            id,
+            choiceOfTheDayStatus
         )
     }
 }
@@ -518,7 +645,7 @@ fun SharedTransitionScope.Holder(
                         style = TextStyle(
                             fontSize = 10.sp,
                             fontWeight = FontWeight.Bold,
-                            fontStyle = androidx.compose.ui.text.font.FontStyle.Normal,
+                            fontStyle = FontStyle.Normal,
                             shadow = Shadow(
                                 color = Color.Black,
                                 offset = Offset(
@@ -537,7 +664,7 @@ fun SharedTransitionScope.Holder(
                         style = TextStyle(
                             fontSize = 24.sp,
                             fontWeight = FontWeight.Black,
-                            fontStyle = androidx.compose.ui.text.font.FontStyle.Normal,
+                            fontStyle = FontStyle.Normal,
                             shadow = Shadow(
                                 color = Color.Black,
                                 offset = Offset(
@@ -606,7 +733,7 @@ fun StatComponent(
                         fontSize = 8.sp,
                         color = Color.White,
                         fontWeight = FontWeight.SemiBold,
-                        fontStyle = androidx.compose.ui.text.font.FontStyle.Normal,
+                        fontStyle = FontStyle.Normal,
                         shadow = Shadow(
                             color = Color.Black,
                             offset = Offset(1f, 1f),

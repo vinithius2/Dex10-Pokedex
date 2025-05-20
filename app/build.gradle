@@ -121,6 +121,7 @@ dependencies {
     implementation "io.noties.markwon:core:4.6.2"
     implementation "com.google.mlkit:translate:17.0.3"
     implementation "androidx.core:core-splashscreen:1.0.1"
+    implementation "androidx.compose.material3:material3-window-size-class"
 
     testImplementation "junit:junit:4.13.2"
     androidTestImplementation "androidx.test.ext:junit:1.1.3"

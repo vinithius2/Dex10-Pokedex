@@ -17,6 +17,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -68,28 +70,51 @@ import com.airbnb.lottie.compose.rememberLottieComposition
 import com.valentinilk.shimmer.shimmer
 import com.vinithius.dex10.R
 import com.vinithius.dex10.extension.capitalize
+import com.vinithius.dex10.ui.screens.rememberWindowColumns
+import androidx.compose.foundation.lazy.grid.items as gridItems
 
 // Page list Loading
 
 @Composable
 fun LoadingPokemonList() {
-    val listMockup = listOf(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
+    val columns = rememberWindowColumns()
+    val listMockup = (1..30).toList()
     Column(
         modifier = Modifier.fillMaxSize()
     ) {
         GetFilterLoading()
-        LazyColumn {
-            items(
-                items = listMockup,
-            ) {
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(8.dp),
-                    elevation = CardDefaults.elevatedCardElevation(5.dp),
-                    shape = RoundedCornerShape(16.dp)
+        if (columns == 1) {
+            LazyColumn {
+                items(
+                    items = listMockup,
                 ) {
-                    HolderPokemonList()
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(8.dp),
+                        elevation = CardDefaults.elevatedCardElevation(5.dp),
+                        shape = RoundedCornerShape(16.dp)
+                    ) {
+                        HolderPokemonList()
+                    }
+                }
+            }
+        } else {
+            LazyVerticalGrid(
+                columns = GridCells.Fixed(columns)
+            ) {
+                gridItems(
+                    items = listMockup,
+                ) {
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(8.dp),
+                        elevation = CardDefaults.elevatedCardElevation(5.dp),
+                        shape = RoundedCornerShape(16.dp)
+                    ) {
+                        HolderPokemonList()
+                    }
                 }
             }
         }

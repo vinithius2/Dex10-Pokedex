@@ -94,7 +94,6 @@ import com.vinithius.dex10.admobbanners.AdManagerRewarded
 import com.vinithius.dex10.admobbanners.AdmobBanner
 import com.vinithius.dex10.extension.getColorByString
 import com.vinithius.dex10.extension.getToolBarColorByString
-import com.vinithius.dex10.extension.getVersionCode
 import com.vinithius.dex10.extension.getVersionName
 import com.vinithius.dex10.ui.screens.PokemonDetailScreen
 import com.vinithius.dex10.ui.screens.PokemonListScreen
@@ -116,9 +115,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         sharedPreferences = getSharedPreferences("pokemon_prefs", MODE_PRIVATE)
-
         val splashScreen = installSplashScreen() // Keep this splashScreen variable
-
         setContent {
             ThemeDex10 {
                 MainScreen(
@@ -917,6 +914,7 @@ private fun DropDownMenuRight(
                     onClick = { redditUrl?.let { onRedditClick(it) } }
                 )
             }
+            Divider()
             if (privacyPolicy.isNullOrEmpty().not()) {
                 Text(
                     text = stringResource(id = R.string.info),
@@ -929,10 +927,15 @@ private fun DropDownMenuRight(
                     onClick = { privacyPolicy?.let { onPrivacyPolicyClick(it) } }
                 )
             }
-            Divider()
             val version = LocalContext.current.getVersionName()
+            Text(
+                text = stringResource(id = R.string.version),
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+            )
             DropdownMenuItem(
-                text = { Text("Versão $version") },
+                text = { Text(version.toString()) },
                 onClick = {},
                 enabled = false
             )
