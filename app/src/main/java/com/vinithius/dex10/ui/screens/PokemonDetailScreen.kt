@@ -32,7 +32,11 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
@@ -78,6 +82,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.zIndex
 import androidx.navigation.NavController
 import coil.ImageLoader
 import coil.compose.AsyncImagePainter
@@ -110,6 +115,7 @@ import com.vinithius.dex10.extension.getStringEggGroup
 import com.vinithius.dex10.extension.getStringHabitat
 import com.vinithius.dex10.extension.getStringShape
 import com.vinithius.dex10.extension.getStringStat
+import com.vinithius.dex10.extension.getWindowColumns
 import com.vinithius.dex10.extension.translateIfSupported
 import com.vinithius.dex10.ui.MainActivity
 import com.vinithius.dex10.ui.theme.text
@@ -197,6 +203,7 @@ fun SharedTransitionScope.PokemonDetailScreen(
     val color by viewModel.pokemonColor.observeAsState()
     val choiceOfTheDayStatus by viewModel.choiceOfTheDay.observeAsState(false)
     val painter = viewModel.getSharedImage(pokemonId.toString())
+    val columns = (LocalContext.current as MainActivity).getWindowColumns()
 
     LaunchedEffect(id) {
         if (id != null) {
@@ -215,26 +222,52 @@ fun SharedTransitionScope.PokemonDetailScreen(
     StateRequest(
         viewModel = viewModel,
         loading = {
-            MainCard(
-                navController,
-                pokemonId,
-                animatedVisibilityScope,
-                choiceOfTheDayStatus,
-                pokemonDetail,
-                color.toString(),
-                painter,
-            )
+            if (columns == 1) {
+                MainCard(
+                    navController,
+                    pokemonId,
+                    animatedVisibilityScope,
+                    choiceOfTheDayStatus,
+                    pokemonDetail,
+                    color.toString(),
+                    painter,
+                )
+            } else {
+                MainCardLargeScreen(
+                    navController,
+                    pokemonId,
+                    animatedVisibilityScope,
+                    choiceOfTheDayStatus,
+                    pokemonDetail,
+                    color.toString(),
+                    painter,
+                    columns,
+                )
+            }
         },
         success = {
-            MainCard(
-                navController,
-                pokemonId,
-                animatedVisibilityScope,
-                choiceOfTheDayStatus,
-                pokemonDetail,
-                color.toString(),
-                painter,
-            )
+            if (columns == 1) {
+                MainCard(
+                    navController,
+                    pokemonId,
+                    animatedVisibilityScope,
+                    choiceOfTheDayStatus,
+                    pokemonDetail,
+                    color.toString(),
+                    painter,
+                )
+            } else {
+                MainCardLargeScreen(
+                    navController,
+                    pokemonId,
+                    animatedVisibilityScope,
+                    choiceOfTheDayStatus,
+                    pokemonDetail,
+                    color.toString(),
+                    painter,
+                    columns,
+                )
+            }
         },
         error = {
             ErrorStatus()
@@ -429,6 +462,210 @@ fun SharedTransitionScope.MainCard(
     }
 }
 
+
+@SuppressLint("DefaultLocale")
+@OptIn(ExperimentalSharedTransitionApi::class)
+@Composable
+fun SharedTransitionScope.MainCardLargeScreen(
+    navController: NavController?,
+    pokemonId: Int,
+    animatedVisibilityScope: AnimatedVisibilityScope?,
+    choiceOfTheDayStatus: Boolean,
+    pokemonDetail: Pokemon?,
+    color: String,
+    painter: AsyncImagePainter? = null,
+    columns: Int = 1,
+    viewModel: PokemonViewModel = getViewModel()
+) {
+    val context = LocalContext.current
+
+    LazyVerticalGrid(
+        columns = GridCells.Fixed(columns),
+        contentPadding = PaddingValues(8.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+        modifier = Modifier.fillMaxSize()
+    ) {
+
+        item {
+            ChoiceOfTheDay(choiceOfTheDayStatus)
+            Card(
+                modifier = Modifier
+                    .height(320.dp)
+                    .padding(8.dp),
+                elevation = CardDefaults.elevatedCardElevation(5.dp),
+                shape = RoundedCornerShape(16.dp)
+            ) {
+                Column(
+                    modifier = Modifier.fillMaxSize(),
+                    verticalArrangement = Arrangement.SpaceBetween
+                ) {
+                    // Top: Habitat and Pokémon Image
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .weight(1f), // Gives weight to expand proportionally
+                    ) {
+                        // Habitat Image
+                        PokemonHabitat(viewModel, pokemonDetail)
+                        // Pokemon Image
+                        if (painter != null) {
+                            Image(
+                                painter = painter,
+                                contentDescription = "Pokemon",
+                                modifier = Modifier
+                                    .align(Alignment.TopCenter)
+                                    .padding(top = 50.dp)
+                                    .size(180.dp)
+                                    .sharedElement(
+                                        state = rememberSharedContentState(key = "$pokemonId"),
+                                        animatedVisibilityScope = animatedVisibilityScope!!,
+                                        boundsTransform = { _, _ ->
+                                            tween(durationMillis = 1000)
+                                        }
+                                    ),
+                            )
+                        } else {
+                            pokemonId.LoadGifWithCoil(viewModel)
+                        }
+                        // weight and height
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .align(Alignment.BottomCenter)
+                                .padding(bottom = 12.dp)
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 12.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Column(
+                                    horizontalAlignment = Alignment.CenterHorizontally
+                                ) {
+                                    StateRequest(
+                                        viewModel = viewModel,
+                                        loading = { HeightLoadingComposable() },
+                                        success = { HeightSuccessComposable(pokemonDetail) },
+                                        error = {
+                                            // Do nothing yet
+                                        }
+                                    )
+                                }
+                                Column(
+                                    horizontalAlignment = Alignment.CenterHorizontally
+                                ) {
+                                    StateRequest(
+                                        viewModel = viewModel,
+                                        loading = { WeightLoadingComposable() },
+                                        success = { WeightSuccessComposable(pokemonDetail) },
+                                        error = {
+                                            // Do nothing yet
+                                        }
+                                    )
+                                }
+                            }
+                            Spacer(modifier = Modifier.size(5.dp))
+                            // Generation and Base Experience
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 12.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Column(
+                                    horizontalAlignment = Alignment.CenterHorizontally
+                                ) {
+                                    Row(horizontalArrangement = Arrangement.spacedBy(2.dp)) {
+                                        DefaultFirstCardData(
+                                            viewModel = viewModel,
+                                            title = stringResource(R.string.generation),
+                                            value = pokemonDetail?.specie?.generation?.name
+                                                ?.split("-")
+                                                ?.last()
+                                                ?.uppercase()
+                                        )
+                                    }
+                                }
+                                Column(
+                                    horizontalAlignment = Alignment.CenterHorizontally
+                                ) {
+                                    Row(horizontalArrangement = Arrangement.spacedBy(2.dp)) {
+                                        DefaultFirstCardData(
+                                            viewModel = viewModel,
+                                            title = stringResource(R.string.base_exp),
+                                            value = pokemonDetail?.base_experience?.toString()
+                                        )
+                                    }
+                                }
+                            }
+                            Spacer(modifier = Modifier.size(5.dp))
+                            // Shape and Base Capture rate
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 12.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Column(
+                                    horizontalAlignment = Alignment.CenterHorizontally
+                                ) {
+                                    Row(horizontalArrangement = Arrangement.spacedBy(2.dp)) {
+                                        DefaultFirstCardData(
+                                            viewModel = viewModel,
+                                            title = stringResource(R.string.shape),
+                                            value = pokemonDetail?.specie?.shape?.name?.getStringShape(
+                                                context
+                                            ) ?: stringResource(R.string.three_dots)
+                                        )
+                                    }
+                                }
+                                Column(
+                                    horizontalAlignment = Alignment.CenterHorizontally
+                                ) {
+                                    Row(horizontalArrangement = Arrangement.spacedBy(2.dp)) {
+                                        DefaultFirstCardData(
+                                            viewModel = viewModel,
+                                            title = stringResource(R.string.capture_rate),
+                                            value = pokemonDetail?.specie?.capture_rate?.toString()
+                                        )
+                                    }
+                                }
+                            }
+                            Box(
+                                modifier = Modifier.padding(top = 10.dp)
+                            ) {
+                                TypeListResponse(pokemonDetail?.types ?: listOf())
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        item {
+            PokemonChart(viewModel, color, pokemonDetail)
+        }
+        item(span = { GridItemSpan(maxLineSpan) }) {
+            PokemonIsABaby()
+        }
+        // Secondary items (grid cells)
+        item {
+            PokemonEvolution(navController, pokemonDetail)
+        }
+        item {
+            PokemonArts(viewModel, pokemonDetail)
+        }
+        // Tabs full-width
+        item(span = { GridItemSpan(maxLineSpan) }) {
+            TabWithPagerExample(pokemonDetail, color, viewModel)
+        }
+    }
+}
+
 @Composable
 fun TabWithPagerExample(
     pokemonDetail: Pokemon?,
@@ -444,95 +681,101 @@ fun TabWithPagerExample(
     )
     val pagerState = rememberPagerState(pageCount = { tabTitles.size })
     val coroutineScope = rememberCoroutineScope()
-
-    LazyRow(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 8.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        contentPadding = PaddingValues(horizontal = 16.dp)
-    ) {
-        items(tabTitles.size) { index ->
-            val isSelected = pagerState.currentPage == index
-            val color = getButtonColor(isSelected, color)
-
-            StateRequest(
-                viewModel = viewModel,
-                loading = {
-                    Box(
-                        contentAlignment = Alignment.Center,
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(16.dp))
-                            .background(color.first)
-                            .padding(horizontal = 16.dp, vertical = 8.dp)
-                            .shimmer()
-                    ) {
-                        Text(
-                            text = tabTitles[index],
-                            color = color.second,
-                            fontSize = 16.sp,
-                            textAlign = TextAlign.Center
-                        )
-                    }
-                },
-                success = {
-                    Box(
-                        contentAlignment = Alignment.Center,
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(16.dp))
-                            .background(color.first)
-                            .clickable {
-                                coroutineScope.launch {
-                                    pagerState.animateScrollToPage(index)
-                                }
-                            }
-                            .padding(horizontal = 16.dp, vertical = 8.dp)
-                    ) {
-                        Text(
-                            text = tabTitles[index],
-                            color = color.second,
-                            fontSize = 16.sp,
-                            textAlign = TextAlign.Center
-                        )
-                    }
-                },
-                error = { /* Do nothing yet */ }
-            )
-        }
-    }
-    val activity = getActivity()
-    HorizontalPager(
-        state = pagerState,
-        modifier = Modifier.fillMaxSize()
-    ) { page ->
-        Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center
+    Column(modifier = Modifier.fillMaxSize()) {
+        LazyRow(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 8.dp)
+                .zIndex(1f),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            contentPadding = PaddingValues(horizontal = 16.dp)
         ) {
-            when (page) {
-                0 -> {
-                    activity?.trackButtonClick(tabTitles[0])
-                    PokemonDamage(pokemonDetail, viewModel)
-                }
+            items(tabTitles.size) { index ->
+                val isSelected = pagerState.currentPage == index
+                val color = getButtonColor(isSelected, color)
 
-                1 -> {
-                    activity?.trackButtonClick(tabTitles[1])
-                    PokemonEncounters(pokemonDetail, color, viewModel)
-                }
+                StateRequest(
+                    viewModel = viewModel,
+                    loading = {
+                        Box(
+                            contentAlignment = Alignment.Center,
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(16.dp))
+                                .background(color.first)
+                                .padding(horizontal = 16.dp, vertical = 8.dp)
+                                .shimmer()
+                        ) {
+                            Text(
+                                text = tabTitles[index],
+                                color = color.second,
+                                fontSize = 16.sp,
+                                textAlign = TextAlign.Center
+                            )
+                        }
+                    },
+                    success = {
+                        Box(
+                            contentAlignment = Alignment.Center,
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(16.dp))
+                                .background(color.first)
+                                .clickable {
+                                    coroutineScope.launch {
+                                        pagerState.animateScrollToPage(index)
+                                    }
+                                }
+                                .padding(horizontal = 16.dp, vertical = 8.dp)
+                        ) {
+                            Text(
+                                text = tabTitles[index],
+                                color = color.second,
+                                fontSize = 16.sp,
+                                textAlign = TextAlign.Center
+                            )
+                        }
+                    },
+                    error = { /* Do nothing yet */ }
+                )
+            }
+        }
+        val activity = getActivity()
+        HorizontalPager(
+            state = pagerState,
+            modifier = Modifier
+                .fillMaxWidth()
+                .wrapContentHeight()
+        ) { page ->
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .wrapContentHeight(),
+                contentAlignment = Alignment.Center
+            ) {
+                when (page) {
+                    0 -> {
+                        activity?.trackButtonClick(tabTitles[0])
+                        PokemonDamage(pokemonDetail, viewModel)
+                    }
 
-                2 -> {
-                    activity?.trackButtonClick(tabTitles[2])
-                    PokemonEggs(pokemonDetail, color, viewModel)
-                }
+                    1 -> {
+                        activity?.trackButtonClick(tabTitles[1])
+                        PokemonEncounters(pokemonDetail, color, viewModel)
+                    }
 
-                3 -> {
-                    activity?.trackButtonClick(tabTitles[3])
-                    PokemonAbilities(pokemonDetail, color, viewModel)
-                }
+                    2 -> {
+                        activity?.trackButtonClick(tabTitles[2])
+                        PokemonEggs(pokemonDetail, color, viewModel)
+                    }
 
-                4 -> {
-                    activity?.trackButtonClick(tabTitles[4])
-                    PokemonEntries(pokemonDetail, viewModel)
+                    3 -> {
+                        activity?.trackButtonClick(tabTitles[3])
+                        PokemonAbilities(pokemonDetail, color, viewModel)
+                    }
+
+                    4 -> {
+                        activity?.trackButtonClick(tabTitles[4])
+                        PokemonEntries(pokemonDetail, viewModel)
+                    }
                 }
             }
         }
@@ -956,7 +1199,7 @@ private fun PokemonArts(
         Dialog(onDismissRequest = { showBottomSheet = false }) {
             Surface(
                 shape = RoundedCornerShape(16.dp),
-                color = if(isSystemInDarkTheme()) Color.DarkGray else Color.LightGray ,
+                color = if (isSystemInDarkTheme()) Color.DarkGray else Color.LightGray,
                 modifier = Modifier
                     .fillMaxWidth()
                     .fillMaxHeight(0.8f)
@@ -976,7 +1219,7 @@ private fun PokemonArts(
                                 style = MaterialTheme.typography.bodyLarge,
                                 fontWeight = FontWeight.Bold,
                                 textAlign = TextAlign.Center,
-                                color = if(isSystemInDarkTheme()) Color.LightGray else Color.DarkGray
+                                color = if (isSystemInDarkTheme()) Color.LightGray else Color.DarkGray
                             )
 
                             Box(modifier = Modifier.weight(1f)) {

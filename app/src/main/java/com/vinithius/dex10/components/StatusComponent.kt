@@ -70,14 +70,15 @@ import com.airbnb.lottie.compose.rememberLottieComposition
 import com.valentinilk.shimmer.shimmer
 import com.vinithius.dex10.R
 import com.vinithius.dex10.extension.capitalize
-import com.vinithius.dex10.ui.screens.rememberWindowColumns
+import com.vinithius.dex10.extension.getWindowColumns
+import com.vinithius.dex10.ui.MainActivity
 import androidx.compose.foundation.lazy.grid.items as gridItems
 
 // Page list Loading
 
 @Composable
 fun LoadingPokemonList() {
-    val columns = rememberWindowColumns()
+    val columns = (LocalContext.current as MainActivity).getWindowColumns()
     val listMockup = (1..30).toList()
     Column(
         modifier = Modifier.fillMaxSize()

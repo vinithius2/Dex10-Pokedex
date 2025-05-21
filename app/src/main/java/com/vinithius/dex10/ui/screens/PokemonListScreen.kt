@@ -100,6 +100,7 @@ import com.vinithius.dex10.extension.capitalize
 import com.vinithius.dex10.extension.getDrawableHabitat
 import com.vinithius.dex10.extension.getParseColorByString
 import com.vinithius.dex10.extension.getStringStat
+import com.vinithius.dex10.extension.getWindowColumns
 import com.vinithius.dex10.ui.MainActivity
 import com.vinithius.dex10.ui.viewmodel.PokemonViewModel
 import com.vinithius.dex10.ui.viewmodel.RequestStateList
@@ -153,9 +154,7 @@ private fun getActivity(): MainActivity? {
 @Composable
 fun rememberWindowColumns(): Int {
     val activity = LocalContext.current as ComponentActivity
-
     val windowSizeClass = calculateWindowSizeClass(activity)
-
     return when (windowSizeClass.widthSizeClass) {
         WindowWidthSizeClass.Compact -> 1
         WindowWidthSizeClass.Medium,
@@ -239,7 +238,7 @@ fun SharedTransitionScope.PokemonListScreen(
             )
         }
 
-        val columns = rememberWindowColumns()
+        val columns = (LocalContext.current as MainActivity).getWindowColumns()
 
         StateRequest(
             viewModel = viewModel,
