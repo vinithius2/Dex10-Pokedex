@@ -90,8 +90,10 @@ import coil.compose.rememberAsyncImagePainter
 import coil.decode.GifDecoder
 import coil.decode.ImageDecoderDecoder
 import coil.request.ImageRequest
+import com.google.android.gms.ads.nativead.NativeAd
 import com.valentinilk.shimmer.shimmer
 import com.vinithius.dex10.R
+import com.vinithius.dex10.admobbanners.AdAdvancedNative
 import com.vinithius.dex10.components.ErrorStatus
 import com.vinithius.dex10.components.TypeItem
 import com.vinithius.dex10.components.TypeItemShimmer
@@ -290,6 +292,8 @@ fun SharedTransitionScope.MainCard(
     viewModel: PokemonViewModel = getViewModel()
 ) {
     val context = LocalContext.current
+    val adUnitIdAdAdvancedNative by viewModel.adUnitIdAdAdvancedNative.observeAsState()
+    var nativeAd by remember { mutableStateOf<NativeAd?>(null) }
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -457,6 +461,12 @@ fun SharedTransitionScope.MainCard(
         PokemonChart(viewModel, color, pokemonDetail)
         PokemonIsABaby()
         PokemonEvolution(navController, pokemonDetail)
+
+        AdAdvancedNative(
+            adUnitIdProd = adUnitIdAdAdvancedNative,
+            isTablet = false,
+        )
+
         // Tabs
         TabWithPagerExample(pokemonDetail, color, viewModel)
     }
@@ -478,6 +488,8 @@ fun SharedTransitionScope.MainCardLargeScreen(
     viewModel: PokemonViewModel = getViewModel()
 ) {
     val context = LocalContext.current
+    val adUnitIdAdAdvancedNative by viewModel.adUnitIdAdAdvancedNative.observeAsState()
+    var nativeAd by remember { mutableStateOf<NativeAd?>(null) }
 
     LazyVerticalGrid(
         columns = GridCells.Fixed(columns),
@@ -653,11 +665,18 @@ fun SharedTransitionScope.MainCardLargeScreen(
             PokemonIsABaby()
         }
         // Secondary items (grid cells)
-        item {
-            PokemonEvolution(navController, pokemonDetail)
-        }
-        item {
+        item(span = { GridItemSpan(maxLineSpan) }) {
             PokemonArts(viewModel, pokemonDetail)
+        }
+        // Ads
+        item(span = { GridItemSpan(maxLineSpan) }) {
+            AdAdvancedNative(
+                adUnitIdProd = adUnitIdAdAdvancedNative,
+                isTablet = true,
+            )
+        }
+        item(span = { GridItemSpan(maxLineSpan) }) {
+            PokemonEvolution(navController, pokemonDetail)
         }
         // Tabs full-width
         item(span = { GridItemSpan(maxLineSpan) }) {
