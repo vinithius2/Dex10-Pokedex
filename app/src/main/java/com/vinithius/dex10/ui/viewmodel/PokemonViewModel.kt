@@ -198,6 +198,14 @@ class PokemonViewModel(private val repository: PokemonRepository) : ViewModel() 
         _adUnitIdChoiceOfTheDayRewarded.postValue(value)
     }
 
+    private val _adUnitIdAdAdvancedNative = MutableLiveData(String())
+    val adUnitIdAdAdvancedNative: LiveData<String>
+        get() = _adUnitIdAdAdvancedNative
+
+    fun setAdUnitIdAdAdvancedNative(value: String) {
+        _adUnitIdAdAdvancedNative.postValue(value)
+    }
+
     private val _choiceOfTheDayRewardedShow = MutableLiveData(false)
     val choiceOfTheDayRewardedShow: LiveData<Boolean>
         get() = _choiceOfTheDayRewardedShow

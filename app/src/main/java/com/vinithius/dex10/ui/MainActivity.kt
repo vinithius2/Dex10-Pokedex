@@ -278,6 +278,7 @@ class MainActivity : ComponentActivity() {
         const val IS_REWARD = "isRewarded"
         const val RC_BANNER_INTERSTITIAL = "adUnitId_choiceOfTheDay_interstitial"
         const val RC_BANNER_REWARDED = "adUnitId_choiceOfTheDay_rewarded"
+        const val RC_BANNER_ADVANCED_NATIVE = "adUnitId_advancedNative"
         const val FACEBOOK = "facebook_url"
         const val INSTAGRAN = "instagran_url"
         const val REDDIT = "reddit_url"
@@ -307,11 +308,14 @@ private fun GetAdUnitId(
                     remoteConfig.getString(MainActivity.RC_BANNER_INTERSTITIAL)
                 val adUnitIdChoiceOfTheDayRewarded =
                     remoteConfig.getString(MainActivity.RC_BANNER_REWARDED)
+                val adAdvancedNative =
+                    remoteConfig.getString(MainActivity.RC_BANNER_ADVANCED_NATIVE)
                 // Viewmodel set
                 viewModel.setAdUnitIdList(adUnitIdList)
                 viewModel.setIsRewarded(isRewarded)
                 viewModel.setAdUnitIdChoiceOfTheDayInterstitial(adUnitIdChoiceOfTheDayInterstitial)
                 viewModel.setAdUnitIdChoiceOfTheDayRewarded(adUnitIdChoiceOfTheDayRewarded)
+                viewModel.setAdUnitIdAdAdvancedNative(adAdvancedNative)
                 // Social media
                 val facebookUrl = remoteConfig.getString(MainActivity.FACEBOOK)
                 val instagranUrl = remoteConfig.getString(MainActivity.INSTAGRAN)
