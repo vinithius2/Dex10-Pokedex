@@ -79,6 +79,7 @@ import androidx.navigation.navArgument
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.google.android.gms.ads.MobileAds
 import com.google.android.play.core.review.ReviewManagerFactory
+
 import com.google.firebase.analytics.FirebaseAnalytics
 import com.google.firebase.installations.FirebaseInstallations
 import com.google.firebase.remoteconfig.FirebaseRemoteConfig
@@ -289,6 +290,9 @@ class MainActivity : ComponentActivity() {
         const val GOOGLE_FORM = "google_form"
         const val ALERT_MESSAGE = "alert_message"
         const val PRIVACY_POLICY = "privacy_policy"
+        const val AMOUNT_OF_ADS = "amountOfAds"
+        const val ITEM_RANGE_FOR_ADS = "itemRangeForAds"
+        const val ITEM_RANGE_FOR_ADS_TABLET = "itemRangeForAdsTablet"
     }
 }
 
@@ -310,12 +314,20 @@ private fun GetAdUnitId(
                     remoteConfig.getString(MainActivity.RC_BANNER_REWARDED)
                 val adAdvancedNative =
                     remoteConfig.getString(MainActivity.RC_BANNER_ADVANCED_NATIVE)
+                // Ads count
+                val itemRangeForAds = remoteConfig.getDouble(MainActivity.AMOUNT_OF_ADS)
+                val itemRangeForAdsTablet = remoteConfig.getDouble(MainActivity.ITEM_RANGE_FOR_ADS)
+                val amountOfAds = remoteConfig.getDouble(MainActivity.ITEM_RANGE_FOR_ADS_TABLET)
                 // Viewmodel set
                 viewModel.setAdUnitIdList(adUnitIdList)
                 viewModel.setIsRewarded(isRewarded)
                 viewModel.setAdUnitIdChoiceOfTheDayInterstitial(adUnitIdChoiceOfTheDayInterstitial)
                 viewModel.setAdUnitIdChoiceOfTheDayRewarded(adUnitIdChoiceOfTheDayRewarded)
                 viewModel.setAdUnitIdAdAdvancedNative(adAdvancedNative)
+
+                viewModel.setItemRangeForAds(itemRangeForAds.toInt())
+                viewModel.setItemRangeForAdsTablet(itemRangeForAdsTablet.toInt())
+                viewModel.setAmountOfAds(amountOfAds.toInt())
                 // Social media
                 val facebookUrl = remoteConfig.getString(MainActivity.FACEBOOK)
                 val instagranUrl = remoteConfig.getString(MainActivity.INSTAGRAN)

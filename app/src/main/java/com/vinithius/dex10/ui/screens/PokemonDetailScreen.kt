@@ -293,7 +293,7 @@ fun SharedTransitionScope.MainCard(
 ) {
     val context = LocalContext.current
     val adUnitIdAdAdvancedNative by viewModel.adUnitIdAdAdvancedNative.observeAsState()
-    var nativeAd by remember { mutableStateOf<NativeAd?>(null) }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -489,7 +489,6 @@ fun SharedTransitionScope.MainCardLargeScreen(
 ) {
     val context = LocalContext.current
     val adUnitIdAdAdvancedNative by viewModel.adUnitIdAdAdvancedNative.observeAsState()
-    var nativeAd by remember { mutableStateOf<NativeAd?>(null) }
 
     LazyVerticalGrid(
         columns = GridCells.Fixed(columns),
@@ -1321,14 +1320,33 @@ private fun getStats(
 }
 
 @Composable
-private fun ChartSuccessComposable(pokemonDetail: Pokemon?, color: String?) {
+private fun ChartSuccessComposable(
+    pokemonDetail: Pokemon?,
+    color: String?
+) {
+    // 1) Early return para não desenhar o chart até teres cor
+    if (pokemonDetail == null || color == null) {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            CircularProgressIndicator()
+        }
+        return
+    }
+
     val context = LocalContext.current
-    val stats = getStats(pokemonDetail, color, context, isSystemInDarkTheme())
+    val isDark = isSystemInDarkTheme()
+
+    val stats: List<Bars> = remember(color, pokemonDetail) {
+        getStats(pokemonDetail, color, context, isDark)
+    }
+
     RowChart(
         modifier = Modifier
             .fillMaxSize()
             .padding(22.dp),
-        data = remember { stats.toList() },
+        data = stats,
         barProperties = BarProperties(
             cornerRadius = Bars.Data.Radius.Rectangle(
                 topRight = 3.dp,
@@ -1341,7 +1359,7 @@ private fun ChartSuccessComposable(pokemonDetail: Pokemon?, color: String?) {
         labelProperties = LabelProperties(
             enabled = true,
             textStyle = TextStyle(
-                color = MaterialTheme.colorScheme.text,
+                color = MaterialTheme.colorScheme.onBackground,
                 fontSize = 12.sp
             ),
             padding = 12.dp,
@@ -1354,12 +1372,13 @@ private fun ChartSuccessComposable(pokemonDetail: Pokemon?, color: String?) {
         labelHelperProperties = LabelHelperProperties(
             enabled = false,
             textStyle = TextStyle(
-                color = MaterialTheme.colorScheme.text,
+                color = MaterialTheme.colorScheme.onBackground,
                 fontSize = 12.sp
             ),
         ),
     )
 }
+
 
 @Composable
 private fun ChartLoadingComposable() {

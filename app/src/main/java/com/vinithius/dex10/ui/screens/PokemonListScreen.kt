@@ -5,7 +5,6 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.os.Build
-import androidx.activity.ComponentActivity
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
@@ -38,9 +37,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Card
 import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.Text
-import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
-import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
-import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -158,20 +154,6 @@ private fun getActivity(): MainActivity? {
     return activity
 }
 
-@OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
-@Composable
-fun rememberWindowColumns(): Int {
-    val activity = LocalContext.current as ComponentActivity
-    val windowSizeClass = calculateWindowSizeClass(activity)
-    return when (windowSizeClass.widthSizeClass) {
-        WindowWidthSizeClass.Compact -> 1
-        WindowWidthSizeClass.Medium,
-        WindowWidthSizeClass.Expanded -> 2
-
-        else -> 1
-    }
-}
-
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun SharedTransitionScope.PokemonListScreen(
@@ -211,12 +193,13 @@ fun SharedTransitionScope.PokemonListScreen(
     var showDialogCopyright by remember { mutableStateOf(initialDontShow.not()) }
 
     val preloadedAds = remember { mutableStateListOf<NativeAd?>() }
-    val byItemAd = 12
-    val byItemAdTablet = 18
-    val count = 12
+
+    val itemRangeForAds by viewModel.itemRangeForAds.observeAsState(14)
+    val itemRangeForAdsTablet by viewModel.itemRangeForAdsTablet.observeAsState(22)
+    val amountOfAds by viewModel.amountOfAds.observeAsState(12)
 
     LaunchedEffect(Unit) {
-        repeat(count) { // Pré-carrega X anúncios para serem usados na lista
+        repeat(amountOfAds) { // Pré-carrega X anúncios para serem usados na lista
             val loader = AdLoader.Builder(context, adUnitId.toString())
                 .forNativeAd { ad ->
                     preloadedAds.add(ad)
@@ -324,8 +307,8 @@ fun SharedTransitionScope.PokemonListScreen(
                                         isVisible = it
                                     },
                                 )
-                                if ((index + 1) % byItemAd == 0) { // A cada X pokemons, temos um anúncio.
-                                    val ad = preloadedAds.getOrNull(index / byItemAd)
+                                if ((index + 1) % itemRangeForAds == 0) { // A cada X pokemons, temos um anúncio.
+                                    val ad = preloadedAds.getOrNull(index / itemRangeForAds)
                                     if (ad != null) {
                                         AndroidView(factory = {
                                             createNativeAdView(context, ad)
@@ -341,7 +324,7 @@ fun SharedTransitionScope.PokemonListScreen(
                             modifier = Modifier.fillMaxSize(),
                             contentPadding = PaddingValues(8.dp),
                         ) {
-                            val adInterval = byItemAdTablet
+                            val adInterval = itemRangeForAdsTablet
                             var adIndex = 0
 
                             var index = 0

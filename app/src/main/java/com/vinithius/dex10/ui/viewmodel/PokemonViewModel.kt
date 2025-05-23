@@ -206,6 +206,30 @@ class PokemonViewModel(private val repository: PokemonRepository) : ViewModel() 
         _adUnitIdAdAdvancedNative.postValue(value)
     }
 
+    private val _itemRangeForAds = MutableLiveData<Int>(14)
+    val itemRangeForAds: LiveData<Int>
+        get() = _itemRangeForAds as LiveData<Int>
+
+    fun setItemRangeForAds(value: Int) {
+        _itemRangeForAds.postValue(value)
+    }
+
+    private val _itemRangeForAdsTablet = MutableLiveData<Int>(22)
+    val itemRangeForAdsTablet: LiveData<Int>
+        get() = _itemRangeForAdsTablet
+
+    fun setItemRangeForAdsTablet(value: Int) {
+        _itemRangeForAdsTablet.postValue(value)
+    }
+
+    private val _amountOfAds= MutableLiveData<Int>(12)
+    val amountOfAds: LiveData<Int>
+        get() = _amountOfAds
+
+    fun setAmountOfAds(value: Int) {
+        _amountOfAds.postValue(value)
+    }
+
     private val _choiceOfTheDayRewardedShow = MutableLiveData(false)
     val choiceOfTheDayRewardedShow: LiveData<Boolean>
         get() = _choiceOfTheDayRewardedShow
