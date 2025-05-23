@@ -198,6 +198,38 @@ class PokemonViewModel(private val repository: PokemonRepository) : ViewModel() 
         _adUnitIdChoiceOfTheDayRewarded.postValue(value)
     }
 
+    private val _adUnitIdAdAdvancedNative = MutableLiveData(String())
+    val adUnitIdAdAdvancedNative: LiveData<String>
+        get() = _adUnitIdAdAdvancedNative
+
+    fun setAdUnitIdAdAdvancedNative(value: String) {
+        _adUnitIdAdAdvancedNative.postValue(value)
+    }
+
+    private val _itemRangeForAds = MutableLiveData<Int>(14)
+    val itemRangeForAds: LiveData<Int>
+        get() = _itemRangeForAds as LiveData<Int>
+
+    fun setItemRangeForAds(value: Int) {
+        _itemRangeForAds.postValue(value)
+    }
+
+    private val _itemRangeForAdsTablet = MutableLiveData<Int>(22)
+    val itemRangeForAdsTablet: LiveData<Int>
+        get() = _itemRangeForAdsTablet
+
+    fun setItemRangeForAdsTablet(value: Int) {
+        _itemRangeForAdsTablet.postValue(value)
+    }
+
+    private val _amountOfAds= MutableLiveData<Int>(12)
+    val amountOfAds: LiveData<Int>
+        get() = _amountOfAds
+
+    fun setAmountOfAds(value: Int) {
+        _amountOfAds.postValue(value)
+    }
+
     private val _choiceOfTheDayRewardedShow = MutableLiveData(false)
     val choiceOfTheDayRewardedShow: LiveData<Boolean>
         get() = _choiceOfTheDayRewardedShow
@@ -212,6 +244,36 @@ class PokemonViewModel(private val repository: PokemonRepository) : ViewModel() 
 
     fun setIsAdLoadedRewarded(value: Boolean) {
         _isAdLoadedRewarded.postValue(value)
+    }
+
+    // Privacy Policy
+
+    private val _privacyPolicy = MutableLiveData(String())
+    val privacyPolicy: LiveData<String>
+        get() = _privacyPolicy
+
+    fun setPrivacyPolicy(value: String) {
+        _privacyPolicy.postValue(value)
+    }
+
+    // Donate
+
+    private val _hasDonate = MutableLiveData(false)
+    val hasDonate: LiveData<Boolean>
+        get() = _hasDonate
+
+    fun setHasDonate(value: Boolean) {
+        _hasDonate.postValue(value)
+    }
+
+    // Review
+
+    private val _reviewUrl = MutableLiveData(String())
+    val reviewUrl: LiveData<String>
+        get() = _reviewUrl
+
+    fun setReviewUrl(value: String) {
+        _reviewUrl.postValue(value)
     }
 
     // Social Media
@@ -246,14 +308,6 @@ class PokemonViewModel(private val repository: PokemonRepository) : ViewModel() 
 
     fun setGoogleForm(value: String) {
         _googleForm.postValue(value)
-    }
-
-    private val _paypalId = MutableLiveData(String())
-    val paypalId: LiveData<String>
-        get() = _paypalId
-
-    fun setPaypalId(value: String) {
-        _paypalId.postValue(value)
     }
 
     private val _topAlertMessage = MutableLiveData<AlertMessage?>(null)

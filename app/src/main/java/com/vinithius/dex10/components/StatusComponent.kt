@@ -17,6 +17,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -51,6 +53,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -67,29 +70,52 @@ import com.airbnb.lottie.compose.rememberLottieComposition
 import com.valentinilk.shimmer.shimmer
 import com.vinithius.dex10.R
 import com.vinithius.dex10.extension.capitalize
-import androidx.compose.ui.text.style.TextAlign
+import com.vinithius.dex10.extension.getWindowColumns
+import com.vinithius.dex10.ui.MainActivity
+import androidx.compose.foundation.lazy.grid.items as gridItems
 
 // Page list Loading
 
 @Composable
 fun LoadingPokemonList() {
-    val listMockup = listOf(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
+    val columns = (LocalContext.current as MainActivity).getWindowColumns()
+    val listMockup = (1..30).toList()
     Column(
         modifier = Modifier.fillMaxSize()
     ) {
         GetFilterLoading()
-        LazyColumn {
-            items(
-                items = listMockup,
-            ) {
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(8.dp),
-                    elevation = CardDefaults.elevatedCardElevation(5.dp),
-                    shape = RoundedCornerShape(16.dp)
+        if (columns == 1) {
+            LazyColumn {
+                items(
+                    items = listMockup,
                 ) {
-                    HolderPokemonList()
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(8.dp),
+                        elevation = CardDefaults.elevatedCardElevation(5.dp),
+                        shape = RoundedCornerShape(16.dp)
+                    ) {
+                        HolderPokemonList()
+                    }
+                }
+            }
+        } else {
+            LazyVerticalGrid(
+                columns = GridCells.Fixed(columns)
+            ) {
+                gridItems(
+                    items = listMockup,
+                ) {
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(8.dp),
+                        elevation = CardDefaults.elevatedCardElevation(5.dp),
+                        shape = RoundedCornerShape(16.dp)
+                    ) {
+                        HolderPokemonList()
+                    }
                 }
             }
         }
@@ -215,10 +241,7 @@ fun ViewHolderFirst() {
 @SuppressLint("DefaultLocale")
 @Composable
 fun HolderPokemonList() {
-    val context = LocalContext.current
-    Box(
-        Modifier.background(Color.White)
-    ) {
+    Box {
         Box(
             modifier = Modifier
                 .shimmer()

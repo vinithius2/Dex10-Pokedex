@@ -90,6 +90,7 @@
     <string name="instagran">इंस्टाग्राम</string>
     <string name="facebook">Facebook</string>
     <string name="reddit">रेडिट</string>
+    <string name="privacy_policy">गोपनीयता नीति</string>
     <string name="jigglypuff_songs">कृपया, सो मत जाओ!</string>
     <string name="title_back_default">पीछे</string>
     <string name="title_back_female">पीछे (महिला)</string>
@@ -199,4 +200,5 @@
     <string name="copyright_title">कॉपीराइट नोटिस</string>
     <string name="copyright_description">Dex10 - Pokédex एक प्रशंसकों द्वारा और प्रशंसकों के लिए बनाया गया ऐप है, जो Pokémon फ्रैंचाइज़ी को समर्पित है। Pokémon से संबंधित सभी सामग्री, जैसे नाम, चित्र, डेटा और अन्य तत्व, Nintendo, GAME FREAK और The Pokémon Company की बौद्धिक संपत्ति हैं। हम इन सामग्रियों पर किसी प्रकार के स्वामित्व या लेखन का दावा नहीं करते हैं। इन्हें केवल जानकारीपूर्ण, शैक्षिक और गैर-व्यावसायिक उद्देश्यों के लिए "उचित उपयोग" सिद्धांत के तहत उपयोग किया गया है। यह ऐप Nintendo, GAME FREAK या The Pokémon Company से संबद्ध, प्रायोजित या अनुमोदित नहीं है। डेवलपर Pokémon फ्रैंचाइज़ी की ट्रेडमार्क या कॉपीराइट सामग्री के उपयोग से उत्पन्न किसी भी कानूनी मुद्दे के लिए जिम्मेदार नहीं है।</string>
     <string name="accept_the_terms_and_dont_show_again">मैं शर्तों को स्वीकार करता हूँ और इस संदेश को फिर से नहीं देखना चाहता</string>
+    <string name="version">संस्करण</string>
 </resources>

@@ -90,6 +90,7 @@ Eu uso e recomendo demais! 😍</string>
     <string name="instagran">Instagran</string>
     <string name="facebook">Facebook</string>
     <string name="reddit">Reddit</string>
+    <string name="privacy_policy">Política de Privacidade</string>
     <string name="jigglypuff_songs">Por favor, não durma!</string>
     <string name="title_back_default">Costas</string>
     <string name="title_back_female">Costas Femininas</string>
@@ -199,4 +200,5 @@ Eu uso e recomendo demais! 😍</string>
     <string name="copyright_title">Aviso sobre Direitos Autorais</string>
     <string name="copyright_description">Dex10 - Pokédex é um aplicativo criado por fãs e para fãs da franquia Pokémon. Todo o conteúdo relacionado a Pokémon, incluindo nomes, imagens, dados e demais elementos apresentados neste aplicativo, são propriedade intelectual da Nintendo, GAME FREAK e The Pokémon Company. Não reivindicamos autoria ou propriedade sobre esses materiais. Eles são utilizados com base no princípio de uso justo (fair use), com finalidade exclusivamente informativa, educativa e sem fins comerciais. Este aplicativo não é afiliado, patrocinado ou endossado por Nintendo, GAME FREAK ou The Pokémon Company. O desenvolvedor isenta-se de qualquer responsabilidade por eventuais questões legais decorrentes do uso de marcas registradas ou conteúdos protegidos por direitos autorais da franquia Pokémon.</string>
     <string name="accept_the_terms_and_dont_show_again">Aceito os termos e não desejo ver esta mensagem novamente</string>
+    <string name="version">Versão</string>
 </resources>
