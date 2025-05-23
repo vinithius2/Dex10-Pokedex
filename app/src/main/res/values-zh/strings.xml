@@ -1,0 +1,204 @@
+<resources>
+    <string name="app_name">Dex10</string>
+    <string name="loading">加载中</string>
+    <string name="is_general_error">哎呀，出现了一个错误！</string>
+    <string name="reloading">重新加载中</string>
+    <string name="pikachu_sad">悲伤的皮卡丘</string>
+    <string name="pikachu">皮卡丘</string>
+    <string name="unknown">未知</string>
+    <string name="capture_rate">捕获效率：</string>
+    <string name="shape">形状：</string>
+    <string name="base_exp">基础经验值：</string>
+    <string name="generation">世代：</string>
+    <string name="ico_mythical">神话图标</string>
+    <string name="is_a_baby">是幼崽！</string>
+    <string name="ico_left">左侧图标</string>
+    <string name="title_encounters">遭遇</string>
+    <string name="arrow">箭头</string>
+    <string name="unhidden">未隐藏</string>
+    <string name="hidden">隐藏</string>
+    <string name="title_abilities">能力</string>
+    <string name="ico_type">属性图标</string>
+    <string name="title_damage">%1$s 属性伤害</string>
+    <string name="pokemon_evolution">宝可梦进化</string>
+    <string name="ico_status_damage">状态伤害图标</string>
+    <string name="title_effective_damage_from">来自的有效伤害</string>
+    <string name="title_effective_damage_to">对…的有效伤害</string>
+    <string name="title_habitat">栖息地</string>
+    <string name="title_ineffective_damage_from">来自的无效伤害</string>
+    <string name="title_ineffective_damage_to">对…的无效伤害</string>
+    <string name="title_no_damage_from">免疫来自</string>
+    <string name="title_no_damage_to">对…免疫</string>
+    <string name="title_text_entries">图鉴条目</string>
+    <string name="title_egg_groups">蛋群</string>
+    <string name="description">描述</string>
+    <string name="kg_lbs" translatable="false">"%1$s kg (%2$s lbs)"</string>
+    <string name="m_inch" translatable="false">"%1$s m (%2$s″)"</string>
+    <string name="kg_lbs_loading" translatable="false">"… kg (… lbs)"</string>
+    <string name="m_inch_loading" translatable="false">"… m (…″)"</string>
+    <string name="toast_baby">这是一只幼崽宝可梦！</string>
+    <string name="toast_mythical">这是一只神话宝可梦！</string>
+    <string name="toast_legendary">这是一只传说宝可梦！</string>
+    <string name="close">关闭</string>
+    <string name="search">搜索</string>
+    <!-- NEW -->
+    <string name="donate_to_developer">捐助开发者 ❤️</string>
+    <string name="suggestions_or_bugs">建议或反馈</string>
+    <string name="feedback_and_support">反馈与支持</string>
+    <string name="social_media">社交媒体</string>
+    <string name="rate_app">为应用评分 ★★★★★</string>
+    <string name="share_app">分享应用</string>
+    <string name="interaction">互动</string>
+    <string name="changelog_whats_new">更新日志（新内容）</string>
+    <string name="night_mode">夜间模式：</string>
+    <string name="enabled">已启用</string>
+    <string name="disabled">已禁用</string>
+    <string name="settings">设置</string>
+    <string name="favorite">收藏</string>
+    <string name="clear_search">清空搜索</string>
+    <string name="search_icon">搜索图标</string>
+    <string name="more_options">更多选项</string>
+    <string name="loading_three_dots">加载中…</string>
+    <string name="three_dots" translatable="false">…</string>
+    <string name="clear_all">全部清除</string>
+    <string name="no_pokemons">嘿，还没有宝可梦！</string>
+    <string name="try_again">重试</string>
+    <string name="empty_list">列表为空</string>
+    <string name="dont_close_app">请不要关闭应用，尽量别睡着，好吗？</string>
+    <string name="back">返回</string>
+    <string name="from">自：</string>
+    <string name="to">至：</string>
+    <string name="no_damage">无伤害</string>
+    <string name="effective_damage">有效伤害</string>
+    <string name="ineffective_damage">无效伤害</string>
+    <string name="damage">伤害</string>
+    <string name="encounters">遭遇</string>
+    <string name="no_data">无数据</string>
+    <string name="eggs">蛋</string>
+    <string name="abilities">能力</string>
+    <string name="info">信息</string>
+    <string name="entries">条目</string>
+    <string name="no_description_available">暂无描述。</string>
+    <string name="about_abilities_hidden">宝可梦的能力将从其非隐藏能力中选取。隐藏能力自第五世代引入，较为稀有，通常需要特殊遇敌才能获得。</string>
+    <string name="share_app_message">来看看 Dex10！🧡✨\n探索所有宝可梦，查看状态、能力与对战策略。收藏你喜欢的，掌握属性克制！\n\n立即下载：\n📲 %1$s\n\n我在用，强烈推荐！😍</string>
+    <string name="share_app_via">通过以下方式分享应用</string>
+    <string name="instagran">Instagram</string>
+    <string name="facebook">Facebook</string>
+    <string name="reddit">Reddit</string>
+    <string name="privacy_policy">隐私政策</string>
+    <string name="jigglypuff_songs">请，别睡！</string>
+    <!-- Titles for Pokémon sprites -->
+    <string name="title_back_default">背面</string>
+    <string name="title_back_female">背面（雌）</string>
+    <string name="title_back_shiny">背面（闪光）</string>
+    <string name="title_back_shiny_female">背面（闪光·雌）</string>
+    <string name="title_front_default">正面</string>
+    <string name="title_front_female">正面（雌）</string>
+    <string name="title_front_shiny">正面（闪光）</string>
+    <string name="title_front_shiny_female">正面（闪光·雌）</string>
+
+    <!-- Sprites from other categories -->
+    <string name="title_dream_world_front">梦幻世界·正面</string>
+    <string name="title_dream_world_back">梦幻世界·背面</string>
+    <string name="title_home_front_default">Home·正面</string>
+    <string name="title_home_front_shiny">Home·正面（闪光）</string>
+    <string name="title_official_artwork">官方插画</string>
+    <string name="title_showdown_front">对战·正面</string>
+    <string name="title_showdown_back">对战·背面</string>
+    <string name="title_showdown_front_shiny">对战·正面（闪光）</string>
+    <string name="title_showdown_back_shiny">对战·背面（闪光）</string>
+
+    <string name="choice_of_the_day">今日之选</string>
+
+    <string name="ad_message">点击“今日之选”须观看广告以解锁。每个选项仅在指定日期可见，未点击前保持隐藏。观看广告，即是支持开发者持续优化。感谢！</string>
+    <string name="dont_show_again">不再显示此消息</string>
+    <string name="know_this_first">先知晓以下内容</string>
+    <string name="ok">确定</string>
+    <string name="cancel">取消</string>
+
+    <!-- FILTER -->
+    <string name="type">属性</string>
+    <string name="ability">能力</string>
+    <string name="color">颜色</string>
+    <string name="habitat">栖息地</string>
+
+    <!-- STATS -->
+    <string name="hp">HP</string>
+    <string name="attack">攻击</string>
+    <string name="defense">防御</string>
+    <string name="special_attack">特攻</string>
+    <string name="special_defense">特防</string>
+    <string name="speed">速度</string>
+
+    <!-- Habitat -->
+    <string name="cave">洞穴</string>
+    <string name="forest">森林</string>
+    <string name="grassland">草原</string>
+    <string name="mountain">山脉</string>
+    <string name="rare">稀有</string>
+    <string name="rough_terrain">崎岖地形</string>
+    <string name="sea">海洋</string>
+    <string name="urban">城市</string>
+    <string name="waters_edge">水边</string>
+
+    <!-- TYPE -->
+    <string name="bug">虫</string>
+    <string name="dark">恶</string>
+    <string name="dragon">龙</string>
+    <string name="electric">电</string>
+    <string name="fairy">妖精</string>
+    <string name="fighting">格斗</string>
+    <string name="fire">火</string>
+    <string name="flying">飞行</string>
+    <string name="ghost">幽灵</string>
+    <string name="grass">草</string>
+    <string name="ground">地面</string>
+    <string name="ice">冰</string>
+    <string name="poison">毒</string>
+    <string name="psychic">超能</string>
+    <string name="rock">岩石</string>
+    <string name="steel">钢</string>
+    <string name="water">水</string>
+    <string name="unknow">未知</string>
+    <!-- TRANSLATER STATUS -->
+    <string name="loading_translate">加载文本…</string>
+    <!-- SHAPES -->
+    <string name="shape_ball">球状</string>
+    <string name="shape_squiggle">波状</string>
+    <string name="shape_fish">鱼状</string>
+    <string name="shape_arms">臂状</string>
+    <string name="shape_blob">块状</string>
+    <string name="shape_upright">直立</string>
+    <string name="shape_legs">腿状</string>
+    <string name="shape_quadruped">四足</string>
+    <string name="shape_wings">翼状</string>
+    <string name="shape_tentacles">触手</string>
+    <string name="shape_heads">多头</string>
+    <string name="shape_humanoid">人型</string>
+    <string name="shape_bug_wings">虫翼</string>
+    <string name="shape_armor">装甲</string>
+    <!-- EGGS GROUPS -->
+    <string name="egg_group_monster">怪兽</string>
+    <string name="egg_group_water1">水中1</string>
+    <string name="egg_group_bug">虫</string>
+    <string name="egg_group_flying">飞行</string>
+    <string name="egg_group_ground">陆上</string>
+    <string name="egg_group_fairy">妖精</string>
+    <string name="egg_group_plant">植物</string>
+    <string name="egg_group_humanshape">人形</string>
+    <string name="egg_group_water3">水中3</string>
+    <string name="egg_group_mineral">矿物</string>
+    <string name="egg_group_indeterminate">不定形</string>
+    <string name="egg_group_water2">水中2</string>
+    <string name="egg_group_ditto">百变怪</string>
+    <string name="egg_group_dragon">龙</string>
+    <string name="egg_group_no_eggs">不会孵蛋</string>
+    <!-- ERROR -->
+    <string name="error_title">出错了</string>
+    <string name="error_description">无法加载数据。请稍后再试。</string>
+    <!-- COPYRIGHT -->
+    <string name="copyright_title">版权声明</string>
+    <string name="copyright_description">Dex10 – 图鉴为粉丝制作，仅供宝可梦爱好者使用。应用中所有宝可梦相关内容（名称、图片、数据等）均为任天堂、GAME FREAK 及宝可梦公司的知识产权。我们不主张对这些素材拥有著作权，仅以合理使用原则用于信息、教育及非商业目的。本应用与任天堂、GAME FREAK 或宝可梦公司无任何关联、赞助或背书。开发者对使用宝可梦商标或版权内容产生的任何法律问题概不负责。</string>
+    <string name="accept_the_terms_and_dont_show_again">我已接受条款，不再显示此消息</string>
+    <string name="version">版本</string>
+</resources>

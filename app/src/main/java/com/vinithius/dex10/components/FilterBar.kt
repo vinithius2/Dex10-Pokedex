@@ -359,7 +359,10 @@ fun ContentBottomSheet(
                 },
                 modifier = Modifier.weight(1f)
             ) {
-                Text(stringResource(R.string.clear_all))
+                Text(
+                    text = stringResource(R.string.clear_all),
+                    color = Color.White
+                )
             }
         }
     }

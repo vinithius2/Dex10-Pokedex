@@ -12,6 +12,30 @@ import com.google.mlkit.nl.translate.Translation
 import com.google.mlkit.nl.translate.TranslatorOptions
 import com.vinithius.dex10.R
 import com.vinithius.dex10.datasource.response.FlavorText
+import com.vinithius.dex10.ui.theme.DarkBlack
+import com.vinithius.dex10.ui.theme.DarkBlue
+import com.vinithius.dex10.ui.theme.DarkBrown
+import com.vinithius.dex10.ui.theme.DarkGray
+import com.vinithius.dex10.ui.theme.DarkGreen
+import com.vinithius.dex10.ui.theme.DarkOnSurface
+import com.vinithius.dex10.ui.theme.DarkPink
+import com.vinithius.dex10.ui.theme.DarkPurple
+import com.vinithius.dex10.ui.theme.DarkRed
+import com.vinithius.dex10.ui.theme.DarkText
+import com.vinithius.dex10.ui.theme.DarkWhite
+import com.vinithius.dex10.ui.theme.DarkYellow
+import com.vinithius.dex10.ui.theme.LightBlack
+import com.vinithius.dex10.ui.theme.LightBlue
+import com.vinithius.dex10.ui.theme.LightBrown
+import com.vinithius.dex10.ui.theme.LightGray
+import com.vinithius.dex10.ui.theme.LightGreen
+import com.vinithius.dex10.ui.theme.LightOnSurface
+import com.vinithius.dex10.ui.theme.LightPink
+import com.vinithius.dex10.ui.theme.LightPurple
+import com.vinithius.dex10.ui.theme.LightRed
+import com.vinithius.dex10.ui.theme.LightText
+import com.vinithius.dex10.ui.theme.LightWhite
+import com.vinithius.dex10.ui.theme.LightYellow
 import java.util.Locale
 import android.graphics.Color as ParseColor
 
@@ -240,45 +264,41 @@ fun String.getParseColorByString(): Color {
     }
 }
 
-fun String.getToolBarColorByString(): Color {
-    return try {
-        val colorMap = mapOf(
-            "black" to Color(ParseColor.BLACK),
-            "blue" to Color(ParseColor.BLUE),
-            "brown" to Color(0xFF8B4513),
-            "gray" to Color(ParseColor.GRAY),
-            "green" to Color(ParseColor.GREEN),
-            "pink" to Color(0xFFFFC0CB),
-            "purple" to Color(0xFF800080),
-            "red" to Color(ParseColor.RED),
-            "white" to Color(0xFFB0B0B0),
-            "yellow" to Color(0xADC2C200)
-        )
-        colorMap[this.lowercase()] ?: Color.Black
-    } catch (e: IllegalArgumentException) {
-        FirebaseCrashlytics.getInstance().recordException(e)
-        Color.Black
+/**
+ * Retorna a cor da Toolbar baseada na string e no modo (dark ou light).
+ */
+fun String.getToolBarColorByString(isDark: Boolean): Color {
+    return when (this.lowercase()) {
+        "black"  -> if (isDark) DarkBlack else LightBlack
+        "blue"   -> if (isDark) DarkBlue else LightBlue
+        "brown"  -> if (isDark) DarkBrown else LightBrown
+        "gray"   -> if (isDark) DarkGray else LightGray
+        "green"  -> if (isDark) DarkGreen else LightGreen
+        "pink"   -> if (isDark) DarkPink else LightPink
+        "purple" -> if (isDark) DarkPurple else LightPurple
+        "red"    -> if (isDark) DarkRed else LightRed
+        "white"  -> if (isDark) DarkWhite else LightWhite
+        "yellow" -> if (isDark) DarkYellow else LightYellow
+        else       -> if (isDark) DarkText else LightText
     }
 }
 
-fun String.getColorByString(): Color {
-    return try {
-        val colorMap = mapOf(
-            "black" to Color.Black,
-            "blue" to Color(0xFF00008C),
-            "brown" to Color(0xFF8B3D05),
-            "gray" to Color(0xFF565656),
-            "green" to Color(0xFF00C400),
-            "pink" to Color(0xFFE2A5B0),
-            "purple" to Color(0xFF650067),
-            "red" to Color(0xFF770000),
-            "white" to Color(0xFF8C8C8C),
-            "yellow" to Color(0xFFC0B525)
-        )
-        colorMap[this.lowercase()] ?: Color.Black
-    } catch (e: IllegalArgumentException) {
-        FirebaseCrashlytics.getInstance().recordException(e)
-        Color.Black
+/**
+ * Retorna a cor de elementos gerais baseada na string e no modo (dark ou light).
+ */
+fun String.getColorByString(isDark: Boolean): Color {
+    return when (this.lowercase()) {
+        "black"  -> if (isDark) DarkBlack else LightBlack
+        "blue"   -> if (isDark) DarkBlue else LightBlue
+        "brown"  -> if (isDark) DarkBrown else LightBrown
+        "gray"   -> if (isDark) DarkGray else LightGray
+        "green"  -> if (isDark) DarkGreen else LightGreen
+        "pink"   -> if (isDark) DarkPink else LightPink
+        "purple" -> if (isDark) DarkPurple else LightPurple
+        "red"    -> if (isDark) DarkRed else LightRed
+        "white"  -> if (isDark) DarkWhite else LightWhite
+        "yellow" -> if (isDark) DarkYellow else LightYellow
+        else       -> if (isDark) DarkOnSurface else LightOnSurface
     }
 }
 
@@ -286,16 +306,20 @@ fun String.getColorByString(): Color {
  * Traduz esta String do inglês para o idioma passado, se for suportado.
  * Requer que o modelo já tenha sido baixado previamente (ex: na MainActivity).
  *
- * @param languageCode Código do idioma de destino (ex.: "pt", "es", "fr", "hi")
+ * @param languageCode Código do idioma de destino (ex.: "pt", "es", "fr", "hi" e etc...)
  * @param onResult Resultado da tradução, ou o texto original se idioma não suportado
  * @param onError Callback de erro, se a tradução falhar
  */
 fun String.translateIfSupported(
     languageCode: String = Locale.getDefault().language,
     onResult: (String) -> Unit,
-    onError: (Exception) -> Unit
+    onError: (Exception) -> Unit,
+    context: Context
 ) {
-    val supportedLanguages = setOf("pt", "es", "fr", "hi")
+
+    val supportedLanguages = context.resources.getStringArray(
+        R.array.supported_languages
+    ).toSet()
 
     if (supportedLanguages.contains(languageCode)) {
         val options = TranslatorOptions.Builder()
@@ -316,4 +340,3 @@ fun String.translateIfSupported(
         onResult(this)
     }
 }
-

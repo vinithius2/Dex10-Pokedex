@@ -70,12 +70,13 @@ fun PokeballComponent(
                 .shimmer()
         )
     } else {
+        val shouldHidePokemonOfTheDay = hidePokemonOfTheDay && choiceOfTheDayStatus
         Image(
             painter = painterResource(id = frameResources[currentFrame]),
             contentDescription = "Pokeball animation",
             modifier = Modifier
                 .clickable {
-                    if (hidePokemonOfTheDay.not()) {
+                    if (shouldHidePokemonOfTheDay.not()) {
                         isForward = isForward.not()
                         isPlaying = true
                         onCallBack.invoke()
@@ -83,7 +84,7 @@ fun PokeballComponent(
                 }
                 .size(30.dp)
                 .clip(CircleShape)
-                .alpha(if (hidePokemonOfTheDay && choiceOfTheDayStatus) 0f else 1f)
+                .alpha(if (shouldHidePokemonOfTheDay) 0f else 1f)
         )
     }
 }
