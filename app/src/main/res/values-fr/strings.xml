@@ -91,6 +91,7 @@ Je l\'utilise et je le recommande vivement! 😍</string>
     <string name="instagran">Instagran</string>
     <string name="facebook">Facebook</string>
     <string name="reddit">Reddit</string>
+    <string name="privacy_policy">Politique de confidentialité</string>
     <string name="jigglypuff_songs">S\'il te plaît, ne t\'endors pas!</string>
     <string name="title_back_default">Dos</string>
     <string name="title_back_female">Dos (Femelle)</string>
@@ -201,4 +202,5 @@ Je l\'utilise et je le recommande vivement! 😍</string>
     <string name="copyright_title">Avis sur les droits d\'auteur</string>
     <string name="copyright_description">Dex10 - Pokédex est une application créée par des fans et pour les fans de la franchise Pokémon. Tout le contenu lié à Pokémon, y compris les noms, les images, les données et autres éléments présentés dans cette application, est la propriété intellectuelle de Nintendo, GAME FREAK et The Pokémon Company. Nous ne revendiquons pas la paternité ou la propriété de ces matériaux. Ils sont utilisés conformément au principe d\'utilisation équitable (fair use), uniquement à des fins informatives, éducatives et non commerciales. Cette application n\'est pas affiliée, sponsorisée ni approuvée par Nintendo, GAME FREAK ou The Pokémon Company. Le développeur décline toute responsabilité quant aux éventuelles questions juridiques liées à l\'utilisation de marques déposées ou de contenus protégés par des droits d’auteur de la franchise Pokémon.</string>
     <string name="accept_the_terms_and_dont_show_again">J\'accepte les conditions et ne souhaite plus voir ce message</string>
+    <string name="version">Version</string>
 </resources>
