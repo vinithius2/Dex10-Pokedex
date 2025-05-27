@@ -173,17 +173,13 @@ fun SharedTransitionScope.PokemonListScreen(
     val sharedPreferences = context.getSharedPreferences("pokemon_prefs", Context.MODE_PRIVATE)
     val listState = rememberSaveable(saver = LazyListState.Saver) { LazyListState() }
     val gridState = rememberSaveable(saver = LazyGridState.Saver) { LazyGridState() }
-    // Ads
-    val adUnitIdAdAdvancedNative by viewModel.adUnitIdAdAdvancedNative.observeAsState()
-    val adUnitIdTest = "ca-app-pub-3940256099942544/2247696110"
-    val adUnitId = if (BuildConfig.DEBUG.not()) {
-        adUnitIdAdAdvancedNative?.takeIf {
-            adUnitIdAdAdvancedNative!!.isNotEmpty()
-        }?.run {
-            adUnitIdTest
-        }
+
+    // Ads list item
+    val adUnitIdAdAdvancedNative by viewModel.adUnitIdAdAdvancedNative.observeAsState(String())
+    val adUnitId = if (BuildConfig.DEBUG) {
+        "ca-app-pub-3940256099942544/2247696110"
     } else {
-        adUnitIdTest
+        adUnitIdAdAdvancedNative
     }
 
     val initialDontShow = remember {
@@ -198,12 +194,11 @@ fun SharedTransitionScope.PokemonListScreen(
     val itemRangeForAdsTablet by viewModel.itemRangeForAdsTablet.observeAsState(22)
     val amountOfAds by viewModel.amountOfAds.observeAsState(12)
 
-    LaunchedEffect(Unit) {
-        repeat(amountOfAds) { // Pré-carrega X anúncios para serem usados na lista
-            val loader = AdLoader.Builder(context, adUnitId.toString())
-                .forNativeAd { ad ->
-                    preloadedAds.add(ad)
-                }
+    LaunchedEffect(adUnitId) {
+        if (adUnitId.isBlank()) return@LaunchedEffect
+        repeat(amountOfAds) {
+            val loader = AdLoader.Builder(context, adUnitId)
+                .forNativeAd { ad -> preloadedAds.add(ad) }
                 .build()
             loader.loadAd(AdRequest.Builder().build())
         }
