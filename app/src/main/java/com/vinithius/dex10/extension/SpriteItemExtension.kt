@@ -12,6 +12,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -34,6 +35,8 @@ import coil.decode.ImageDecoderDecoder
 import coil.decode.SvgDecoder
 import coil.request.ImageRequest
 import com.vinithius.dex10.ui.viewmodel.PokemonViewModel
+import com.vinithius.dex10.datasource.data.AppPreferences
+import org.koin.java.KoinJavaComponent.inject
 
 @Composable
 fun SpriteItem.LoadGifWithCoilToSprite(
@@ -185,10 +188,17 @@ fun Int.LoadGifWithCoil(
         "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/showdown/"
     val urlAnother = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/"
 
+    // Check image quality preference
+    val appPreferences: AppPreferences by inject(AppPreferences::class.java)
+    val isLowQuality by appPreferences.lowQualityImages.collectAsState()
+
     val gifUrl = "$urlBase$this.gif"
     val pngUrl = "$urlAnother$this.png"
 
-    var currentData by remember { mutableStateOf<Any>(gifUrl) }
+    // Low quality: skip GIF, go straight to PNG
+    var currentData by remember(isLowQuality) {
+        mutableStateOf<Any>(if (isLowQuality) pngUrl else gifUrl)
+    }
     var hasTriedPng by remember { mutableStateOf(false) }
 
     val context = LocalContext.current

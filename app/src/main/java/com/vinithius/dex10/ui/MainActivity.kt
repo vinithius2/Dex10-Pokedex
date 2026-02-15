@@ -1,6 +1,6 @@
 package com.vinithius.dex10.ui
 
-import AlertMessage
+import com.vinithius.dex10.datasource.data.AlertMessage
 import android.Manifest
 import android.app.Activity
 import android.app.NotificationChannel
@@ -20,55 +20,79 @@ import androidx.compose.animation.SharedTransitionLayout
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.Divider
+
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
-import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.ThumbUp
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalDrawerSheet
+import androidx.compose.material3.ModalNavigationDrawer
+import androidx.compose.material3.NavigationDrawerItem
+import androidx.compose.material3.NavigationDrawerItemDefaults
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.ui.graphics.RectangleShape
+
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import kotlinx.coroutines.flow.MutableStateFlow
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -77,6 +101,11 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
+import com.vinithius.dex10.datasource.data.AppPreferences
+import com.vinithius.dex10.ui.screens.SettingsScreen
+import com.vinithius.dex10.ui.components.UpsellBottomSheet
+import kotlinx.coroutines.launch
+import org.koin.java.KoinJavaComponent.inject
 import com.google.android.gms.ads.MobileAds
 import com.google.android.play.core.review.ReviewManagerFactory
 
@@ -93,9 +122,11 @@ import com.vinithius.dex10.R
 import com.vinithius.dex10.admobbanners.AdManagerInterstitial
 import com.vinithius.dex10.admobbanners.AdManagerRewarded
 import com.vinithius.dex10.admobbanners.AdmobBanner
+import com.vinithius.dex10.datasource.data.PremiumManager
 import com.vinithius.dex10.extension.getColorByString
 import com.vinithius.dex10.extension.getToolBarColorByString
 import com.vinithius.dex10.extension.getVersionName
+
 import com.vinithius.dex10.ui.screens.PokemonDetailScreen
 import com.vinithius.dex10.ui.screens.PokemonListScreen
 import com.vinithius.dex10.ui.theme.ThemeDex10
@@ -117,10 +148,17 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         sharedPreferences = getSharedPreferences("pokemon_prefs", MODE_PRIVATE)
         val splashScreen = installSplashScreen() // Keep this splashScreen variable
+        val appPrefs: AppPreferences by inject(AppPreferences::class.java)
+        val premiumManager: PremiumManager by inject(PremiumManager::class.java)
+        premiumManager.setupBillingClient(this)
+
         setContent {
-            ThemeDex10 {
+            val darkModeOverride by appPrefs.darkMode.collectAsState()
+            ThemeDex10(darkModeOverride = darkModeOverride) {
                 MainScreen(
-                    activity = this@MainActivity
+                    activity = this@MainActivity,
+                    appPreferences = appPrefs,
+                    premiumManager = premiumManager
                 )
             }
         }
@@ -362,8 +400,8 @@ private fun GetAdUnitId(
                     val localized = alertMessageData.getLocalizedContent(languageCode, context)
                     val localizedAlert = AlertMessage(
                         show = alertMessageData.show,
-                        version_code = alertMessageData.version_code,
-                        url_action = alertMessageData.url_action,
+                        versionCode = alertMessageData.versionCode,
+                        urlAction = alertMessageData.urlAction,
                         content = mapOf(languageCode to localized)
                     )
                     viewModel.setTopAlertMessage(localizedAlert)
@@ -377,10 +415,14 @@ private fun GetAdUnitId(
 @Composable
 fun MainScreen(
     activity: MainActivity,
-    viewModel: PokemonViewModel = getViewModel()
+    viewModel: PokemonViewModel = getViewModel(),
+    appPreferences: AppPreferences? = null,
+    premiumManager: PremiumManager? = null
 ) {
     val navController = rememberNavController()
     val deeplinkRoute by viewModel.deeplinkNavigation.observeAsState()
+    val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
+    val scope = rememberCoroutineScope()
 
     // Deeplink
     LaunchedEffect(deeplinkRoute) {
@@ -393,20 +435,73 @@ fun MainScreen(
     GetAdUnitId(context)
     SetInterstitialOrRewardedAdManager(activity, navController)
     SetupSystemUI(viewModel)
-    Scaffold(
-        topBar = {
-            GetTopBar(viewModel, navController)
-        },
-        bottomBar = {
-            AdmobBanner()
-        }
-    ) { innerPadding ->
-        GetNavHost(
-            innerPadding,
-            navController
+    
+    // Upsell Sheet Logic
+    val showUpsell by (premiumManager?.showUpsell ?: MutableStateFlow(false)).collectAsState()
+    if (showUpsell) {
+        UpsellBottomSheet(
+            onDismiss = { premiumManager?.dismissUpsell() },
+            onPurchaseClick = {
+                premiumManager?.dismissUpsell()
+                premiumManager?.launchPurchaseFlow(activity)
+            },
+            onRestoreClick = {
+                premiumManager?.dismissUpsell()
+                premiumManager?.restorePurchases()
+            }
         )
     }
+
+    // Determine if we're on the detail screen (drawer should be disabled)
+    val navBackStackEntry = navController.currentBackStackEntryAsState().value
+    val currentRoute = navBackStackEntry?.destination?.route
+    val isDetailScreen = currentRoute?.startsWith("pokemonDetail") == true
+    val isSettingsScreen = currentRoute == "settings"
+
+    ModalNavigationDrawer(
+        drawerState = drawerState,
+        gesturesEnabled = !isDetailScreen && !isSettingsScreen,
+        drawerContent = {
+            ModalDrawerSheet(drawerShape = RectangleShape) {
+                Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
+                    DrawerContent(
+                        viewModel = viewModel,
+                        navController = navController,
+                        onCloseDrawer = { scope.launch { drawerState.close() } }
+                    )
+                }
+            }
+        }
+    ) {
+        Scaffold(
+            topBar = {
+                if (isSettingsScreen) {
+                    SettingsTopBar(onBack = { navController.popBackStack() })
+                } else {
+                    GetTopBar(
+                        viewModel = viewModel,
+                        navController = navController,
+                        onOpenDrawer = { scope.launch { drawerState.open() } }
+                    )
+                }
+            },
+            bottomBar = {
+                if (!isSettingsScreen) {
+                    AdmobBanner()
+                }
+            }
+        ) { innerPadding ->
+            GetNavHost(
+                innerPadding,
+                navController,
+                appPreferences,
+                premiumManager
+            )
+        }
+    }
 }
+
+
 
 @Composable
 fun SetInterstitialOrRewardedAdManager(
@@ -573,9 +668,38 @@ fun SetupSystemUI(viewModel: PokemonViewModel) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
+private fun SettingsTopBar(onBack: () -> Unit) {
+    TopAppBar(
+        title = {
+            Text(
+                text = stringResource(R.string.settings),
+                fontWeight = FontWeight.Bold
+            )
+        },
+        navigationIcon = {
+            IconButton(onClick = onBack) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = stringResource(R.string.back),
+                    tint = Color.White
+                )
+            }
+        },
+        modifier = Modifier.windowInsetsPadding(WindowInsets.statusBars),
+        colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+            containerColor = MaterialTheme.colorScheme.primary,
+            titleContentColor = Color.White,
+            navigationIconContentColor = Color.White
+        )
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
 private fun GetTopBar(
     viewModel: PokemonViewModel,
-    navController: NavHostController?
+    navController: NavHostController?,
+    onOpenDrawer: (() -> Unit)? = null
 ) {
     val context = LocalContext.current
     val activity = context as? MainActivity
@@ -587,6 +711,7 @@ private fun GetTopBar(
     val navBackStackEntry = navController?.currentBackStackEntryAsState()?.value
     val currentRoute = navBackStackEntry?.destination?.route
     val isDetailScreen = currentRoute?.startsWith("pokemonDetail") == true
+    val isTeamScreen = currentRoute?.startsWith("team") == true
 
     isDetailScreen.takeIf { it }?.run {
         TopAppBar(
@@ -619,6 +744,33 @@ private fun GetTopBar(
                     viewModel
                 )
             }
+        )
+    } ?: isTeamScreen.takeIf { it }?.run {
+        TopAppBar(
+            title = { 
+                Text(
+                    text = if (currentRoute?.startsWith("teamDetail") == true) "Team Details" else "My Teams",
+                    color = Color.White
+                )
+            },
+            navigationIcon = {
+                IconButton(onClick = {
+                    navController?.popBackStack()
+                }) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = stringResource(R.string.back),
+                        tint = Color.White
+                    )
+                }
+            },
+            modifier = Modifier.windowInsetsPadding(WindowInsets.statusBars),
+            colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                containerColor = MaterialTheme.colorScheme.primary,
+                titleContentColor = Color.White,
+                navigationIconContentColor = Color.White
+            ),
+            actions = { }
         )
     } ?: run {
         // Page List Pokemon
@@ -685,6 +837,18 @@ private fun GetTopBar(
                 scrolledContainerColor = MaterialTheme.colorScheme.primary,
                 navigationIconContentColor = MaterialTheme.colorScheme.onPrimary
             ),
+            navigationIcon = {
+                IconButton(onClick = {
+                    onOpenDrawer?.invoke()
+                    activity?.trackButtonClick("Open drawer menu")
+                }) {
+                    Icon(
+                        imageVector = Icons.Default.Menu,
+                        contentDescription = stringResource(R.string.open_menu),
+                        tint = Color.White
+                    )
+                }
+            },
             actions = {
                 if (pokemonListBackup.isNotEmpty()) {
                     if (isSearchActive.not()) {
@@ -738,9 +902,6 @@ private fun AppMenuPageList(
 ) {
     val activity = context as? MainActivity
     val favoriteFilter by viewModel.isFavoriteFilter.observeAsState(false)
-    val googleForm by viewModel.googleForm.observeAsState()
-    val reviewUrl by viewModel.reviewUrl.observeAsState()
-    var expanded by remember { mutableStateOf(false) }
     IconButton(onClick = {
         activity?.trackButtonClick("Menu toolbar: favorites -> ${favoriteFilter.not()}")
         viewModel.getPokemonFavoriteList(favoriteFilter.not(), context)
@@ -751,53 +912,6 @@ private fun AppMenuPageList(
             tint = Color.White
         )
     }
-    IconButton(onClick = {
-        expanded = true
-        activity?.trackButtonClick("Menu toolbar: 3 dots")
-    }) {
-        Icon(
-            Icons.Default.MoreVert,
-            contentDescription = stringResource(id = R.string.more_options),
-            tint = Color.White
-        )
-    }
-    DropDownMenuRight(
-        expanded = expanded,
-        viewModel = viewModel,
-        onDismissRequest = { expanded = false },
-        onShareAppClick = {
-            activity?.trackButtonClick("Menu toolbar: share app")
-            shareApp(reviewUrl.toString(), context)
-        },
-        onRateAppClick = {
-            getIntentToUrl(reviewUrl.toString(), context)
-        },
-        onSuggestionsClick = {
-            googleForm?.takeIf { it.isNotEmpty() }?.run {
-                activity?.trackButtonClick("Menu toolbar: google form")
-                getIntentToUrl(googleForm!!, context)
-            }
-        },
-        onDonateClick = {
-            // Do nothing yet
-        },
-        onInstagranClick = { url ->
-            activity?.trackButtonClick("Menu toolbar: instagran")
-            getIntentToUrl(url, context)
-        },
-        onFacebookClick = { url ->
-            activity?.trackButtonClick("Menu toolbar: facebook")
-            getIntentToUrl(url, context)
-        },
-        onRedditClick = { url ->
-            activity?.trackButtonClick("Menu toolbar: reddit")
-            getIntentToUrl(url, context)
-        },
-        onPrivacyPolicyClick = { url ->
-            activity?.trackButtonClick("Menu toolbar: Privacy Policy")
-            getIntentToUrl(url, context)
-        }
-    )
 }
 
 @Composable
@@ -846,124 +960,238 @@ private fun AppMenuPageDetail(
 }
 
 @Composable
-private fun DropDownMenuRight(
-    expanded: Boolean,
+private fun DrawerContent(
     viewModel: PokemonViewModel,
-    onDismissRequest: () -> Unit,
-    onShareAppClick: () -> Unit,
-    onRateAppClick: () -> Unit,
-    onSuggestionsClick: () -> Unit,
-    onDonateClick: () -> Unit,
-    onInstagranClick: (url: String) -> Unit,
-    onFacebookClick: (url: String) -> Unit,
-    onRedditClick: (url: String) -> Unit,
-    onPrivacyPolicyClick: (url: String) -> Unit,
+    navController: NavHostController,
+    onCloseDrawer: () -> Unit
 ) {
+    val context = LocalContext.current
+    val activity = context as? MainActivity
+    val reviewUrl by viewModel.reviewUrl.observeAsState()
+    val googleForm by viewModel.googleForm.observeAsState()
     val hasDonate by viewModel.hasDonate.observeAsState(true)
-    DropdownMenu(
-        expanded = expanded,
-        onDismissRequest = onDismissRequest
-    ) {
-        Text(
-            text = stringResource(id = R.string.interaction),
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
-        )
-        DropdownMenuItem(
-            text = { Text(stringResource(id = R.string.share_app)) },
-            onClick = onShareAppClick
-        )
-        DropdownMenuItem(
-            text = { Text(stringResource(id = R.string.rate_app)) },
-            onClick = onRateAppClick
-        )
-        HorizontalDivider()
-        // Feedback and Support
-        Text(
-            text = stringResource(id = R.string.feedback_and_support),
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
-        )
-        DropdownMenuItem(
-            text = { Text(stringResource(id = R.string.suggestions_or_bugs)) },
-            onClick = onSuggestionsClick
-        )
-        if (hasDonate) {
-            DropdownMenuItem(
-                text = {
-                    Text(stringResource(id = R.string.donate_to_developer))
-                },
-                onClick = onDonateClick
-            )
+    val facebookUrl by viewModel.facebookUrl.observeAsState()
+    val instagranUrl by viewModel.instagranUrl.observeAsState()
+    val redditUrl by viewModel.redditUrl.observeAsState()
+    val privacyPolicy by viewModel.privacyPolicy.observeAsState()
+    val version = context.getVersionName()
+
+    Column {
+        // Header
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(24.dp)
+        ) {
+            Column {
+                Image(
+                    painter = painterResource(id = R.drawable.ico_start_toolbar_dex_10),
+                    contentDescription = stringResource(id = R.string.app_name),
+                    modifier = Modifier.size(48.dp)
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = stringResource(id = R.string.app_name),
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary
+                )
+                Text(
+                    text = "${stringResource(id = R.string.version)} ${version}",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
         }
 
         HorizontalDivider()
-        // Social media
-        Text(
-            text = stringResource(id = R.string.social_media),
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
-        )
-        with(viewModel) {
-            val facebookUrl by facebookUrl.observeAsState()
-            val instagranUrl by instagranUrl.observeAsState()
-            val redditUrl by redditUrl.observeAsState()
-            val privacyPolicy by privacyPolicy.observeAsState()
-            if (instagranUrl.isNullOrEmpty().not()) {
-                DropdownMenuItem(
-                    text = { Text(stringResource(id = R.string.instagran)) },
-                    onClick = { instagranUrl?.let { onInstagranClick(it) } }
-                )
-            }
-            if (facebookUrl.isNullOrEmpty().not()) {
-                DropdownMenuItem(
-                    text = { Text(stringResource(id = R.string.facebook)) },
-                    onClick = { facebookUrl?.let { onFacebookClick(it) } }
-                )
-            }
-            if (redditUrl.isNullOrEmpty().not()) {
-                DropdownMenuItem(
-                    text = { Text(stringResource(id = R.string.reddit)) },
-                    onClick = { redditUrl?.let { onRedditClick(it) } }
-                )
-            }
-            Divider()
-            if (privacyPolicy.isNullOrEmpty().not()) {
-                Text(
-                    text = stringResource(id = R.string.info),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
-                )
-                DropdownMenuItem(
-                    text = { Text(stringResource(id = R.string.privacy_policy)) },
-                    onClick = { privacyPolicy?.let { onPrivacyPolicyClick(it) } }
-                )
-            }
-            val version = LocalContext.current.getVersionName()
-            Text(
-                text = stringResource(id = R.string.version),
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+
+        // Premium Section
+        val isPremium by viewModel.premiumManager.isPremium.collectAsState()
+        if (!isPremium) {
+            DrawerItem(
+                icon = Icons.Default.Star, // Or a diamond/crown icon if available
+                label = stringResource(id = R.string.go_premium),
+                onClick = {
+                    onCloseDrawer()
+                    activity?.trackButtonClick("Drawer: Go Premium")
+                    viewModel.premiumManager.triggerUpsell()
+                }
             )
-            DropdownMenuItem(
-                text = { Text(version.toString()) },
-                onClick = {},
-                enabled = false
+            HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+        }
+
+        // Team Builder
+        NavigationDrawerItem(
+            icon = { Icon(Icons.Default.Add, contentDescription = null) },
+            label = { Text("My Teams") },
+            selected = false,
+            onClick = {
+                onCloseDrawer()
+                activity?.trackButtonClick("Drawer: My Teams")
+                navController.navigate("teamList")
+            },
+            modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
+        )
+
+        // Settings
+        NavigationDrawerItem(
+            icon = { Icon(Icons.Default.Settings, contentDescription = null) },
+            label = { Text(stringResource(id = R.string.settings)) },
+            selected = false,
+            onClick = {
+                onCloseDrawer()
+                activity?.trackButtonClick("Drawer: Settings")
+                navController.navigate("settings")
+            },
+            modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
+        )
+
+        HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+
+        // Section: Interaction
+        DrawerSectionHeader(stringResource(id = R.string.interaction))
+
+        DrawerItem(
+            icon = Icons.Default.Share,
+            label = stringResource(id = R.string.share_app),
+            onClick = {
+                onCloseDrawer()
+                activity?.trackButtonClick("Drawer: share app")
+                shareApp(reviewUrl.toString(), context)
+            }
+        )
+
+        DrawerItem(
+            icon = Icons.Default.Star,
+            label = stringResource(id = R.string.rate_app),
+            onClick = {
+                onCloseDrawer()
+                activity?.trackButtonClick("Drawer: rate app")
+                getIntentToUrl(reviewUrl.toString(), context)
+            }
+        )
+
+        HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+
+
+
+        // Section: Feedback and Support
+        DrawerSectionHeader(stringResource(id = R.string.feedback_and_support))
+
+        googleForm?.takeIf { it.isNotEmpty() }?.let {
+            DrawerItem(
+                icon = Icons.Default.ThumbUp,
+                label = stringResource(id = R.string.suggestions_or_bugs),
+                onClick = {
+                    onCloseDrawer()
+                    activity?.trackButtonClick("Drawer: google form")
+                    getIntentToUrl(it, context)
+                }
+            )
+        }
+
+        if (hasDonate) {
+            DrawerItem(
+                icon = Icons.Default.Favorite,
+                label = stringResource(id = R.string.donate_to_developer),
+                onClick = {
+                    onCloseDrawer()
+                    activity?.trackButtonClick("Drawer: donate")
+                    // Do nothing yet
+                }
+            )
+        }
+
+        HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+
+        // Section: Social Media
+        DrawerSectionHeader(stringResource(id = R.string.social_media))
+
+        instagranUrl?.takeIf { it.isNotEmpty() }?.let { url ->
+            DrawerItem(
+                label = stringResource(id = R.string.instagran),
+                onClick = {
+                    onCloseDrawer()
+                    activity?.trackButtonClick("Drawer: instagram")
+                    getIntentToUrl(url, context)
+                }
+            )
+        }
+
+        facebookUrl?.takeIf { it.isNotEmpty() }?.let { url ->
+            DrawerItem(
+                label = stringResource(id = R.string.facebook),
+                onClick = {
+                    onCloseDrawer()
+                    activity?.trackButtonClick("Drawer: facebook")
+                    getIntentToUrl(url, context)
+                }
+            )
+        }
+
+        redditUrl?.takeIf { it.isNotEmpty() }?.let { url ->
+            DrawerItem(
+                label = stringResource(id = R.string.reddit),
+                onClick = {
+                    onCloseDrawer()
+                    activity?.trackButtonClick("Drawer: reddit")
+                    getIntentToUrl(url, context)
+                }
+            )
+        }
+
+        HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+
+        // Section: Info
+        privacyPolicy?.takeIf { it.isNotEmpty() }?.let { url ->
+            DrawerSectionHeader(stringResource(id = R.string.info))
+            DrawerItem(
+                icon = Icons.Default.Info,
+                label = stringResource(id = R.string.privacy_policy),
+                onClick = {
+                    onCloseDrawer()
+                    activity?.trackButtonClick("Drawer: Privacy Policy")
+                    getIntentToUrl(url, context)
+                }
             )
         }
     }
+}
+
+@Composable
+private fun DrawerSectionHeader(title: String) {
+    Text(
+        text = title,
+        style = MaterialTheme.typography.labelLarge,
+        color = MaterialTheme.colorScheme.primary,
+        fontWeight = FontWeight.Bold,
+        modifier = Modifier.padding(horizontal = 28.dp, vertical = 8.dp)
+    )
+}
+
+@Composable
+private fun DrawerItem(
+    label: String,
+    onClick: () -> Unit,
+    icon: ImageVector? = null
+) {
+    NavigationDrawerItem(
+        icon = icon?.let { { Icon(it, contentDescription = null) } },
+        label = { Text(label) },
+        selected = false,
+        onClick = onClick,
+        modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
+    )
 }
 
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 private fun GetNavHost(
     innerPadding: PaddingValues,
-    navController: NavHostController
+    navController: NavHostController,
+    appPreferences: AppPreferences? = null,
+    premiumManager: PremiumManager? = null
 ) {
     SharedTransitionLayout {
         NavHost(
@@ -987,8 +1215,26 @@ private fun GetNavHost(
                     )
                 }
             }
+            composable("settings") {
+                appPreferences?.let { prefs ->
+                    SettingsScreen(
+                        appPreferences = prefs,
+                        premiumManager = premiumManager,
+                        onBack = { navController.popBackStack() }
+                    )
+                }
+            }
+            composable("teamList") {
+                com.vinithius.dex10.ui.screens.TeamListScreen(navController)
+            }
+            composable(
+                route = "teamDetail/{teamId}",
+                arguments = listOf(navArgument("teamId") { type = NavType.IntType })
+            ) { backStackEntry ->
+                val teamId = backStackEntry.arguments?.getInt("teamId") ?: 0
+                com.vinithius.dex10.ui.screens.TeamDetailScreen(navController, teamId)
+            }
         }
-
     }
 }
 
@@ -1008,15 +1254,6 @@ fun shareApp(reviewUrl: String, context: Context) {
             context.getString(R.string.share_app_via)
         )
     )
-}
-
-fun requestInAppReview(context: Context) {
-    val reviewManager = ReviewManagerFactory.create(context.applicationContext)
-    reviewManager.requestReviewFlow().addOnCompleteListener {
-        if (it.isSuccessful) {
-            reviewManager.launchReviewFlow(context as Activity, it.result)
-        }
-    }
 }
 
 fun getIntentToUrl(url: String, context: Context) {

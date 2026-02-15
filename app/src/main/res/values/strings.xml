@@ -204,4 +204,85 @@
     <string name="copyright_description">Dex10 - Pokédex is a fan-made app created by and for fans of the Pokémon franchise. All content related to Pokémon, including names, images, data, and other elements presented in this app, is the intellectual property of Nintendo, GAME FREAK, and The Pokémon Company. We do not claim authorship or ownership over these materials. They are used under the fair use principle for informational, educational, and non-commercial purposes only. This app is not affiliated with, sponsored, or endorsed by Nintendo, GAME FREAK, or The Pokémon Company. The developer assumes no responsibility for any legal issues arising from the use of trademarks or copyrighted content from the Pokémon franchise.</string>
     <string name="accept_the_terms_and_dont_show_again">I accept the terms and do not wish to see this message again</string>
     <string name="version">Version</string>
+
+    <!-- SETTINGS SCREEN -->
+    <string name="dark_mode">Dark Mode</string>
+    <string name="dark_mode_system">Follow System</string>
+    <string name="dark_mode_on">Always On</string>
+    <string name="dark_mode_off">Always Off</string>
+    <string name="dark_mode_desc">Control the app\'s theme appearance</string>
+    <string name="notifications">Notifications</string>
+    <string name="notifications_desc">Receive Pokémon tips and updates</string>
+    <string name="image_quality">Image Quality</string>
+    <string name="image_quality_high">High (GIF + Artwork)</string>
+    <string name="image_quality_low">Low (Static PNG)</string>
+    <string name="image_quality_desc">Lower quality uses less data and loads faster</string>
+    <string name="appearance">Appearance</string>
+    <string name="general">General</string>
+    <string name="performance">Performance</string>
+    <string name="open_menu">Open menu</string>
+    <string name="premium">Premium</string>
+    <string name="restore_purchases">Restore Purchases</string>
+    <string name="restore_purchases_desc">Restore your previous purchases</string>
+
+    <!-- Upsell Strings -->
+    <string name="premium_title">Unlock Pokedex Premium</string>
+    <string name="premium_subtitle">Get the ultimate experience and support the development!</string>
+    <string name="benefit_no_ads">Remove all ads</string>
+    <string name="benefit_unlimited_favorites">Unlimited favorites (Limit 50)</string>
+    <string name="benefit_dark_mode">Unlock Dark Mode</string>
+    <string name="benefit_support_dev">Support the developer</string>
+    <string name="upgrade_now">Upgrade Now</string>
+    <string name="go_premium">Go Premium (No Ads)</string>
+
+    <!-- Premium Comparison -->
+    <string name="premium_upsell_title">Torne-se um Mestre</string>
+    <string name="premium_upsell_subtitle">Acesso vitalício por um pagamento único</string>
+    <string name="payment_one_time">Pagamento Único</string>
+    
+    <string name="plan_trainer_header">Treinador</string>
+    <string name="plan_trainer_sub">Grátis para sempre</string>
+    <string name="plan_master_header">Mestre</string>
+    <string name="plan_master_sub">Acesso Vitalício 🏆</string>
+
+    <string name="feature_ads">Publicidade</string>
+    <string name="feature_team_builder">Team Builder</string>
+    <string name="feature_favorites">Favoritos</string>
+    <string name="feature_appearance">Aparência</string>
+    <string name="feature_security">Segurança</string>
+    <string name="feature_updates">Atualizações</string>
+
+    <string name="val_trainer_ads">Com Anúncios</string>
+    <string name="val_master_ads">100% Livre</string>
+    <string name="val_trainer_teams">Apenas 1 Time</string>
+    <string name="val_master_teams">Ilimitados</string>
+    <string name="val_trainer_favs">Limite de 50</string>
+    <string name="val_master_favs">Ilimitado</string>
+    <string name="val_trainer_appearance">Tema Claro</string>
+    <string name="val_master_appearance">Dark Mode</string>
+    <string name="val_trainer_security">No Celular</string>
+    <string name="val_master_security">Backup Drive ☁️</string>
+    <string name="val_trainer_updates">Padrão</string>
+    <string name="val_master_updates">Antecipado</string>
+
+    <string name="cta_upgrade">Desbloquear Agora — %1$s</string>
+    <string name="footer_google_play">Pagamento único e seguro via Google Play.</string>
+
+    <!-- Team Builder Advanced -->
+    <string name="format_label">Formato:</string>
+    <string name="format_1v1">1v1 (Singles)</string>
+    <string name="format_2v2">2v2 (Doubles)</string>
+    <string name="format_3v3">3v3 (VGC Short)</string>
+    <string name="format_6v6">6v6 (Full Team)</string>
+    <string name="team_notes_label">Notas de Estratégia</string>
+    <string name="team_notes_placeholder">Escreva aqui sua estratégia, itens-chave ou counters...</string>
+    <string name="strategy_tools">Ferramentas de Estratégia</string>
+    <string name="type_coverage_title">Cobertura de Tipos</string>
+    <string name="avg_stats_title">Média de Atributos do Time</string>
+    <string name="stat_hp">HP</string>
+    <string name="stat_atk">ATK</string>
+    <string name="stat_def">DEF</string>
+    <string name="stat_satk">SATK</string>
+    <string name="stat_sdef">SDEF</string>
+    <string name="stat_spe">SPE</string>
 </resources>

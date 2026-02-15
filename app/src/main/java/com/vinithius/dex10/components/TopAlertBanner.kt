@@ -1,6 +1,6 @@
 package com.vinithius.dex10.components
 
-import AlertMessage
+import com.vinithius.dex10.datasource.data.AlertMessage
 import android.content.Context
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -44,8 +44,8 @@ fun TopAlertBanner(
     val appVersionCode = context.getVersionCode()
 
     val shouldShow = when {
-        alert.version_code == null -> true
-        alert.version_code > appVersionCode -> true
+        alert.versionCode == null -> true
+        alert.versionCode > appVersionCode -> true
         else -> false
     }
 
@@ -95,15 +95,15 @@ fun TopAlertBanner(
                     style = MaterialTheme.typography.subtitle1
                 )
 
-                if (!localized.title_button.isNullOrBlank() && !alert.url_action.isNullOrBlank()) {
+                if (!localized.titleButton.isNullOrBlank() && !alert.urlAction.isNullOrBlank()) {
                     Spacer(modifier = Modifier.height(8.dp))
                     Button(
-                        onClick = { onButtonClick(alert.url_action!!) },
+                        onClick = { onButtonClick(alert.urlAction!!) },
                         colors = ButtonDefaults.buttonColors(Color.DarkGray),
                         shape = RoundedCornerShape(8.dp)
                     ) {
                         Text(
-                            text = localized.title_button,
+                            text = localized.titleButton,
                             color = Color.White,
                             fontWeight = FontWeight.Bold
                         )

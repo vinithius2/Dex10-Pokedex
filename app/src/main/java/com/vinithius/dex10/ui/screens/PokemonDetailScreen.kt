@@ -178,9 +178,8 @@ private fun DefaultLoadingComposable(title: String) {
 
 @Composable
 private fun SetAnalyticScreenName(pokemonName: String) {
-    val context = LocalContext.current
-    val activity = context as? MainActivity
-    activity?.trackScreenView("Screen Detail: $pokemonName")
+    com.vinithius.dex10.analytics.AnalyticsManager.logScreenView("pokemon_detail", "PokemonDetailScreen")
+    com.vinithius.dex10.analytics.AnalyticsManager.logEvent("view_pokemon", "pokemon_name", pokemonName)
 }
 
 @Composable

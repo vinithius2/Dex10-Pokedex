@@ -11,7 +11,9 @@ private val listModules by lazy {
         repositoryDataModule,
         viewModelModule,
         networkModule,
-        databaseModule
+        databaseModule,
+        appPreferencesModule,
+        premiumModule
     )
 }
 

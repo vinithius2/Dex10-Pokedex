@@ -25,46 +25,42 @@ import kotlinx.coroutines.delay
 @Composable
 fun PokeballComponent(
     favorite: Boolean = false,
-    frameDurationMillis: Long = 200L,
+    frameDurationMillis: Long = 150L,
     frameResources: List<Int> = listOf(
         R.drawable.pokeball_01,
         R.drawable.pokeball_02_gray,
         R.drawable.pokeball_03_gray
     ),
     isShimmer: Boolean = false,
-    choiceOfTheDayStatus : Boolean = false,
-    hidePokemonOfTheDay : Boolean = false,
+    choiceOfTheDayStatus: Boolean = false,
+    hidePokemonOfTheDay: Boolean = false,
     onCallBackFinishAnimation: () -> Unit = {},
-    onCallBack: () -> Unit = {},
+    onClick: () -> Unit = {},
 ) {
-    // Initial frame
+    // Current frame state
     var currentFrame by remember { mutableIntStateOf(if (favorite) 0 else frameResources.lastIndex) }
-    // Launch
-    var isPlaying by remember { mutableStateOf(false) }
-    // Direction
-    var isForward by remember { mutableStateOf(favorite.not()) }
-
-    LaunchedEffect(isPlaying) {
-        while (isPlaying) {
-            delay(frameDurationMillis)
-            currentFrame = (currentFrame + if (isForward) 1 else -1)
-                .coerceIn(0, frameResources.lastIndex)
-            if (currentFrame == 0 || currentFrame == frameResources.lastIndex) {
-                isPlaying = false
-                onCallBackFinishAnimation.invoke()
+    
+    // Sync external favorite changes with currentFrame
+    LaunchedEffect(favorite) {
+        val targetFrame = if (favorite) 0 else frameResources.lastIndex
+        if (currentFrame != targetFrame) {
+            // Animate transition
+            val isForward = !favorite
+            while (currentFrame != targetFrame) {
+                delay(frameDurationMillis / 2)
+                currentFrame += if (isForward) 1 else -1
+                currentFrame = currentFrame.coerceIn(0, frameResources.lastIndex)
             }
+            onCallBackFinishAnimation()
         }
     }
+
     if (isShimmer) {
         Image(
             painter = painterResource(id = frameResources[currentFrame]),
             contentDescription = "Pokeball animation",
             modifier = Modifier
-                .clickable {
-                    isForward = isForward.not()
-                    isPlaying = true
-                    onCallBack.invoke()
-                }
+                .clickable { onClick() }
                 .size(30.dp)
                 .clip(CircleShape)
                 .shimmer()
@@ -76,10 +72,8 @@ fun PokeballComponent(
             contentDescription = "Pokeball animation",
             modifier = Modifier
                 .clickable {
-                    if (shouldHidePokemonOfTheDay.not()) {
-                        isForward = isForward.not()
-                        isPlaying = true
-                        onCallBack.invoke()
+                    if (!shouldHidePokemonOfTheDay) {
+                        onClick()
                     }
                 }
                 .size(30.dp)

@@ -5,6 +5,7 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.os.Build
+import androidx.compose.runtime.collectAsState
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
@@ -109,6 +110,8 @@ import com.vinithius.dex10.ui.viewmodel.PokemonViewModel
 import com.vinithius.dex10.ui.viewmodel.RequestStateList
 import org.koin.androidx.compose.getViewModel
 import androidx.compose.foundation.lazy.itemsIndexed as listItemsIndexed
+import com.vinithius.dex10.datasource.data.AppPreferences
+import org.koin.java.KoinJavaComponent.inject
 
 const val URL_IMAGE = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/"
 
@@ -808,8 +811,19 @@ fun SharedTransitionScope.LoadGifWithCoil(
         }
         .build()
 
+    // Check image quality preference
+    val appPreferences: AppPreferences by inject(AppPreferences::class.java)
+    val isLowQuality by appPreferences.lowQualityImages.collectAsState()
+
+    // When low quality, always use static PNG instead of potentially animated path
+    val imageUrl = if (isLowQuality) {
+        "$URL_IMAGE${pokemonData.pokemon.id}.png"
+    } else {
+        pokemonData.pokemon.imagePath ?: "$URL_IMAGE${pokemonData.pokemon.id}.png"
+    }
+
     val imageRequest = ImageRequest.Builder(context)
-        .data(pokemonData.pokemon.imagePath ?: "$URL_IMAGE/${pokemonData.pokemon.id}.png")
+        .data(imageUrl)
         .crossfade(true)
         .error(android.R.drawable.ic_menu_report_image)
         .build()
