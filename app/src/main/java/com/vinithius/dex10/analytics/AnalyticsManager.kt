@@ -11,7 +11,7 @@ import com.google.firebase.ktx.Firebase
  */
 object AnalyticsManager {
 
-    private val firebaseAnalytics: FirebaseAnalytics = Firebase.analytics
+    private val firebaseAnalytics: FirebaseAnalytics by lazy { Firebase.analytics }
 
     // Screen Names
     const val SCREEN_TEAM_LIST = "team_list"
@@ -44,10 +44,11 @@ object AnalyticsManager {
     const val PARAM_FILTER_TYPE = "filter_type"
     const val PARAM_ERROR_MESSAGE = "error_message"
     const val PARAM_SOURCE = "source"
+    const val PARAM_LIMIT_TYPE = "limit_type"
+    const val PARAM_FEATURE_NAME = "feature_name"
 
-    /**
-     * Log a screen view event.
-     */
+    const val EVENT_LIMIT_REACHED = "limit_reached"
+    const val EVENT_FEATURE_RESTRICTED = "feature_restricted"
     fun logScreenView(screenName: String, screenClass: String = "MainActivity") {
         val bundle = Bundle()
         bundle.putString(FirebaseAnalytics.Param.SCREEN_NAME, screenName)
@@ -104,5 +105,16 @@ object AnalyticsManager {
     
     fun logPurchaseFail(error: String) {
         logEvent(EVENT_PURCHASE_FAIL, PARAM_ERROR_MESSAGE, error)
+    }
+
+    fun logLimitReached(limitType: String) {
+        logEvent(EVENT_LIMIT_REACHED, PARAM_LIMIT_TYPE, limitType)
+    }
+
+    fun logFeatureRestricted(featureName: String) {
+        logEvent(EVENT_FEATURE_RESTRICTED, PARAM_FEATURE_NAME, featureName)
+    }
+    fun logRemoveMember(pokemonName: String) {
+        logEvent(EVENT_REMOVE_MEMBER, PARAM_POKEMON_NAME, pokemonName)
     }
 }

@@ -18,11 +18,14 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
+import kotlinx.coroutines.CoroutineDispatcher
+
 @OptIn(ExperimentalCoroutinesApi::class)
 class TeamViewModel(
     private val teamRepository: ITeamRepository,
     private val pokemonRepository: IPokemonRepository,
-    val premiumManager: PremiumManager
+    val premiumManager: PremiumManager,
+    private val dispatcher: CoroutineDispatcher = Dispatchers.IO
 ) : ViewModel() {
 
     // --- CONTROLE DE ESTADO ---
@@ -52,7 +55,7 @@ class TeamViewModel(
             // Dispara análise em paralelo (IO) para NÃO bloquear a UI
             if (team != null) {
                 // Launch em separado garante que o fluxo do banco continue livre
-                viewModelScope.launch(Dispatchers.IO) {
+                viewModelScope.launch(dispatcher) {
                     performAnalysis(team)
                 }
             } else {
@@ -119,16 +122,17 @@ class TeamViewModel(
         }
     }
 
-    // --- CRUD (Sempre em Dispatchers.IO) ---
+    // --- CRUD (Sempre em dispatcher) ---
 
     fun createTeam(name: String, onFinished: (Long?) -> Unit) {
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch(dispatcher) {
             try {
                 // Checagem segura de Premium
                 val isPremium = premiumManager.isPremium.value
                 val count = teamRepository.getTeamCount()
 
                 if (!isPremium && count >= PremiumManager.FREE_TEAM_LIMIT) {
+                    com.vinithius.dex10.analytics.AnalyticsManager.logLimitReached("team_limit")
                     _showUpsell.value = true
                     withContext(Dispatchers.Main) { onFinished(null) }
                     return@launch
@@ -154,12 +158,13 @@ class TeamViewModel(
 
     fun deleteTeam(team: TeamEntity) {
         Log.d("TeamViewModel", "deleteTeam called for ${team.id}. Scope active: ${viewModelScope.isActive}")
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch(dispatcher) {
             try {
                 Log.d("TeamViewModel", "Requesting deletion for team ${team.id}...")
                 withContext(kotlinx.coroutines.NonCancellable) {
                     teamRepository.deleteTeam(team)
                 }
+                com.vinithius.dex10.analytics.AnalyticsManager.logDeleteTeam()
                 Log.d("TeamViewModel", "Deletion request completed for team ${team.id}")
             } catch (e: Exception) {
                 Log.e("TeamViewModel", "Error deleting team ${team.id}", e)
@@ -168,9 +173,13 @@ class TeamViewModel(
     }
 
     fun addMember(teamId: Int, pokemonId: Int, position: Int) {
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch(dispatcher) {
             try {
                 teamRepository.addMember(TeamMemberEntity(teamId = teamId, pokemonId = pokemonId, position = position))
+            val pokemon = pokemonRepository.getPokemonDetail(pokemonId)
+            pokemon?.name?.let { name ->
+                    com.vinithius.dex10.analytics.AnalyticsManager.logAddMember(name)
+                }
             } catch (e: Exception) {
                 Log.e("TeamViewModel", "Error adding member", e)
             }
@@ -178,9 +187,13 @@ class TeamViewModel(
     }
 
     fun removeMember(member: TeamMemberEntity) {
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch(dispatcher) {
             try {
                 teamRepository.removeMember(member)
+            val pokemon = pokemonRepository.getPokemonDetail(member.pokemonId)
+            pokemon?.name?.let { name ->
+                    com.vinithius.dex10.analytics.AnalyticsManager.logRemoveMember(name)
+                }
             } catch (e: Exception) {
                 Log.e("TeamViewModel", "Error removing member", e)
             }
@@ -188,7 +201,7 @@ class TeamViewModel(
     }
 
     fun updateMember(member: TeamMemberEntity) {
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch(dispatcher) {
             try {
                 teamRepository.updateMember(member)
             } catch (e: Exception) {
@@ -198,19 +211,19 @@ class TeamViewModel(
     }
 
     fun renameTeam(team: TeamEntity, newName: String) {
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch(dispatcher) {
             try { teamRepository.updateTeam(team.copy(name = newName)) } catch (e: Exception) {}
         }
     }
 
     fun updateTeamFormat(team: TeamEntity, format: String) {
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch(dispatcher) {
             try { teamRepository.updateTeam(team.copy(format = format)) } catch (e: Exception) {}
         }
     }
 
     fun updateTeamNotes(team: TeamEntity, notes: String) {
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch(dispatcher) {
             try { teamRepository.updateTeam(team.copy(notes = notes)) } catch (e: Exception) {}
         }
     }

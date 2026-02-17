@@ -5,12 +5,9 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.animation.core.animateIntAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
@@ -19,7 +16,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.valentinilk.shimmer.shimmer
 import com.vinithius.dex10.R
-import kotlinx.coroutines.delay
+
 
 
 @Composable
@@ -38,22 +35,15 @@ fun PokeballComponent(
     onClick: () -> Unit = {},
 ) {
     // Current frame state
-    var currentFrame by remember { mutableIntStateOf(if (favorite) 0 else frameResources.lastIndex) }
-    
-    // Sync external favorite changes with currentFrame
-    LaunchedEffect(favorite) {
-        val targetFrame = if (favorite) 0 else frameResources.lastIndex
-        if (currentFrame != targetFrame) {
-            // Animate transition
-            val isForward = !favorite
-            while (currentFrame != targetFrame) {
-                delay(frameDurationMillis / 2)
-                currentFrame += if (isForward) 1 else -1
-                currentFrame = currentFrame.coerceIn(0, frameResources.lastIndex)
-            }
+    val targetFrame = if (favorite) 0 else frameResources.lastIndex
+    val currentFrame by animateIntAsState(
+        targetValue = targetFrame,
+        animationSpec = tween(durationMillis = frameDurationMillis.toInt()),
+        finishedListener = {
             onCallBackFinishAnimation()
-        }
-    }
+        },
+        label = "pokeballAnimation"
+    )
 
     if (isShimmer) {
         Image(

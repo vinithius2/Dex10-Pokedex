@@ -15,6 +15,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -80,9 +81,19 @@ fun SettingsScreen(
         )
         DarkModeRadioGroup(
             selected = darkMode,
-            onSelect = { appPreferences.setDarkMode(it) },
+            onSelect = { 
+                if (!isPremium && it != AppPreferences.DARK_MODE_OFF) {
+                    premiumManager?.triggerUpsell()
+                    com.vinithius.dex10.analytics.AnalyticsManager.logFeatureRestricted("dark_mode")
+                } else {
+                    appPreferences.setDarkMode(it) 
+                }
+            },
             isPremium = isPremium,
-            onShowUpsell = { premiumManager?.triggerUpsell() }
+            onShowUpsell = { 
+                 premiumManager?.triggerUpsell()
+                 com.vinithius.dex10.analytics.AnalyticsManager.logFeatureRestricted("dark_mode")
+            }
         )
 
         HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
@@ -119,6 +130,33 @@ fun SettingsScreen(
         )
 
         Spacer(modifier = Modifier.height(24.dp))
+
+        // --- Developer Options (Debug Only) ---
+        if (com.vinithius.dex10.BuildConfig.DEBUG) {
+            SectionHeader("Developer Options 🛠️")
+
+            SettingToggleItem(
+                icon = Icons.Default.Lock, // Or a dev icon
+                title = "Force Premium Status",
+                description = if (isPremium) "Premium is ON (Debug or Real)" else "Premium is OFF",
+                checked = isPremium,
+                onCheckedChange = { isEnabled ->
+                    if (isEnabled) {
+                         premiumManager?.setDebugPremiumStatus(true)
+                    } else {
+                         premiumManager?.setDebugPremiumStatus(false)
+                    }
+                }
+            )
+            
+             SettingClickableItem(
+                icon = Icons.Default.Share, // Refresh icon
+                title = "Reset Premium Override",
+                description = "Clear override and check real status",
+                onClick = { premiumManager?.clearDebugPremiumStatus() }
+            )
+             Spacer(modifier = Modifier.height(24.dp))
+        }
     }
 }
 

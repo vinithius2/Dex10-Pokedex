@@ -17,7 +17,10 @@ import kotlinx.coroutines.launch
  * Manages premium subscription state using Google Play Billing Library.
  * Uses EncryptedSharedPreferences for secure offline caching of premium status.
  */
-class PremiumManager(private val context: Context) : PurchasesUpdatedListener {
+class PremiumManager(
+    private val context: Context,
+    injectedPrefs: android.content.SharedPreferences? = null
+) : PurchasesUpdatedListener {
 
     companion object {
         private const val TAG = "PremiumManager"
@@ -30,14 +33,20 @@ class PremiumManager(private val context: Context) : PurchasesUpdatedListener {
 
     // private val encryptedPrefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
-    private val masterKeyAlias = MasterKeys.getOrCreate(MasterKeys.AES256_GCM_SPEC)
-    private val encryptedPrefs = EncryptedSharedPreferences.create(
-        PREFS_NAME,
-        masterKeyAlias,
-        context,
-        EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
-        EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
-    )
+    // private val encryptedPrefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+
+    private val encryptedPrefs = if (injectedPrefs != null) {
+        injectedPrefs
+    } else {
+        val masterKeyAlias = MasterKeys.getOrCreate(MasterKeys.AES256_GCM_SPEC)
+        EncryptedSharedPreferences.create(
+            PREFS_NAME,
+            masterKeyAlias,
+            context,
+            EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+            EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+        )
+    }
 
     private val _isPremium = MutableStateFlow(encryptedPrefs.getBoolean(KEY_IS_PREMIUM, false))
     val isPremium: StateFlow<Boolean> = _isPremium.asStateFlow()
@@ -203,13 +212,7 @@ class PremiumManager(private val context: Context) : PurchasesUpdatedListener {
         }
     }
 
-    /**
-     * Update the premium status in encrypted prefs and StateFlow.
-     */
-    private fun updatePremiumStatus(isPremium: Boolean) {
-        encryptedPrefs.edit().putBoolean(KEY_IS_PREMIUM, isPremium).apply()
-        _isPremium.value = isPremium
-    }
+
 
     /**
      * Show the upsell bottom sheet.
@@ -239,6 +242,41 @@ class PremiumManager(private val context: Context) : PurchasesUpdatedListener {
         if (_isPremium.value) return true
         triggerUpsell()
         return false
+    }
+
+    // --- DEBUG FEATURES ---
+
+    private val _debugOverride = MutableStateFlow<Boolean?>(null)
+
+    /**
+     * Set a debug override for premium status.
+     * Only works in DEBUG builds (though logic here is generic, UI should restrict).
+     */
+    fun setDebugPremiumStatus(isPremium: Boolean) {
+        _debugOverride.value = isPremium
+        _isPremium.value = isPremium
+        Log.d(TAG, "Debug override set to: $isPremium")
+    }
+
+    /**
+     * Clear debug override and restore actual status.
+     */
+    fun clearDebugPremiumStatus() {
+        _debugOverride.value = null
+        // Restore from prefs immediately
+        _isPremium.value = encryptedPrefs.getBoolean(KEY_IS_PREMIUM, false)
+        queryExistingPurchases() // Refresh actual status
+        Log.d(TAG, "Debug override cleared")
+    }
+
+    private fun updatePremiumStatus(isPremium: Boolean) {
+        // If debug override is active, do not overwrite with actual status
+        if (_debugOverride.value != null) {
+            Log.d(TAG, "Ignoring actual status update ($isPremium) due to debug override (${_debugOverride.value})")
+            return
+        }
+        encryptedPrefs.edit().putBoolean(KEY_IS_PREMIUM, isPremium).apply()
+        _isPremium.value = isPremium
     }
 
     fun onDestroy() {

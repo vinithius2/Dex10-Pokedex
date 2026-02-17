@@ -57,6 +57,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -291,6 +292,7 @@ fun SharedTransitionScope.MainCard(
     viewModel: PokemonViewModel = getViewModel()
 ) {
     val context = LocalContext.current
+    val isPremium by viewModel.premiumManager.isPremium.collectAsState(initial = false)
     val adUnitIdAdAdvancedNative by viewModel.adUnitIdAdAdvancedNative.observeAsState()
 
     Column(
@@ -461,10 +463,12 @@ fun SharedTransitionScope.MainCard(
         PokemonIsABaby()
         PokemonEvolution(navController, pokemonDetail)
 
-        AdAdvancedNative(
-            adUnitIdProd = adUnitIdAdAdvancedNative,
-            isTablet = false,
-        )
+        if (!isPremium) {
+            AdAdvancedNative(
+                adUnitIdProd = adUnitIdAdAdvancedNative,
+                isTablet = false,
+            )
+        }
 
         // Tabs
         TabWithPagerExample(pokemonDetail, color, viewModel)
@@ -487,6 +491,7 @@ fun SharedTransitionScope.MainCardLargeScreen(
     viewModel: PokemonViewModel = getViewModel()
 ) {
     val context = LocalContext.current
+    val isPremium by viewModel.premiumManager.isPremium.collectAsState(initial = false)
     val adUnitIdAdAdvancedNative by viewModel.adUnitIdAdAdvancedNative.observeAsState()
 
     LazyVerticalGrid(
@@ -667,11 +672,13 @@ fun SharedTransitionScope.MainCardLargeScreen(
             PokemonArts(viewModel, pokemonDetail)
         }
         // Ads
-        item(span = { GridItemSpan(maxLineSpan) }) {
-            AdAdvancedNative(
-                adUnitIdProd = adUnitIdAdAdvancedNative,
-                isTablet = true,
-            )
+        if (!isPremium) {
+            item(span = { GridItemSpan(maxLineSpan) }) {
+                AdAdvancedNative(
+                    adUnitIdProd = adUnitIdAdAdvancedNative,
+                    isTablet = true,
+                )
+            }
         }
         item(span = { GridItemSpan(maxLineSpan) }) {
             PokemonEvolution(navController, pokemonDetail)

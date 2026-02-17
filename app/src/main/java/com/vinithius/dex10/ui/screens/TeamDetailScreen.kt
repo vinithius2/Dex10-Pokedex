@@ -480,7 +480,7 @@ fun TeamMemberCard(member: TeamMemberEntity, viewModel: TeamViewModel, hasError:
                 Text(text = pokemonName, style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold, shadow = Shadow(color = Color.Black, offset = Offset(1f, 1f), blurRadius = 2f)), maxLines = 1, color = Color.White)
                 if (!member.nickname.isNullOrBlank()) Text(text = "\"${member.nickname}\"", style = MaterialTheme.typography.bodySmall, maxLines = 1, fontStyle = androidx.compose.ui.text.font.FontStyle.Italic, color = Color.White)
                 Spacer(modifier = Modifier.height(4.dp))
-                Column(modifier = Modifier.fillMaxWidth().background(Color.Black.copy(alpha = 0.3f), RoundedCornerShape(8.dp)).padding(4.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                Column(modifier = Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f), RoundedCornerShape(8.dp)).padding(4.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
                         details?.stats?.take(6)?.forEach { stat ->
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {

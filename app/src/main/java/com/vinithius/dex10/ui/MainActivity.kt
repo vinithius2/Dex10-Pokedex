@@ -132,6 +132,7 @@ import com.vinithius.dex10.ui.screens.PokemonListScreen
 import com.vinithius.dex10.ui.theme.ThemeDex10
 import com.vinithius.dex10.ui.viewmodel.PokemonViewModel
 import com.vinithius.dex10.ui.viewmodel.RequestStateDetail
+import com.vinithius.dex10.ui.viewmodel.RequestStateList
 import org.koin.androidx.compose.getViewModel
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import java.util.Locale
@@ -154,7 +155,12 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             val darkModeOverride by appPrefs.darkMode.collectAsState()
-            ThemeDex10(darkModeOverride = darkModeOverride) {
+            val isPremium by premiumManager.isPremium.collectAsState()
+            
+            // Force Light Mode if not premium
+            val effectiveDarkMode = if (isPremium) darkModeOverride else AppPreferences.DARK_MODE_OFF
+            
+            ThemeDex10(darkModeOverride = effectiveDarkMode) {
                 MainScreen(
                     activity = this@MainActivity,
                     appPreferences = appPrefs,
@@ -453,10 +459,14 @@ fun MainScreen(
     val currentRoute = navBackStackEntry?.destination?.route
     val isDetailScreen = currentRoute?.startsWith("pokemonDetail") == true
     val isSettingsScreen = currentRoute == "settings"
+    val isPokemonList = currentRoute == "pokemonList"
+
+    val requestState = viewModel.stateList.observeAsState()
+    val isListLoaded = requestState.value is RequestStateList.Success
 
     ModalNavigationDrawer(
         drawerState = drawerState,
-        gesturesEnabled = !isDetailScreen && !isSettingsScreen,
+        gesturesEnabled = isPokemonList && isListLoaded,
         drawerContent = {
             ModalDrawerSheet(drawerShape = RectangleShape) {
                 Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
@@ -503,11 +513,16 @@ fun MainScreen(
 fun SetInterstitialOrRewardedAdManager(
     activity: MainActivity,
     navController: NavHostController,
-    viewModel: PokemonViewModel = getViewModel()
+    viewModel: PokemonViewModel = getViewModel(),
+    premiumManager: PremiumManager = org.koin.androidx.compose.get()
 ) {
     val context = LocalContext.current
     val sharedPreferences = context.getSharedPreferences("pokemon_prefs", Context.MODE_PRIVATE)
     val isRewarded by viewModel.isRewarded.observeAsState(true)
+    val isPremium by premiumManager.isPremium.collectAsState()
+
+    // If Premium, do not show ads
+    if (isPremium) return
 
     if (isRewarded) {
         with(sharedPreferences.edit()) {
@@ -709,6 +724,11 @@ private fun GetTopBar(
     val isDetailScreen = currentRoute?.startsWith("pokemonDetail") == true
     val isTeamScreen = currentRoute?.startsWith("team") == true
 
+    val isPokemonList = currentRoute == "pokemonList"
+
+    val requestState = viewModel.stateList.observeAsState()
+    val isListLoaded = requestState.value is RequestStateList.Success
+
     isDetailScreen.takeIf { it }?.run {
         TopAppBar(
             title = { },
@@ -743,7 +763,7 @@ private fun GetTopBar(
         )
     } ?: isTeamScreen.takeIf { it }?.run {
         TopAppBar(
-            title = { 
+            title = {
                 Text(
                     text = if (currentRoute?.startsWith("teamDetail") == true) stringResource(R.string.team_details) else stringResource(R.string.my_teams),
                     color = Color.White
@@ -768,7 +788,7 @@ private fun GetTopBar(
             ),
             actions = { }
         )
-    } ?: run {
+    } ?: isPokemonList.takeIf { it }?.run {
         // Page List Pokemon
         TopAppBar(
             title = {
@@ -834,15 +854,17 @@ private fun GetTopBar(
                 navigationIconContentColor = MaterialTheme.colorScheme.onPrimary
             ),
             navigationIcon = {
-                IconButton(onClick = {
-                    onOpenDrawer?.invoke()
-                    activity?.trackButtonClick("Open drawer menu")
-                }) {
-                    Icon(
-                        imageVector = Icons.Default.Menu,
-                        contentDescription = stringResource(R.string.open_menu),
-                        tint = Color.White
-                    )
+                if (isListLoaded) {
+                    IconButton(onClick = {
+                        onOpenDrawer?.invoke()
+                        activity?.trackButtonClick("Open drawer menu")
+                    }) {
+                        Icon(
+                            imageVector = Icons.Default.Menu,
+                            contentDescription = stringResource(R.string.open_menu),
+                            tint = Color.White
+                        )
+                    }
                 }
             },
             actions = {

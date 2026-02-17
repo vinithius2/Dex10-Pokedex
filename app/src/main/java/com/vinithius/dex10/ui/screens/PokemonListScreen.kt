@@ -177,7 +177,8 @@ fun SharedTransitionScope.PokemonListScreen(
     val listState = rememberSaveable(saver = LazyListState.Saver) { LazyListState() }
     val gridState = rememberSaveable(saver = LazyGridState.Saver) { LazyGridState() }
 
-    // Ads list item
+    val isPremium by viewModel.premiumManager.isPremium.collectAsState(initial = false)
+
     val adUnitIdAdAdvancedNative by viewModel.adUnitIdAdAdvancedNative.observeAsState(String())
     val adUnitId = if (BuildConfig.DEBUG) {
         "ca-app-pub-3940256099942544/2247696110"
@@ -197,7 +198,8 @@ fun SharedTransitionScope.PokemonListScreen(
     val itemRangeForAdsTablet by viewModel.itemRangeForAdsTablet.observeAsState(22)
     val amountOfAds by viewModel.amountOfAds.observeAsState(12)
 
-    LaunchedEffect(adUnitId) {
+    LaunchedEffect(adUnitId, isPremium) {
+        if (isPremium) return@LaunchedEffect
         if (adUnitId.isBlank()) return@LaunchedEffect
         repeat(amountOfAds) {
             val loader = AdLoader.Builder(context, adUnitId)
@@ -301,11 +303,12 @@ fun SharedTransitionScope.PokemonListScreen(
                                     pokemonData,
                                     navController,
                                     activity,
+                                    isPremium,
                                     onCallBackIsVisible = {
                                         isVisible = it
                                     },
                                 )
-                                if ((index + 1) % itemRangeForAds == 0) { // A cada X pokemons, temos um anúncio.
+                                if (!isPremium && (index + 1) % itemRangeForAds == 0) { // A cada X pokemons, temos um anúncio.
                                     val ad = preloadedAds.getOrNull(index / itemRangeForAds)
                                     if (ad != null) {
                                         AndroidView(factory = {
@@ -327,7 +330,7 @@ fun SharedTransitionScope.PokemonListScreen(
 
                             var index = 0
                             while (index < pokemonItems.size) {
-                                if (index > 0 && index % adInterval == 0 && adIndex < preloadedAds.size) {
+                                if (!isPremium && index > 0 && index % adInterval == 0 && adIndex < preloadedAds.size) {
                                     val ad = preloadedAds.getOrNull(adIndex++)
                                     if (ad != null) {
                                         item(span = { GridItemSpan(columns) }) {
@@ -354,6 +357,7 @@ fun SharedTransitionScope.PokemonListScreen(
                                         pokemonData,
                                         navController,
                                         activity,
+                                        isPremium,
                                         onCallBackIsVisible = { isVisible = it },
                                     )
                                 }
@@ -386,6 +390,7 @@ private fun SharedTransitionScope.AnimatedItem(
     pokemonData: PokemonWithDetails,
     navController: NavController,
     activity: MainActivity?,
+    isPremium: Boolean,
     onCallBackIsVisible: (Boolean) -> Unit,
 ) {
     AnimatedVisibility(
@@ -414,12 +419,14 @@ private fun SharedTransitionScope.AnimatedItem(
                     id,
                     navController,
                     activity,
+                    isPremium
                 )
             },
             onClickFavorite = { pokemonFavorite ->
                 activity?.trackButtonClick("Click favorite item list: ${pokemonFavorite.pokemon.name}")
                 viewModel.setFavorite(pokemonFavorite.pokemon.id)
-            }
+            },
+            isPremium = isPremium
         )
     }
 }
@@ -444,8 +451,9 @@ private fun onClickDetails(
     id: Int,
     navController: NavController,
     activity: MainActivity?,
+    isPremium: Boolean
 ) {
-    if (choiceOfTheDay) {
+    if (choiceOfTheDay && !isPremium) {
         with(viewModel) {
             if (isRewarded) {
                 adUnitIdChoiceOfTheDayRewardedShow(
@@ -464,6 +472,15 @@ private fun onClickDetails(
             )
         }
     } else {
+        if (choiceOfTheDay && isPremium) {
+            // Premium user: Reveal immediately without ad
+            val context = activity?.applicationContext
+            context?.getSharedPreferences("pokemon_prefs", Context.MODE_PRIVATE)?.edit {
+                 putBoolean("hide_pokemon_of_the_day", false)
+            }
+            viewModel.setHidePokemonOfTheDay(false)
+        }
+        
         goToDetails(
             navController,
             activity,
@@ -504,7 +521,8 @@ fun SharedTransitionScope.PokemonListItem(
     choiceOfTheDayStatus: Boolean = false,
     onCallBackFinishAnimation: (() -> Unit)?,
     onClickDetail: ((Int, Boolean) -> Unit)?,
-    onClickFavorite: ((PokemonWithDetails) -> Unit)?
+    onClickFavorite: ((PokemonWithDetails) -> Unit)?,
+    isPremium: Boolean
 ) {
     val context = LocalContext.current
     val sharedPreferences = context.getSharedPreferences("pokemon_prefs", Context.MODE_PRIVATE)
@@ -548,7 +566,7 @@ fun SharedTransitionScope.PokemonListItem(
             .fillMaxWidth()
             .padding(8.dp)
             .clickable {
-                if (choiceOfTheDayStatus && dontShowAgain.not()) {
+                if (choiceOfTheDayStatus && !isPremium && dontShowAgain.not()) {
                     showDialog = true
                 } else {
                     clickAndGoToDetails(
@@ -890,7 +908,8 @@ fun PokemonListScreenPreview() {
                 false,
                 null,
                 null,
-                null
+                null,
+                false
             )
         }
     }
