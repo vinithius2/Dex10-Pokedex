@@ -133,6 +133,32 @@ fun SettingsScreen(
 
         Spacer(modifier = Modifier.height(24.dp))
 
+        // --- Developer Options (Debug Only) ---
+        if (com.vinithius.dex10.BuildConfig.DEBUG) {
+            SectionHeader("Developer Options 🛠️")
+
+            SettingToggleItem(
+                icon = Icons.Default.Lock,
+                title = "Force Premium Status",
+                description = if (isPremium) "Premium is ON (Debug or Real)" else "Premium is OFF",
+                checked = isPremium,
+                onCheckedChange = { isEnabled ->
+                    if (isEnabled) {
+                         premiumManager?.setDebugPremiumStatus(true)
+                    } else {
+                         premiumManager?.setDebugPremiumStatus(false)
+                    }
+                }
+            )
+            
+             SettingClickableItem(
+                icon = Icons.Default.Share, 
+                title = "Reset Premium Override",
+                description = "Clear override and check real status",
+                onClick = { premiumManager?.clearDebugPremiumStatus() }
+            )
+             Spacer(modifier = Modifier.height(40.dp))
+        }
     }
 }
 

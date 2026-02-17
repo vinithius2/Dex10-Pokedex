@@ -26,6 +26,7 @@ class PremiumManager(
         private const val TAG = "PremiumManager"
         private const val PREFS_NAME = "dex10_premium_prefs"
         private const val KEY_IS_PREMIUM = "is_premium"
+        private const val KEY_DEBUG_PREMIUM = "debug_premium"
         const val SKU_PREMIUM = "dex10_pro_lifetime"
         const val FREE_TEAM_LIMIT = 1
         const val FREE_FAVORITE_LIMIT = 50
@@ -48,8 +49,22 @@ class PremiumManager(
         )
     }
 
-    private val _isPremium = MutableStateFlow(encryptedPrefs.getBoolean(KEY_IS_PREMIUM, false))
+    private val _isPremium = MutableStateFlow(
+        if (com.vinithius.dex10.BuildConfig.DEBUG && encryptedPrefs.contains(KEY_DEBUG_PREMIUM)) {
+            encryptedPrefs.getBoolean(KEY_DEBUG_PREMIUM, false)
+        } else {
+            encryptedPrefs.getBoolean(KEY_IS_PREMIUM, false)
+        }
+    )
     val isPremium: StateFlow<Boolean> = _isPremium.asStateFlow()
+
+    private val _debugOverride = MutableStateFlow<Boolean?>(
+        if (com.vinithius.dex10.BuildConfig.DEBUG && encryptedPrefs.contains(KEY_DEBUG_PREMIUM)) {
+            encryptedPrefs.getBoolean(KEY_DEBUG_PREMIUM, false)
+        } else {
+            null
+        }
+    )
 
     // Event to show upsell
     private val _showUpsell = MutableStateFlow(false)
@@ -245,8 +260,39 @@ class PremiumManager(
     }
 
     private fun updatePremiumStatus(isPremium: Boolean) {
+        // If debug override is active AND in debug build, do not overwrite with actual status
+        if (com.vinithius.dex10.BuildConfig.DEBUG && _debugOverride.value != null) {
+            Log.d(TAG, "Ignoring actual status update ($isPremium) due to debug override (${_debugOverride.value})")
+            return
+        }
         encryptedPrefs.edit().putBoolean(KEY_IS_PREMIUM, isPremium).apply()
         _isPremium.value = isPremium
+    }
+
+    // --- DEBUG FEATURES ---
+
+    /**
+     * Set a debug override for premium status.
+     */
+    fun setDebugPremiumStatus(isPremium: Boolean) {
+        if (!com.vinithius.dex10.BuildConfig.DEBUG) return
+        _debugOverride.value = isPremium
+        _isPremium.value = isPremium
+        encryptedPrefs.edit().putBoolean(KEY_DEBUG_PREMIUM, isPremium).apply()
+        Log.d(TAG, "Debug override set to: $isPremium (persisted)")
+    }
+
+    /**
+     * Clear debug override and restore actual status.
+     */
+    fun clearDebugPremiumStatus() {
+        if (!com.vinithius.dex10.BuildConfig.DEBUG) return
+        _debugOverride.value = null
+        encryptedPrefs.edit().remove(KEY_DEBUG_PREMIUM).apply()
+        // Restore from prefs immediately
+        _isPremium.value = encryptedPrefs.getBoolean(KEY_IS_PREMIUM, false)
+        queryExistingPurchases() // Refresh actual status
+        Log.d(TAG, "Debug override cleared")
     }
 
     fun onDestroy() {

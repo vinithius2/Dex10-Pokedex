@@ -53,7 +53,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.vinithius.dex10.R
-import com.vinithius.dex10.extension.capitalize
+import com.vinithius.dex10.extension.*
 import com.vinithius.dex10.ui.MainActivity
 import com.vinithius.dex10.ui.viewmodel.PokemonViewModel
 import kotlinx.coroutines.CoroutineScope
@@ -61,6 +61,11 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.getViewModel
+import com.android.billingclient.api.*
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.border
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.ui.res.painterResource
 
 @Composable
 private fun getActivity(): MainActivity? {
@@ -101,8 +106,8 @@ fun GetFilterBar(
                             onCallBackClearFavoriteFilter.invoke()
                             activity?.trackButtonClick("Menu filter: Clear All")
                             loading = true
-                            filterMap.keys.toList().forEach {
-                                filterMap[it]?.let { clearMap ->
+                            filterMap.keys.forEach { key ->
+                                filterMap[key]?.let { clearMap ->
                                     clearAllFilter(clearMap)
                                 }
                             }
@@ -318,28 +323,53 @@ fun ContentBottomSheet(
             }
             Spacer(modifier = Modifier.height(16.dp))
             LazyVerticalGrid(
-                columns = GridCells.Fixed(2),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                columns = GridCells.Fixed(if (labelTitle == stringResource(R.string.type)) 2 else 2),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
                 modifier = Modifier.padding(8.dp)
             ) {
                 items(filterMap.keys.toList()) { filter ->
-                    Row(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(8.dp))
-                            .background(MaterialTheme.colorScheme.secondary.copy(alpha = 0.1f))
-                            .padding(horizontal = 16.dp, vertical = 8.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Checkbox(
-                            checked = filterMap[filter] == true,
-                            onCheckedChange = { isChecked ->
-                                activity?.trackButtonClick("$filter : $isChecked")
-                                filterMap[filter] = isChecked
-                            }
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(text = filter.capitalize(), style = MaterialTheme.typography.bodySmall)
+                    when (labelTitle) {
+                        stringResource(R.string.type) -> {
+                            TypeFilterItem(
+                                typeName = filter,
+                                isSelected = filterMap[filter] == true,
+                                onClick = { isChecked ->
+                                    activity?.trackButtonClick("$filter : $isChecked")
+                                    filterMap[filter] = isChecked
+                                }
+                            )
+                        }
+                        stringResource(R.string.habitat) -> {
+                            HabitatFilterItem(
+                                habitatName = filter,
+                                isSelected = filterMap[filter] == true,
+                                onClick = { isChecked ->
+                                    activity?.trackButtonClick("$filter : $isChecked")
+                                    filterMap[filter] = isChecked
+                                }
+                            )
+                        }
+                        stringResource(R.string.color) -> {
+                            ColorFilterItem(
+                                colorName = filter,
+                                isSelected = filterMap[filter] == true,
+                                onClick = { isChecked ->
+                                    activity?.trackButtonClick("$filter : $isChecked")
+                                    filterMap[filter] = isChecked
+                                }
+                            )
+                        }
+                        else -> {
+                            DefaultFilterItem(
+                                label = filter,
+                                isSelected = filterMap[filter] == true,
+                                onClick = { isChecked ->
+                                    activity?.trackButtonClick("$filter : $isChecked")
+                                    filterMap[filter] = isChecked
+                                }
+                            )
+                        }
                     }
                 }
             }
@@ -369,8 +399,150 @@ fun ContentBottomSheet(
 }
 
 private fun clearAllFilter(filterMap: SnapshotStateMap<String, Boolean>) {
-    filterMap.keys.toList().forEach {
-        filterMap[it] = false
+    filterMap.keys.forEach { key ->
+        filterMap[key] = false
+    }
+}
+
+
+@Composable
+fun TypeFilterItem(typeName: String, isSelected: Boolean, onClick: (Boolean) -> Unit) {
+    val context = LocalContext.current
+    Box(
+        modifier = Modifier
+            .clip(RoundedCornerShape(100))
+            .background(
+               if (isSelected) typeName.getDrawableIcoColor() 
+               else MaterialTheme.colorScheme.secondary.copy(alpha = 0.1f)
+            )
+            .border(
+                width = 2.dp,
+                color = if (isSelected) typeName.getDrawableIcoColor() else Color.Transparent,
+                shape = RoundedCornerShape(100)
+            )
+            .clickable { onClick(!isSelected) }
+            .padding(horizontal = 12.dp, vertical = 8.dp)
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Image(
+                painter = painterResource(id = typeName.getDrawableIco()),
+                contentDescription = typeName,
+                modifier = Modifier.size(24.dp)
+            )
+            Text(
+                text = typeName.getStringType(context),
+                color = if (isSelected) Color.White else MaterialTheme.colorScheme.onSecondary,
+                style = MaterialTheme.typography.bodySmall,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.weight(1f)
+            )
+            if (isSelected) {
+                Icon(
+                    imageVector = Icons.Default.Check,
+                    contentDescription = "Selected",
+                    tint = Color.White,
+                    modifier = Modifier.size(16.dp)
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun HabitatFilterItem(habitatName: String, isSelected: Boolean, onClick: (Boolean) -> Unit) {
+    val context = LocalContext.current
+    Box(
+        modifier = Modifier
+            .clip(RoundedCornerShape(12.dp))
+            .background(MaterialTheme.colorScheme.secondary.copy(alpha = if (isSelected) 0.3f else 0.1f))
+            .border(
+                width = 2.dp,
+                color = if (isSelected) MaterialTheme.colorScheme.primary else Color.Transparent,
+                shape = RoundedCornerShape(12.dp)
+            )
+            .clickable { onClick(!isSelected) }
+            .padding(8.dp)
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Image(
+                painter = painterResource(id = habitatName.getDrawableHabitat()),
+                contentDescription = habitatName,
+                modifier = Modifier.size(48.dp)
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = habitatName.getStringHabitat(context),
+                style = MaterialTheme.typography.bodySmall,
+                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                color = MaterialTheme.colorScheme.onSecondary
+            )
+        }
+    }
+}
+
+@Composable
+fun ColorFilterItem(colorName: String, isSelected: Boolean, onClick: (Boolean) -> Unit) {
+    Row(
+        modifier = Modifier
+            .clip(RoundedCornerShape(8.dp))
+            .background(MaterialTheme.colorScheme.secondary.copy(alpha = if (isSelected) 0.3f else 0.1f))
+            .border(
+                width = 1.dp,
+                color = if (isSelected) MaterialTheme.colorScheme.primary else Color.Transparent,
+                shape = RoundedCornerShape(8.dp)
+            )
+            .clickable { onClick(!isSelected) }
+            .padding(horizontal = 12.dp, vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Box(
+            modifier = Modifier
+                .size(20.dp)
+                .clip(RoundedCornerShape(4.dp))
+                .background(colorName.getParseColorByString())
+                .border(0.5.dp, Color.Gray, RoundedCornerShape(4.dp))
+        )
+        Spacer(modifier = Modifier.width(12.dp))
+        Text(
+            text = colorName.capitalize(),
+            modifier = Modifier.weight(1f),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSecondary
+        )
+        Checkbox(
+            checked = isSelected,
+            onCheckedChange = { onClick(it) },
+            modifier = Modifier.size(24.dp)
+        )
+    }
+}
+
+@Composable
+fun DefaultFilterItem(label: String, isSelected: Boolean, onClick: (Boolean) -> Unit) {
+    Row(
+        modifier = Modifier
+            .clip(RoundedCornerShape(8.dp))
+            .background(MaterialTheme.colorScheme.secondary.copy(alpha = 0.1f))
+            .clickable { onClick(!isSelected) }
+            .padding(horizontal = 12.dp, vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Checkbox(
+            checked = isSelected,
+            onCheckedChange = { onClick(it) }
+        )
+        Spacer(modifier = Modifier.width(8.dp))
+        Text(
+            text = label.capitalize(),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSecondary
+        )
     }
 }
 
