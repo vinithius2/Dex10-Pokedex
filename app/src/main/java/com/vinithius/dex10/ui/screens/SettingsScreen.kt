@@ -74,13 +74,15 @@ fun SettingsScreen(
         SectionHeader(stringResource(R.string.appearance))
 
         // Dark Mode
+        val effectiveDarkMode = if (isPremium) darkMode else AppPreferences.DARK_MODE_OFF
+        
         SettingItemHeader(
             icon = Icons.Default.Settings,
             title = stringResource(R.string.dark_mode),
             description = stringResource(R.string.dark_mode_desc)
         )
         DarkModeRadioGroup(
-            selected = darkMode,
+            selected = effectiveDarkMode,
             onSelect = { 
                 if (!isPremium && it != AppPreferences.DARK_MODE_OFF) {
                     premiumManager?.triggerUpsell()
@@ -101,7 +103,7 @@ fun SettingsScreen(
         // --- General Section ---
         SectionHeader(stringResource(R.string.general))
 
-        // Notifications
+        // Notifications (Persisted via AppPreferences)
         SettingToggleItem(
             icon = Icons.Default.Notifications,
             title = stringResource(R.string.notifications),
@@ -131,32 +133,6 @@ fun SettingsScreen(
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // --- Developer Options (Debug Only) ---
-        if (com.vinithius.dex10.BuildConfig.DEBUG) {
-            SectionHeader("Developer Options 🛠️")
-
-            SettingToggleItem(
-                icon = Icons.Default.Lock, // Or a dev icon
-                title = "Force Premium Status",
-                description = if (isPremium) "Premium is ON (Debug or Real)" else "Premium is OFF",
-                checked = isPremium,
-                onCheckedChange = { isEnabled ->
-                    if (isEnabled) {
-                         premiumManager?.setDebugPremiumStatus(true)
-                    } else {
-                         premiumManager?.setDebugPremiumStatus(false)
-                    }
-                }
-            )
-            
-             SettingClickableItem(
-                icon = Icons.Default.Share, // Refresh icon
-                title = "Reset Premium Override",
-                description = "Clear override and check real status",
-                onClick = { premiumManager?.clearDebugPremiumStatus() }
-            )
-             Spacer(modifier = Modifier.height(24.dp))
-        }
     }
 }
 

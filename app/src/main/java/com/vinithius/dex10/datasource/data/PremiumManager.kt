@@ -244,37 +244,7 @@ class PremiumManager(
         return false
     }
 
-    // --- DEBUG FEATURES ---
-
-    private val _debugOverride = MutableStateFlow<Boolean?>(null)
-
-    /**
-     * Set a debug override for premium status.
-     * Only works in DEBUG builds (though logic here is generic, UI should restrict).
-     */
-    fun setDebugPremiumStatus(isPremium: Boolean) {
-        _debugOverride.value = isPremium
-        _isPremium.value = isPremium
-        Log.d(TAG, "Debug override set to: $isPremium")
-    }
-
-    /**
-     * Clear debug override and restore actual status.
-     */
-    fun clearDebugPremiumStatus() {
-        _debugOverride.value = null
-        // Restore from prefs immediately
-        _isPremium.value = encryptedPrefs.getBoolean(KEY_IS_PREMIUM, false)
-        queryExistingPurchases() // Refresh actual status
-        Log.d(TAG, "Debug override cleared")
-    }
-
     private fun updatePremiumStatus(isPremium: Boolean) {
-        // If debug override is active, do not overwrite with actual status
-        if (_debugOverride.value != null) {
-            Log.d(TAG, "Ignoring actual status update ($isPremium) due to debug override (${_debugOverride.value})")
-            return
-        }
         encryptedPrefs.edit().putBoolean(KEY_IS_PREMIUM, isPremium).apply()
         _isPremium.value = isPremium
     }

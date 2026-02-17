@@ -91,26 +91,47 @@ fun UpsellSheetContent(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .verticalScroll(scrollState)
-            .padding(horizontal = 24.dp)
-            .padding(bottom = 40.dp, top = 8.dp),
+            .padding(top = 8.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Header Section
-        HeaderSection()
+        // Scrollable Content
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f, fill = false)
+                .verticalScroll(scrollState)
+                .padding(horizontal = 24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            // Header Section
+            HeaderSection()
 
-        Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(32.dp))
 
-        // Comparison Table
-        ComparisonTable()
+            // Comparison Table
+            ComparisonTable()
 
-        Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(32.dp))
+        }
 
-        // Action Section
-        ActionSection(
-            premiumPrice = premiumPrice,
-            onPurchaseClick = onPurchaseClick,
-        )
+        // Fixed Action Section
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 24.dp)
+                .padding(bottom = 24.dp, top = 8.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            HorizontalDivider(
+                modifier = Modifier.padding(bottom = 16.dp),
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f)
+            )
+            
+            ActionSection(
+                premiumPrice = premiumPrice,
+                onPurchaseClick = onPurchaseClick,
+            )
+        }
     }
 }
 
