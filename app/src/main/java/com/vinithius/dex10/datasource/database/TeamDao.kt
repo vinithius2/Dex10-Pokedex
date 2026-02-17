@@ -7,6 +7,7 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Update
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface TeamDao {
@@ -19,6 +20,8 @@ interface TeamDao {
     @Delete
     suspend fun deleteTeam(team: TeamEntity)
 
+
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertMember(member: TeamMemberEntity)
 
@@ -28,20 +31,25 @@ interface TeamDao {
     @Delete
     suspend fun deleteMember(member: TeamMemberEntity)
 
+    // ADICIONE ISTO: Deleta direto pela chave primária (Infalível)
+    @Query("DELETE FROM team WHERE id = :id")
+    suspend fun deleteTeamById(id: Int): Int
+
     @Query("DELETE FROM team_member WHERE team_id = :teamId")
     suspend fun clearMembers(teamId: Int)
 
     @Transaction
     @Query("SELECT * FROM team ORDER BY created_at DESC")
-    suspend fun getAllTeamsWithMembers(): List<TeamWithMembers>
+    fun getAllTeamsWithMembers(): Flow<List<TeamWithMembers>>
 
     @Transaction
     @Query("SELECT * FROM team WHERE id = :id")
-    suspend fun getTeamWithMembers(id: Int): TeamWithMembers?
+    fun getTeamWithMembers(id: Int): Flow<TeamWithMembers?>
 
     @Query("SELECT COUNT(*) FROM team")
     suspend fun getTeamCount(): Int
 
     @Query("SELECT COUNT(*) FROM team_member WHERE team_id = :teamId")
     suspend fun getMemberCount(teamId: Int): Int
+
 }

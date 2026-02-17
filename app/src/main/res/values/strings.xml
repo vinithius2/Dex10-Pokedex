@@ -236,53 +236,153 @@
     <string name="go_premium">Go Premium (No Ads)</string>
 
     <!-- Premium Comparison -->
-    <string name="premium_upsell_title">Torne-se um Mestre</string>
-    <string name="premium_upsell_subtitle">Acesso vitalício por um pagamento único</string>
-    <string name="payment_one_time">Pagamento Único</string>
+    <string name="premium_upsell_title">Become a Master</string>
+    <string name="premium_upsell_subtitle">Lifetime access for a one-time payment</string>
+    <string name="payment_one_time">One-time Payment</string>
     
-    <string name="plan_trainer_header">Treinador</string>
-    <string name="plan_trainer_sub">Grátis para sempre</string>
-    <string name="plan_master_header">Mestre</string>
-    <string name="plan_master_sub">Acesso Vitalício 🏆</string>
+    <string name="plan_trainer_header">Trainer</string>
+    <string name="plan_trainer_sub">Free forever</string>
+    <string name="plan_master_header">Master</string>
+    <string name="plan_master_sub">Lifetime Access 🏆</string>
 
-    <string name="feature_ads">Publicidade</string>
+    <string name="feature_ads">Advertising</string>
     <string name="feature_team_builder">Team Builder</string>
-    <string name="feature_favorites">Favoritos</string>
-    <string name="feature_appearance">Aparência</string>
-    <string name="feature_security">Segurança</string>
-    <string name="feature_updates">Atualizações</string>
+    <string name="feature_favorites">Favorites</string>
+    <string name="feature_appearance">Appearance</string>
+    <string name="feature_security">Security</string>
+    <string name="feature_updates">Updates</string>
 
-    <string name="val_trainer_ads">Com Anúncios</string>
-    <string name="val_master_ads">100% Livre</string>
-    <string name="val_trainer_teams">Apenas 1 Time</string>
-    <string name="val_master_teams">Ilimitados</string>
-    <string name="val_trainer_favs">Limite de 50</string>
-    <string name="val_master_favs">Ilimitado</string>
-    <string name="val_trainer_appearance">Tema Claro</string>
-    <string name="val_master_appearance">Dark Mode</string>
-    <string name="val_trainer_security">No Celular</string>
-    <string name="val_master_security">Backup Drive ☁️</string>
-    <string name="val_trainer_updates">Padrão</string>
-    <string name="val_master_updates">Antecipado</string>
+    <string name="val_trainer_ads">With Ads</string>
+    <string name="val_master_ads">100% Free</string>
+    <string name="val_trainer_teams">Only 1 Team</string>
+    <string name="val_master_teams">Unlimited</string>
+    <string name="val_trainer_favs">Limit of 50</string>
+    <string name="val_master_favs">Unlimited</string>
+    <string name="val_trainer_appearance">Light Theme</string>
+    <string name="val_master_appearance">Dark &amp; Light</string>
+    <string name="species_clause_warning">Species Clause: Duplicate Pokémon detected</string>
+    <string name="item_clause_warning">Item Clause: Duplicate held items detected</string>
+    <string name="team_invalid_title">Team Validation Issues</string>
+    <string name="val_trainer_security">On Phone</string>
+    <string name="val_master_security">Drive Backup ☁️</string>
+    <string name="val_trainer_updates">Standard</string>
+    <string name="val_master_updates">Early Access</string>
 
-    <string name="cta_upgrade">Desbloquear Agora — %1$s</string>
-    <string name="footer_google_play">Pagamento único e seguro via Google Play.</string>
+    <string name="cta_upgrade">Unlock Now — %1$s</string>
+    <string name="footer_google_play">One-time and secure payment via Google Play.</string>
 
     <!-- Team Builder Advanced -->
-    <string name="format_label">Formato:</string>
+    <string name="format_label">Format:</string>
     <string name="format_1v1">1v1 (Singles)</string>
     <string name="format_2v2">2v2 (Doubles)</string>
     <string name="format_3v3">3v3 (VGC Short)</string>
     <string name="format_6v6">6v6 (Full Team)</string>
-    <string name="team_notes_label">Notas de Estratégia</string>
-    <string name="team_notes_placeholder">Escreva aqui sua estratégia, itens-chave ou counters...</string>
-    <string name="strategy_tools">Ferramentas de Estratégia</string>
-    <string name="type_coverage_title">Cobertura de Tipos</string>
-    <string name="avg_stats_title">Média de Atributos do Time</string>
+    <string name="team_notes_label">Strategy Notes</string>
+    <string name="team_notes_placeholder">Write your strategy, key items or counters here...</string>
+    <string name="strategy_tools">Strategy Tools</string>
+    <string name="type_coverage_title">Type Coverage</string>
+    <string name="avg_stats_title">Team Average Stats</string>
     <string name="stat_hp">HP</string>
     <string name="stat_atk">ATK</string>
     <string name="stat_def">DEF</string>
     <string name="stat_satk">SATK</string>
     <string name="stat_sdef">SDEF</string>
     <string name="stat_spe">SPE</string>
+
+    <!-- New Strings from UI scan -->
+    <string name="overview">Overview</string>
+    <string name="strategy">Strategy</string>
+    <string name="moves">Moves</string>
+    <string name="item">Item</string>
+    <string name="none">None</string>
+    <string name="loading_dots">Loading…</string>
+    <string name="locked">Locked</string>
+    <string name="delete_team">Delete Team</string>
+    <string name="delete_team_confirm">Are you sure you want to delete the team \"%1$s\"? This action cannot be undone.</string>
+    <string name="delete">Delete</string>
+    <string name="new_team">New Team</string>
+    <string name="team_name">Team Name</string>
+    <string name="create">Create</string>
+    <string name="no_teams_yet">No teams yet. Create one!</string>
+    <string name="add_pokemon">Add Pokemon</string>
+    <string name="defensive_weaknesses">Defensive Weaknesses</string>
+    <string name="defensive_resistances">Defensive Resistances</string>
+    <string name="save_notes">Save Notes</string>
+    <string name="edit_format">Edit Format</string>
+
+    <!-- Nature Selector -->
+    <string name="select_nature">Select Nature</string>
+    <string name="nature">Nature</string>
+    <string name="search_dots">Search…</string>
+    <string name="neutral">Neutral</string>
+    <string name="beneficial">Beneficial</string>
+
+    <!-- IV/EV Editor -->
+    <string name="ivs">IVs</string>
+    <string name="evs">EVs</string>
+    <string name="iv_title">Individual Values (0-31)</string>
+    <string name="ev_title">Effort Values (0-252)</string>
+    <string name="max_all">Max All (31)</string>
+    <string name="min_all">Min All (0)</string>
+    <string name="common_spreads">Common Spreads:</string>
+    <string name="physical">Physical</string>
+    <string name="special">Special</string>
+    <string name="wall">Wall</string>
+    <string name="final_stats_title">Final Stats (Lv.100)</string>
+    
+    <!-- Stats Full Names -->
+    <string name="stat_hp_full">HP</string>
+    <string name="stat_atk_full">Attack</string>
+    <string name="stat_def_full">Defense</string>
+    <string name="stat_spa_full">Sp. Atk</string>
+    <string name="stat_spd_full">Sp. Def</string>
+    <string name="stat_spe_full">Speed</string>
+
+    <!-- Pokemon Picker -->
+    <string name="select_pokemon">Select Pokemon</string>
+
+    <!-- Move Selection -->
+    <string name="choose_move">Choose a move</string>
+    <string name="search_moves">Search moves…</string>
+    <string name="all">All</string>
+    <string name="by_level">By Level</string>
+    <string name="by_tm">By TM</string>
+    <string name="by_egg">By Egg</string>
+    <string name="by_tutor">By Tutor</string>
+    <string name="other">Other</string>
+    <string name="no_moves_found">No moves found</string>
+    <string name="search_hint">Try changing the filter or search term.</string>
+
+    <!-- Edit Member Sheet -->
+    <string name="edit_pokemon_details">Edit Pokemon Details</string>
+    <string name="nickname_label">Nickname</string>
+    <string name="nickname_placeholder">Enter nickname</string>
+    <string name="ability_label">Ability</string>
+    <string name="held_item_label">Held Item</string>
+    <string name="held_item_placeholder">e.g., Life Orb, Leftovers</string>
+    <string name="stats_title">Stats (IVs/EVs)</string>
+    <string name="hide_stats_editor">Hide Stats Editor</string>
+    <string name="edit_stats">Edit IVs/EVs</string>
+    <string name="moveset_title">Moveset</string>
+    <string name="move_slot_label">Move %1$d</string>
+    <string name="tap_to_select">Tap to select</string>
+    <string name="save_changes">Save Changes</string>
+    <string name="remove_from_team">Remove Pokemon from Team</string>
+    <string name="remove_confirm_title">Remove from Team</string>
+    <string name="remove_confirm_msg">Are you sure you want to remove %1$s?</string>
+
+    <!-- Team Builder Info Dialog -->
+    <string name="info_title">How does Team Builder work?</string>
+    <string name="info_subtitle">Build competitive teams like a pro!</string>
+    <string name="info_base_stats_title">Base Stats</string>
+    <string name="info_base_stats_desc">Fixed values for each Pokémon species (e.g., Charizard has higher Speed than Blastoise). It is the starting point.</string>
+    <string name="info_ivs_title">IVs (Individual Values)</string>
+    <string name="info_ivs_desc">The Pokémon\'s \"DNA\". Ranges from 0 to 31 for each stat. In competitive battles, 31 (max) is used to ensure best performance, except in specific cases (e.g., 0 Attack to avoid Foul Play damage).</string>
+    <string name="info_evs_title">EVs (Effort Values)</string>
+    <string name="info_evs_desc">Points gained from training. You have 510 total points to distribute, with a maximum of 252 in a single stat. Use this to specialize your Pokémon (e.g., maximize Speed and Attack).</string>
+    <string name="info_nature_title">Nature</string>
+    <string name="info_nature_desc">The Pokémon\'s personality. Increases one stat by 10% (+) and decreases another by 10% (-). Choose a Nature that increases your Pokémon\'s strong point and decreases a stat it doesn\'t use.</string>
+    <string name="got_it">Got it</string>
+    <string name="my_teams">My Teams</string>
+    <string name="team_details">Team Details</string>
 </resources>

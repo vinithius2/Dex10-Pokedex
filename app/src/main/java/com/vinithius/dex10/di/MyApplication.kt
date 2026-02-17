@@ -12,6 +12,7 @@ import com.vinithius.dex10.ui.viewmodel.PokemonViewModel
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import org.koin.android.ext.koin.androidContext
+import org.koin.androidx.viewmodel.dsl.viewModel
 import org.koin.dsl.module
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
@@ -31,7 +32,7 @@ val repositoryDataModule = module {
 
 val viewModelModule = module {
     single { PokemonViewModel(get(), get()) }
-    single { com.vinithius.dex10.ui.viewmodel.TeamViewModel(get(), get(), get()) }
+    viewModel { com.vinithius.dex10.ui.viewmodel.TeamViewModel(get(), get(), get()) }
 }
 
 val appPreferencesModule = module {

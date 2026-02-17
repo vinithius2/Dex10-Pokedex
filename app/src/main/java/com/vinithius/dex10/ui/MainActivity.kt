@@ -445,10 +445,6 @@ fun MainScreen(
                 premiumManager?.dismissUpsell()
                 premiumManager?.launchPurchaseFlow(activity)
             },
-            onRestoreClick = {
-                premiumManager?.dismissUpsell()
-                premiumManager?.restorePurchases()
-            }
         )
     }
 
@@ -749,7 +745,7 @@ private fun GetTopBar(
         TopAppBar(
             title = { 
                 Text(
-                    text = if (currentRoute?.startsWith("teamDetail") == true) "Team Details" else "My Teams",
+                    text = if (currentRoute?.startsWith("teamDetail") == true) stringResource(R.string.team_details) else stringResource(R.string.my_teams),
                     color = Color.White
                 )
             },
@@ -1024,7 +1020,7 @@ private fun DrawerContent(
         // Team Builder
         NavigationDrawerItem(
             icon = { Icon(Icons.Default.Add, contentDescription = null) },
-            label = { Text("My Teams") },
+            label = { Text(stringResource(R.string.my_teams)) },
             selected = false,
             onClick = {
                 onCloseDrawer()

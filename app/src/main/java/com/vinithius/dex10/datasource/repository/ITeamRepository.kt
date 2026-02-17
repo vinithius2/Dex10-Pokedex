@@ -3,10 +3,11 @@ package com.vinithius.dex10.datasource.repository
 import com.vinithius.dex10.datasource.database.TeamEntity
 import com.vinithius.dex10.datasource.database.TeamMemberEntity
 import com.vinithius.dex10.datasource.database.TeamWithMembers
+import kotlinx.coroutines.flow.Flow
 
 interface ITeamRepository {
-    suspend fun getAllTeams(): List<TeamWithMembers>
-    suspend fun getTeam(id: Int): TeamWithMembers?
+    fun getAllTeams(): Flow<List<TeamWithMembers>>
+    fun getTeam(id: Int): Flow<TeamWithMembers?>
     suspend fun createTeam(name: String): Long
     suspend fun updateTeam(team: TeamEntity)
     suspend fun deleteTeam(team: TeamEntity)

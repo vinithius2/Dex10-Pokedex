@@ -8,8 +8,10 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.vinithius.dex10.R
 import com.vinithius.dex10.datasource.model.Nature
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -22,16 +24,19 @@ fun NatureSelector(
     var expanded by remember { mutableStateOf(false) }
     var searchQuery by remember { mutableStateOf("") }
     
+    val selectNatureLabel = stringResource(R.string.select_nature)
+    val natureLabel = stringResource(R.string.nature)
+    
     ExposedDropdownMenuBox(
         expanded = expanded,
         onExpandedChange = { expanded = !expanded },
         modifier = modifier
     ) {
         OutlinedTextField(
-            value = selectedNature?.displayName ?: "Select Nature",
+            value = selectedNature?.displayName ?: selectNatureLabel,
             onValueChange = {},
             readOnly = true,
-            label = { Text("Nature") },
+            label = { Text(natureLabel) },
             trailingIcon = {
                 Column(horizontalAlignment = Alignment.End) {
                     ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
@@ -57,14 +62,14 @@ fun NatureSelector(
             OutlinedTextField(
                 value = searchQuery,
                 onValueChange = { searchQuery = it },
-                placeholder = { Text("Search...") },
+                placeholder = { Text(stringResource(R.string.search)) },
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 8.dp),
                 singleLine = true
             )
             
-            Divider()
+            HorizontalDivider()
             
             val filteredNatures = Nature.values().filter {
                 it.displayName.contains(searchQuery, ignoreCase = true)
@@ -76,7 +81,7 @@ fun NatureSelector(
                 DropdownMenuItem(
                     text = {
                         Text(
-                            "Neutral",
+                            stringResource(R.string.neutral),
                             style = MaterialTheme.typography.labelSmall,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.primary
@@ -105,7 +110,7 @@ fun NatureSelector(
                 DropdownMenuItem(
                     text = {
                         Text(
-                            "Beneficial",
+                            stringResource(R.string.beneficial),
                             style = MaterialTheme.typography.labelSmall,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.primary
@@ -159,7 +164,7 @@ fun NatureSelectorCompact(
             value = selectedNature?.displayName ?: "",
             onValueChange = {},
             readOnly = true,
-            placeholder = { Text("Nature") },
+            placeholder = { Text(stringResource(R.string.nature)) },
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
             modifier = Modifier.menuAnchor().fillMaxWidth(),
             singleLine = true

@@ -14,8 +14,10 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.*
+import com.vinithius.dex10.R
 import com.vinithius.dex10.ui.components.AppButton
 import com.vinithius.dex10.ui.components.ButtonVariant
 import com.vinithius.dex10.ui.components.IVEVEditor
@@ -88,7 +90,7 @@ fun EditMemberSheet(
                 .verticalScroll(rememberScrollState())
         ) {
             Text(
-                "Edit Pokemon Details", 
+                stringResource(R.string.edit_pokemon_details), 
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold
             )
@@ -97,8 +99,8 @@ fun EditMemberSheet(
             OutlinedTextField(
                 value = nickname,
                 onValueChange = { nickname = it },
-                label = { Text("Nickname") },
-                placeholder = { Text(pokemonDetails?.pokemon?.name ?: "Enter nickname") },
+                label = { Text(stringResource(R.string.nickname_label)) },
+                placeholder = { Text(pokemonDetails?.pokemon?.name ?: stringResource(R.string.nickname_placeholder)) },
                 modifier = Modifier.fillMaxWidth()
             )
             
@@ -114,7 +116,7 @@ fun EditMemberSheet(
                 OutlinedTextField(
                     value = ability,
                     onValueChange = { ability = it },
-                    label = { Text("Ability") },
+                    label = { Text(stringResource(R.string.ability_label)) },
                     readOnly = abilities.isNotEmpty(),
                     trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = abilityExpanded) },
                     modifier = Modifier.menuAnchor().fillMaxWidth()
@@ -151,8 +153,8 @@ fun EditMemberSheet(
             OutlinedTextField(
                 value = item,
                 onValueChange = { item = it },
-                label = { Text("Held Item") },
-                placeholder = { Text("e.g., Life Orb, Leftovers") },
+                label = { Text(stringResource(R.string.held_item_label)) },
+                placeholder = { Text(stringResource(R.string.held_item_placeholder)) },
                 modifier = Modifier.fillMaxWidth()
             )
             
@@ -173,14 +175,14 @@ fun EditMemberSheet(
                         verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
                     ) {
                         Text(
-                            "Stats (IVs/EVs)", 
+                            stringResource(R.string.stats_title), 
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold
                         )
                         IconButton(onClick = { showInfoDialog = true }) {
                             Icon(
                                 imageVector = androidx.compose.material.icons.Icons.Default.Info,
-                                contentDescription = "Info",
+                                contentDescription = stringResource(R.string.info_title),
                                 tint = MaterialTheme.colorScheme.primary
                             )
                         }
@@ -198,7 +200,7 @@ fun EditMemberSheet(
                         )
                         Spacer(modifier = Modifier.height(12.dp))
                         TextButton(onClick = { showStatsEditor = false }) {
-                            Text("Hide Stats Editor")
+                            Text(stringResource(R.string.hide_stats_editor))
                         }
                     } else {
                         // Summary view
@@ -215,7 +217,7 @@ fun EditMemberSheet(
                             onClick = { showStatsEditor = true },
                             modifier = Modifier.fillMaxWidth()
                         ) {
-                            Text("Edit IVs/EVs")
+                            Text(stringResource(R.string.edit_stats))
                         }
                     }
                 }
@@ -224,17 +226,22 @@ fun EditMemberSheet(
             Spacer(modifier = Modifier.height(16.dp))
             
             Text(
-                "Moveset", 
+                stringResource(R.string.moveset_title), 
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold
             )
             Spacer(modifier = Modifier.height(8.dp))
             
+            val move1Label = stringResource(R.string.move_slot_label, 1)
+            val move2Label = stringResource(R.string.move_slot_label, 2)
+            val move3Label = stringResource(R.string.move_slot_label, 3)
+            val move4Label = stringResource(R.string.move_slot_label, 4)
+            
             val moveFields = listOf(
-                Triple(move1, "Move 1", 1),
-                Triple(move2, "Move 2", 2),
-                Triple(move3, "Move 3", 3),
-                Triple(move4, "Move 4", 4)
+                Triple(move1, move1Label, 1),
+                Triple(move2, move2Label, 2),
+                Triple(move3, move3Label, 3),
+                Triple(move4, move4Label, 4)
             )
 
             moveFields.forEachIndexed { index, (moveValue, label, slot) ->
@@ -243,7 +250,7 @@ fun EditMemberSheet(
                         value = moveValue ?: "",
                         onValueChange = { },
                         label = { Text(label) },
-                        placeholder = { Text("Tap to select") },
+                        placeholder = { Text(stringResource(R.string.tap_to_select)) },
                         modifier = Modifier.fillMaxWidth(),
                         readOnly = true,
                         enabled = false, // Disable to prevent focus, we handle click on Box
@@ -265,7 +272,7 @@ fun EditMemberSheet(
             Spacer(modifier = Modifier.height(24.dp))
             
             AppButton(
-                text = "Save Changes",
+                text = stringResource(R.string.save_changes),
                 onClick = {
                     val updatedMember = member.copy(
                         nickname = nickname,
@@ -285,16 +292,6 @@ fun EditMemberSheet(
                 modifier = Modifier.fillMaxWidth()
             )
 
-            Spacer(modifier = Modifier.height(12.dp))
-
-            AppButton(
-                text = "Remove Pokemon from Team",
-                onClick = { showDeleteConfirm = true },
-                modifier = Modifier.fillMaxWidth(),
-                variant = ButtonVariant.Text,
-                containerColor = MaterialTheme.colorScheme.error
-            )
-            
             Spacer(modifier = Modifier.height(32.dp))
         }
 
@@ -323,8 +320,8 @@ fun EditMemberSheet(
         if (showDeleteConfirm) {
             AlertDialog(
                 onDismissRequest = { showDeleteConfirm = false },
-                title = { Text("Remove from Team") },
-                text = { Text("Are you sure you want to remove ${member.nickname ?: pokemonDetails?.pokemon?.name ?: "this Pokemon"}?") },
+                title = { Text(stringResource(R.string.remove_confirm_title)) },
+                text = { Text(stringResource(R.string.remove_confirm_msg, member.nickname ?: pokemonDetails?.pokemon?.name ?: "this Pokemon")) },
                 confirmButton = {
                     TextButton(
                         onClick = {
@@ -333,12 +330,12 @@ fun EditMemberSheet(
                             showDeleteConfirm = false
                         }
                     ) {
-                        Text("Remove", color = MaterialTheme.colorScheme.error)
+                        Text(stringResource(R.string.delete), color = MaterialTheme.colorScheme.error)
                     }
                 },
                 dismissButton = {
                     TextButton(onClick = { showDeleteConfirm = false }) {
-                        Text("Cancel")
+                        Text(stringResource(R.string.cancel))
                     }
                 }
             )
@@ -351,7 +348,7 @@ fun TeamBuilderInfoDialog(onDismiss: () -> Unit) {
         onDismissRequest = onDismiss,
         title = {
             Text(
-                text = "Como funciona o Team Builder?",
+                text = stringResource(R.string.info_title),
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold
             )
@@ -359,7 +356,7 @@ fun TeamBuilderInfoDialog(onDismiss: () -> Unit) {
         text = {
             Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
                 Text(
-                    text = "Monte times competitivos como um profissional!",
+                    text = stringResource(R.string.info_subtitle),
                     style = MaterialTheme.typography.bodyMedium,
                     fontWeight = FontWeight.Medium,
                     color = MaterialTheme.colorScheme.primary
@@ -367,26 +364,26 @@ fun TeamBuilderInfoDialog(onDismiss: () -> Unit) {
                 Spacer(modifier = Modifier.height(16.dp))
                 
                 InfoSection(
-                    title = "Base Stats (Status Base)",
-                    desc = "Valores fixos de cada espécie de Pokémon (ex: Charizard tem Speed maior que Blastoise). É o ponto de partida."
+                    title = stringResource(R.string.info_base_stats_title),
+                    desc = stringResource(R.string.info_base_stats_desc)
                 )
                 InfoSection(
-                    title = "IVs (Individual Values)",
-                    desc = "O 'DNA' do Pokémon. Varia de 0 a 31 para cada status. Em batalhas competitivas, usa-se 31 (máximo) para garantir o melhor desempenho, exceto em casos específicos (ex: 0 Attack para evitar dano de Foul Play)."
+                    title = stringResource(R.string.info_ivs_title),
+                    desc = stringResource(R.string.info_ivs_desc)
                 )
                 InfoSection(
-                    title = "EVs (Effort Values)",
-                    desc = "Pontos ganhos com o treinamento. Você tem 510 pontos totais para distribuir, com máximo de 252 em um único status. Use isso para especializar seu Pokémon (ex: maximizar Speed e Attack)."
+                    title = stringResource(R.string.info_evs_title),
+                    desc = stringResource(R.string.info_evs_desc)
                 )
                 InfoSection(
-                    title = "Nature (Natureza)",
-                    desc = "A personalidade do Pokémon. Aumenta um status em 10% (+) e diminui outro em 10% (-). Escolha uma Nature que aumente o ponto forte do seu Pokémon e diminua um status que ele não usa."
+                    title = stringResource(R.string.info_nature_title),
+                    desc = stringResource(R.string.info_nature_desc)
                 )
             }
         },
         confirmButton = {
             TextButton(onClick = onDismiss) {
-                Text("Entendi")
+                Text(stringResource(R.string.got_it))
             }
         }
     )

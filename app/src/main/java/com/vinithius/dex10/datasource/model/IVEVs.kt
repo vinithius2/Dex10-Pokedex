@@ -73,7 +73,7 @@ data class EVs(
         require(spa in 0..252) { "SPA EV must be between 0 and 252" }
         require(spd in 0..252) { "SPD EV must be between 0 and 252" }
         require(spe in 0..252) { "SPE EV must be between 0 and 252" }
-        require(total <= 510) { "Total EVs must not exceed 510 (current: $total)" }
+//        require(total <= 510) { "Total EVs must not exceed 510 (current: $total)" }
     }
 
     fun toJson(): String {
@@ -111,5 +111,32 @@ data class EVs(
         val WALL_PHYSICAL = EVs(hp = 252, atk = 0, def = 252, spa = 0, spd = 4, spe = 0)
         val WALL_SPECIAL = EVs(hp = 252, atk = 0, def = 4, spa = 0, spd = 252, spe = 0)
         val BULKY_ATTACKER = EVs(hp = 252, atk = 252, def = 4, spa = 0, spd = 0, spe = 0)
+    }
+
+    /**
+     * Retorna uma nova instância de EVs com o stat alterado, garantindo que o total não ultrapasse 510.
+     */
+    fun withStat(statName: String, newValue: Int): EVs {
+        val currentTotalWithoutStat = total - when (statName.lowercase()) {
+            "hp" -> hp
+            "atk" -> atk
+            "def" -> def
+            "spa" -> spa
+            "spd" -> spd
+            "spe" -> spe
+            else -> 0
+        }
+        val remaining = (510 - currentTotalWithoutStat).coerceAtLeast(0)
+        val clampedValue = newValue.coerceIn(0, remaining.coerceAtMost(252))
+
+        return when (statName.lowercase()) {
+            "hp" -> copy(hp = clampedValue)
+            "atk" -> copy(atk = clampedValue)
+            "def" -> copy(def = clampedValue)
+            "spa" -> copy(spa = clampedValue)
+            "spd" -> copy(spd = clampedValue)
+            "spe" -> copy(spe = clampedValue)
+            else -> this
+        }
     }
 }

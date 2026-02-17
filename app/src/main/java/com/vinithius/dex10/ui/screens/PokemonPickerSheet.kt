@@ -26,18 +26,14 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.*
+import com.vinithius.dex10.R
 import com.vinithius.dex10.extension.LoadGifWithCoil
 import com.vinithius.dex10.ui.viewmodel.PokemonViewModel
 import org.koin.androidx.compose.getViewModel
@@ -83,13 +79,13 @@ fun PokemonPickerSheet(
                 .fillMaxSize()
                 .padding(16.dp)
         ) {
-            Text("Select Pokemon", style = MaterialTheme.typography.titleLarge)
+            Text(stringResource(R.string.select_pokemon), style = MaterialTheme.typography.titleLarge)
             Spacer(modifier = Modifier.height(16.dp))
             
             OutlinedTextField(
                 value = searchQuery,
                 onValueChange = { searchQuery = it },
-                label = { Text("Search") },
+                label = { Text(stringResource(R.string.search)) },
                 leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true
@@ -103,7 +99,7 @@ fun PokemonPickerSheet(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 contentPadding = PaddingValues(bottom = 32.dp)
             ) {
-                items(items = pokemonList, key = { it.pokemon.id }) { pokemonWithTypes ->
+                items(items = pokemonList ?: emptyList(), key = { it.pokemon.id }) { pokemonWithTypes ->
                     Card(
                         modifier = Modifier
                             .height(120.dp)

@@ -57,6 +57,7 @@ fun SettingsScreen(
             .verticalScroll(rememberScrollState())
     ) {
         // --- Premium Section ---
+        /*
         if (premiumManager != null) {
             SectionHeader(stringResource(R.string.premium))
             SettingClickableItem(
@@ -67,7 +68,7 @@ fun SettingsScreen(
             )
             HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
         }
-
+        */
         // --- Appearance Section ---
         SectionHeader(stringResource(R.string.appearance))
 
@@ -181,7 +182,7 @@ private fun DarkModeRadioGroup(
     )
     Column(modifier = Modifier.padding(start = 56.dp)) {
         options.forEach { (value, label) ->
-            val isLocked = !isPremium && value != AppPreferences.DARK_MODE_SYSTEM
+            val isLocked = !isPremium && value != AppPreferences.DARK_MODE_OFF
             
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -220,7 +221,7 @@ private fun DarkModeRadioGroup(
                     Spacer(modifier = Modifier.width(8.dp))
                     Icon(
                         imageVector = Icons.Default.Lock,
-                        contentDescription = "Locked",
+                        contentDescription = stringResource(R.string.locked),
                         modifier = Modifier.size(16.dp),
                         tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
                     )

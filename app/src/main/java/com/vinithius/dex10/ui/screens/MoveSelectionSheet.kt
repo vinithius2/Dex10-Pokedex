@@ -13,9 +13,10 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import androidx.compose.ui.unit.*
+import com.vinithius.dex10.R
 import com.vinithius.dex10.components.TypeItem
 import com.vinithius.dex10.datasource.response.MoveDetailsResponse
 import com.vinithius.dex10.datasource.response.MoveResponse
@@ -39,7 +40,8 @@ fun MoveSelectionSheet(
     var moveDetails by remember { mutableStateOf<Map<String, MoveDetailsResponse>>(emptyMap()) }
     var searchQuery by remember { mutableStateOf("") }
     var isLoading by remember { mutableStateOf(true) }
-    var selectedGroup by remember { mutableStateOf("All") }
+    val allLabel = stringResource(R.string.all)
+    var selectedGroup by remember { mutableStateOf(allLabel) }
     
     val scope = rememberCoroutineScope()
 
@@ -81,7 +83,7 @@ fun MoveSelectionSheet(
                 .padding(horizontal = 16.dp)
         ) {
             Text(
-                "Choose a move",
+                stringResource(R.string.choose_move),
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.padding(bottom = 16.dp)
@@ -90,7 +92,7 @@ fun MoveSelectionSheet(
             OutlinedTextField(
                 value = searchQuery,
                 onValueChange = { searchQuery = it },
-                placeholder = { Text("Search moves...") },
+                placeholder = { Text(stringResource(R.string.search_moves)) },
                 modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp),
                 leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
                 shape = RoundedCornerShape(12.dp)
@@ -103,7 +105,13 @@ fun MoveSelectionSheet(
                     .padding(bottom = 12.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                listOf("All", "By Level", "By TM", "By Egg", "By Tutor").forEach { group ->
+                listOf(
+                    stringResource(R.string.all),
+                    stringResource(R.string.by_level),
+                    stringResource(R.string.by_tm),
+                    stringResource(R.string.by_egg),
+                    stringResource(R.string.by_tutor)
+                ).forEach { group ->
                     FilterChip(
                         selected = selectedGroup == group,
                         onClick = { selectedGroup = group },
@@ -121,16 +129,16 @@ fun MoveSelectionSheet(
                 val groupedMoves = moves?.groupBy { moveEntry ->
                     val learnMethod = moveEntry.version_group_details.firstOrNull()?.move_learn_method?.name ?: "unknown"
                     when {
-                        learnMethod.contains("level") -> "By Level"
-                        learnMethod.contains("machine") || learnMethod.contains("tm") -> "By TM"
-                        learnMethod.contains("egg") -> "By Egg"
-                        learnMethod.contains("tutor") -> "By Tutor"
-                        else -> "Other"
+                        learnMethod.contains("level") -> stringResource(R.string.by_level)
+                        learnMethod.contains("machine") || learnMethod.contains("tm") -> stringResource(R.string.by_tm)
+                        learnMethod.contains("egg") -> stringResource(R.string.by_egg)
+                        learnMethod.contains("tutor") -> stringResource(R.string.by_tutor)
+                        else -> stringResource(R.string.other)
                     }
                 } ?: emptyMap()
                 
                 // Filter by search and selected group
-                val displayGroups = if (selectedGroup == "All") {
+                val displayGroups = if (selectedGroup == stringResource(R.string.all)) {
                     groupedMoves
                 } else {
                     groupedMoves.filter { it.key == selectedGroup }
@@ -140,14 +148,14 @@ fun MoveSelectionSheet(
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             Text(
-                                "No moves found",
+                                stringResource(R.string.no_moves_found),
                                 style = MaterialTheme.typography.bodyLarge,
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                             Spacer(modifier = Modifier.height(8.dp))
                             Text(
-                                "Try changing the filter or search term.",
+                                stringResource(R.string.search_hint),
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
                             )
