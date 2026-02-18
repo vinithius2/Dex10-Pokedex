@@ -293,6 +293,9 @@
     <string name="overview">Overview</string>
     <string name="strategy">Strategy</string>
     <string name="moves">Moves</string>
+    <string name="variations_and_forms">Variations and Forms</string>
+    <string name="evolutions">Evolutions</string>
+    <string name="all_images">All Images</string>
     <string name="item">Item</string>
     <string name="none">None</string>
     <string name="loading_dots">Loading…</string>

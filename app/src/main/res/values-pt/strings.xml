@@ -73,6 +73,10 @@
     <string name="damage">Dano</string>
     <string name="encounters">Encontros</string>
     <string name="no_data">Sem dados</string>
+    <string name="moves">Movimentos</string>
+    <string name="variations_and_forms">Variações e formas</string>
+    <string name="evolutions">Evoluções</string>
+    <string name="all_images">Todas as imagens</string>
     <string name="eggs">Ovos</string>
     <string name="abilities">Habilidades</string>
     <string name="info">Informações</string>

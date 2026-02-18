@@ -45,8 +45,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.automirrored.filled.VolumeUp
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -57,9 +57,9 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -93,15 +93,12 @@ import coil.compose.rememberAsyncImagePainter
 import coil.decode.GifDecoder
 import coil.decode.ImageDecoderDecoder
 import coil.request.ImageRequest
-import com.google.android.gms.ads.nativead.NativeAd
 import com.valentinilk.shimmer.shimmer
 import com.vinithius.dex10.R
 import com.vinithius.dex10.admobbanners.AdAdvancedNative
 import com.vinithius.dex10.components.ErrorStatus
 import com.vinithius.dex10.components.TypeItem
 import com.vinithius.dex10.components.TypeItemShimmer
-import com.vinithius.dex10.extension.capitalize
-import com.vinithius.dex10.extension.getColorByString
 import com.vinithius.dex10.components.TypeListResponse
 import com.vinithius.dex10.datasource.mapper.fromDefaultToListType
 import com.vinithius.dex10.datasource.response.Pokemon
@@ -116,6 +113,7 @@ import com.vinithius.dex10.extension.getColorByString
 import com.vinithius.dex10.extension.getDrawableHabitat
 import com.vinithius.dex10.extension.getFlavorTextForLanguage
 import com.vinithius.dex10.extension.getHtmlCompat
+import com.vinithius.dex10.extension.getIdIntoUrl
 import com.vinithius.dex10.extension.getListEvolutions
 import com.vinithius.dex10.extension.getSpriteItems
 import com.vinithius.dex10.extension.getStringEggGroup
@@ -183,8 +181,15 @@ private fun DefaultLoadingComposable(title: String) {
 
 @Composable
 private fun SetAnalyticScreenName(pokemonName: String) {
-    com.vinithius.dex10.analytics.AnalyticsManager.logScreenView("pokemon_detail", "PokemonDetailScreen")
-    com.vinithius.dex10.analytics.AnalyticsManager.logEvent("view_pokemon", "pokemon_name", pokemonName)
+    com.vinithius.dex10.analytics.AnalyticsManager.logScreenView(
+        "pokemon_detail",
+        "PokemonDetailScreen"
+    )
+    com.vinithius.dex10.analytics.AnalyticsManager.logEvent(
+        "view_pokemon",
+        "pokemon_name",
+        pokemonName
+    )
 }
 
 @Composable
@@ -478,7 +483,33 @@ fun SharedTransitionScope.MainCard(
         PokemonArts(viewModel, pokemonDetail)
         PokemonChart(viewModel, color, pokemonDetail)
         PokemonIsABaby()
-        PokemonEvolution(navController, pokemonDetail)
+
+        val colorObj = color.getColorByString(isSystemInDarkTheme())
+
+        // Variations
+        val varieties = pokemonDetail?.specie?.varieties?.filter { !it.is_default }
+        if (!varieties.isNullOrEmpty()) {
+            SectionTitle(
+                title = stringResource(R.string.variations_and_forms),
+                color = colorObj,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 16.dp, bottom = 8.dp, start = 12.dp)
+            )
+            PokemonVariations(navController, pokemonDetail, viewModel)
+        }
+
+        // Evolutions
+        pokemonDetail?.evolution?.getListEvolutions()?.size?.takeIf { it > 0 }?.run {
+            SectionTitle(
+                title = stringResource(R.string.evolutions),
+                color = colorObj,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 16.dp, bottom = 8.dp, start = 12.dp)
+            )
+            PokemonEvolution(navController, pokemonDetail, viewModel)
+        }
 
         if (!isPremium) {
             AdAdvancedNative(
@@ -488,7 +519,7 @@ fun SharedTransitionScope.MainCard(
         }
 
         // Tabs
-        TabWithPagerExample(pokemonDetail, color, viewModel)
+        TabWithPagerExample(navController, pokemonDetail, color, viewModel)
     }
 }
 
@@ -701,6 +732,27 @@ fun SharedTransitionScope.MainCardLargeScreen(
         item(span = { GridItemSpan(maxLineSpan) }) {
             PokemonArts(viewModel, pokemonDetail)
         }
+        // Variations
+        val varieties = pokemonDetail?.specie?.varieties?.filter { !it.is_default }
+        if (!varieties.isNullOrEmpty()) {
+            item(span = { GridItemSpan(maxLineSpan) }) {
+                SectionTitle(
+                    title = stringResource(R.string.variations_and_forms),
+                    color = color.getColorByString(isSystemInDarkTheme())
+                )
+                PokemonVariations(navController, pokemonDetail, viewModel)
+            }
+        }
+
+        // Evolutions
+        item(span = { GridItemSpan(maxLineSpan) }) {
+            SectionTitle(
+                title = stringResource(R.string.evolutions),
+                color = color.getColorByString(isSystemInDarkTheme())
+            )
+            PokemonEvolution(navController, pokemonDetail, viewModel)
+        }
+
         // Ads
         if (!isPremium) {
             item(span = { GridItemSpan(maxLineSpan) }) {
@@ -710,18 +762,16 @@ fun SharedTransitionScope.MainCardLargeScreen(
                 )
             }
         }
-        item(span = { GridItemSpan(maxLineSpan) }) {
-            PokemonEvolution(navController, pokemonDetail)
-        }
         // Tabs full-width
         item(span = { GridItemSpan(maxLineSpan) }) {
-            TabWithPagerExample(pokemonDetail, color, viewModel)
+            TabWithPagerExample(navController, pokemonDetail, color, viewModel)
         }
     }
 }
 
 @Composable
 fun TabWithPagerExample(
+    navController: NavController?,
     pokemonDetail: Pokemon?,
     color: String,
     viewModel: PokemonViewModel = getViewModel(),
@@ -829,7 +879,7 @@ fun TabWithPagerExample(
 
                     4 -> {
                         activity?.trackButtonClick(tabTitles[4])
-                        PokemonEntries(pokemonDetail, viewModel)
+                        PokemonEntries(navController, pokemonDetail, viewModel)
                     }
 
                     5 -> {
@@ -1179,6 +1229,14 @@ private fun PokemonArts(
     viewModel: PokemonViewModel,
     pokemonDetail: Pokemon?,
 ) {
+    val color = viewModel.getPokemonColor()?.getColorByString(isSystemInDarkTheme()) ?: Color.Black
+    SectionTitle(
+        title = stringResource(R.string.all_images),
+        color = color,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 16.dp, bottom = 8.dp, start = 12.dp)
+    )
     var dataBottomSheet: SpriteItem? by remember { mutableStateOf(null) }
     val context = LocalContext.current
     val activity = getActivity()
@@ -1653,6 +1711,130 @@ private fun PokemonEvolution(
 }
 
 @Composable
+private fun PokemonVariations(
+    navController: NavController?,
+    pokemonDetail: Pokemon?,
+    viewModel: PokemonViewModel = getViewModel()
+) {
+    val activity = getActivity()
+
+    StateRequest(
+        viewModel = viewModel,
+
+        loading = {
+            Column(
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .padding(6.dp),
+            ) {
+                val listShimmer = listOf(1, 2, 3)
+
+                LazyRow(
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    itemsIndexed(listShimmer) { _, _ ->
+                        Card(
+                            modifier = Modifier
+                                .padding(8.dp)
+                                .shimmer(),
+                            shape = RoundedCornerShape(8.dp),
+                            elevation = CardDefaults.elevatedCardElevation(4.dp),
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(70.dp)
+                                    .shimmer(),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                CircularProgressIndicator(
+                                    color = Color.White,
+                                    modifier = Modifier.size(30.dp)
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        },
+
+        success = {
+            Column(
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .padding(6.dp),
+            ) {
+                val currentPokemonId = pokemonDetail?.id ?: 0
+                val color = viewModel.getPokemonColor()
+                    ?.getColorByString(isSystemInDarkTheme())
+                    ?: Color.Black
+
+                val varieties: List<Pair<Int, String>> =
+                    pokemonDetail?.specie?.varieties
+                        ?.filter { it.is_default == false }
+                        ?.mapNotNull { variety ->
+                            val id = variety.pokemon.url?.getIdIntoUrl()?.toIntOrNull()
+                            val name = variety.pokemon.name
+                            if (id != null && id > 0 && !name.isNullOrBlank()) id to name else null
+                        }
+                        ?: emptyList()
+
+                if (varieties.isEmpty()) return@Column
+
+                LazyRow(
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    itemsIndexed(varieties) { _, data ->
+                        val varietyId = data.first
+                        val varietyName = data.second
+
+                        Card(
+                            modifier = if (currentPokemonId == varietyId) {
+                                Modifier
+                                    .padding(8.dp)
+                                    .border(
+                                        width = 1.dp,
+                                        color = color,
+                                        shape = RoundedCornerShape(8.dp)
+                                    )
+                            } else {
+                                Modifier.padding(8.dp)
+                            },
+                            shape = RoundedCornerShape(8.dp),
+                            elevation = CardDefaults.elevatedCardElevation(4.dp),
+                            onClick = {
+                                if (currentPokemonId != varietyId) {
+                                    viewModel.setIdPokemon(varietyId)
+                                    navController?.navigate("pokemonDetail/$varietyId")
+                                }
+                                activity?.trackButtonClick(
+                                    "Variation: ${varietyName.replaceFirstChar { it.uppercase() }}"
+                                )
+                            }
+                        ) {
+                            val imageUrl =
+                                "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/$varietyId.png"
+
+                            Box(
+                                modifier = Modifier.size(70.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Image(
+                                    painter = rememberAsyncImagePainter(imageUrl),
+                                    contentDescription = varietyName,
+                                    modifier = Modifier.size(60.dp)
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        },
+
+        error = { /* Do nothing yet */ }
+    )
+}
+
+@Composable
 private fun GenericBox(
     isShimmer: Boolean = false,
     callComponent: @Composable () -> Unit
@@ -2007,6 +2189,7 @@ private fun PokemonAbilities(
 
 @Composable
 private fun PokemonEntries(
+    navController: NavController?,
     pokemonDetail: Pokemon?,
     viewModel: PokemonViewModel = getViewModel(),
 ) {
@@ -2026,6 +2209,9 @@ private fun PokemonEntries(
         success = {
             GenericBox {
                 pokemonDetail?.specie?.let { specie ->
+                    val color = viewModel.getPokemonColor()?.getColorByString(isSystemInDarkTheme())
+                        ?: Color.Black
+
                     specie.flavor_text_entries?.let { flavorTextEntries ->
                         flavorTextEntries.getFlavorTextForLanguage("en")?.run {
                             translateIfSupported(
@@ -2204,6 +2390,23 @@ fun LoadGifWithCoilToEvolution(
 
 // MOCKUP ////////////////////////////////////////////////////////////////////////////////////////
 
+@Composable
+private fun SectionTitle(
+    title: String,
+    color: Color,
+    modifier: Modifier = Modifier
+        .fillMaxWidth()
+        .padding(top = 16.dp, bottom = 8.dp)
+) {
+    Text(
+        text = title,
+        style = MaterialTheme.typography.titleLarge,
+        fontWeight = FontWeight.Bold,
+        color = color,
+        modifier = modifier
+    )
+}
+
 private fun getMockupPokemon(): Pokemon {
     return Pokemon(
         id = 1,
@@ -2306,14 +2509,17 @@ fun PokemonMoves(color: String, viewModel: PokemonViewModel) {
                                 fontWeight = FontWeight.Bold,
                                 color = pokemonColor
                             )
-                            val method = moveItem.version_group_details?.firstOrNull()?.move_learn_method?.name ?: "Unknown"
+                            val method =
+                                moveItem.version_group_details?.firstOrNull()?.move_learn_method?.name
+                                    ?: "Unknown"
                             Text(
                                 text = "Method: ${method.capitalize()}",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = Color.Gray
                             )
                         }
-                        val level = moveItem.version_group_details?.firstOrNull()?.level_learned_at ?: 0
+                        val level =
+                            moveItem.version_group_details?.firstOrNull()?.level_learned_at ?: 0
                         if (level > 0) {
                             Text(
                                 text = "Lvl $level",
