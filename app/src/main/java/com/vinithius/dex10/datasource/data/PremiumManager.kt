@@ -5,7 +5,11 @@ import android.content.Context
 import android.util.Log
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKeys
+import com.android.billingclient.api.BillingClient
+import com.android.billingclient.api.PendingPurchasesParams
 import com.android.billingclient.api.*
+import java.text.NumberFormat
+import java.util.Currency
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -80,6 +84,12 @@ class PremiumManager(
     private val _premiumPrice = MutableStateFlow<String?>(null)
     val premiumPrice: StateFlow<String?> = _premiumPrice.asStateFlow()
 
+    private val _premiumOriginalPrice = MutableStateFlow<String?>(null)
+    val premiumOriginalPrice: StateFlow<String?> = _premiumOriginalPrice.asStateFlow()
+
+    private val _discountPercent = MutableStateFlow<Int?>(null)
+    val discountPercent: StateFlow<Int?> = _discountPercent.asStateFlow()
+
     private val _coffeePrice = MutableStateFlow<String?>(null)
     val coffeePrice: StateFlow<String?> = _coffeePrice.asStateFlow()
 
@@ -89,9 +99,13 @@ class PremiumManager(
      * Initialize and connect the BillingClient.
      */
     fun setupBillingClient(activity: Activity) {
+        val pendingPurchasesParams = PendingPurchasesParams.newBuilder()
+            .enableOneTimeProducts()
+            .build()
+
         billingClient = BillingClient.newBuilder(context)
             .setListener(this)
-            .enablePendingPurchases()
+            .enablePendingPurchases(pendingPurchasesParams)
             .build()
 
         billingClient?.startConnection(object : BillingClientStateListener {
@@ -161,12 +175,19 @@ class PremiumManager(
         billingClient?.queryProductDetailsAsync(params) { billingResult, productDetailsList ->
             if (billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
                 productDetails = productDetailsList.find { it.productId == SKU_PREMIUM }
-                _premiumPrice.value = productDetails?.oneTimePurchaseOfferDetails?.formattedPrice
+                val offerDetails = productDetails?.oneTimePurchaseOfferDetails
+                _premiumPrice.value = offerDetails?.formattedPrice
 
+                // Calculate discount
+                // Feature disabled: Google Play Billing Library 7.0 (current build) does not expose getFullPriceMicros
+                // for one-time purchases, so we cannot calculate the original price/discount percentage.
+                _discountPercent.value = null
+                _premiumOriginalPrice.value = null
+                
                 coffeeProductDetails = productDetailsList.find { it.productId == SKU_COFFEE }
                 _coffeePrice.value = coffeeProductDetails?.oneTimePurchaseOfferDetails?.formattedPrice
 
-                Log.d(TAG, "Premium Price: ${_premiumPrice.value}, Coffee Price: ${_coffeePrice.value}")
+                Log.d(TAG, "Premium Price: ${_premiumPrice.value}")
             }
         }
     }

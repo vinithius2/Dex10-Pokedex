@@ -129,6 +129,7 @@ dependencies {
     implementation "com.google.mlkit:translate:17.0.3"
     implementation "androidx.core:core-splashscreen:1.0.1"
     implementation "androidx.compose.material3:material3-window-size-class"
+    implementation "androidx.graphics:graphics-path:1.1.0-beta01"
 
     testImplementation "junit:junit:4.13.2"
     testImplementation "org.json:json:20231013"
@@ -155,7 +156,7 @@ dependencies {
     testImplementation "androidx.test:core:1.5.0"
 
     // Google Play Billing
-    implementation 'com.android.billingclient:billing-ktx:6.2.1'
+    implementation 'com.android.billingclient:billing-ktx:7.0.0'
 
     amazonImplementation 'com.google.firebase:firebase-database-ktx:21.0.0'
     amazonImplementation 'com.google.firebase:firebase-crashlytics-ktx:19.3.0'

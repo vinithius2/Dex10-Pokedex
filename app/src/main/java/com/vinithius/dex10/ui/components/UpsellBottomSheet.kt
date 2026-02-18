@@ -58,6 +58,8 @@ fun UpsellBottomSheet(
     premiumManager: PremiumManager = get()
 ) {
     val premiumPrice by premiumManager.premiumPrice.collectAsState()
+    val premiumOriginalPrice by premiumManager.premiumOriginalPrice.collectAsState()
+    val discountPercent by premiumManager.discountPercent.collectAsState()
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -77,6 +79,8 @@ fun UpsellBottomSheet(
     ) {
         UpsellSheetContent(
             premiumPrice = premiumPrice,
+            premiumOriginalPrice = premiumOriginalPrice,
+            discountPercent = discountPercent,
             onPurchaseClick = onPurchaseClick,
         )
     }
@@ -85,6 +89,8 @@ fun UpsellBottomSheet(
 @Composable
 fun UpsellSheetContent(
     premiumPrice: String?,
+    premiumOriginalPrice: String? = null,
+    discountPercent: Int? = null,
     onPurchaseClick: () -> Unit,
 ) {
     val scrollState = rememberScrollState()
@@ -129,6 +135,8 @@ fun UpsellSheetContent(
             
             ActionSection(
                 premiumPrice = premiumPrice,
+                premiumOriginalPrice = premiumOriginalPrice,
+                discountPercent = discountPercent,
                 onPurchaseClick = onPurchaseClick,
             )
         }
@@ -142,6 +150,8 @@ fun UpsellBottomSheetPreview() {
         Surface(color = MaterialTheme.colorScheme.surface) {
             UpsellSheetContent(
                 premiumPrice = "R$36.99",
+                premiumOriginalPrice = "R$49.99",
+                discountPercent = 25,
                 onPurchaseClick = {},
             )
         }
@@ -326,12 +336,43 @@ private fun ComparisonRow(feature: String, trainerVal: String, mestreVal: String
 @Composable
 private fun ActionSection(
     premiumPrice: String?,
+    premiumOriginalPrice: String?,
+    discountPercent: Int?,
     onPurchaseClick: () -> Unit,
 ) {
     Column(
         modifier = Modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        if (premiumOriginalPrice != null && discountPercent != null) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.padding(bottom = 8.dp)
+            ) {
+                Text(
+                    text = premiumOriginalPrice,
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                    textDecoration = TextDecoration.LineThrough,
+                    fontWeight = FontWeight.Bold
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(MaterialTheme.colorScheme.tertiary)
+                        .padding(horizontal = 8.dp, vertical = 2.dp)
+                ) {
+                    Text(
+                        text = "-$discountPercent%",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onTertiary,
+                        fontWeight = FontWeight.ExtraBold
+                    )
+                }
+            }
+        }
+
         Button(
             onClick = onPurchaseClick,
             modifier = Modifier
