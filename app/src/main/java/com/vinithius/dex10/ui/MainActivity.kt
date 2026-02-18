@@ -939,7 +939,8 @@ private fun AppMenuPageDetail(
 ) {
     val activity = context as? MainActivity
     val requestState by viewModel.stateDetail.observeAsState(RequestStateDetail.Loading)
-    val isDetailFavorite by viewModel.isDetailFavorite.observeAsState(false)
+    val isDetailFavoriteNullable by viewModel.isDetailFavorite.observeAsState(null)
+    val isDetailFavorite = isDetailFavoriteNullable == true // Proteção contra null
     val idPokemon by viewModel.idPokemon.observeAsState()
     when (requestState) {
         is RequestStateDetail.Loading -> {

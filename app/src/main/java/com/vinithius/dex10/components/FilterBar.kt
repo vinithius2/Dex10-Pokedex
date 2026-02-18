@@ -50,6 +50,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.vinithius.dex10.R
@@ -65,6 +66,9 @@ import com.android.billingclient.api.*
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Shadow
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 
 @Composable
@@ -456,31 +460,41 @@ fun HabitatFilterItem(habitatName: String, isSelected: Boolean, onClick: (Boolea
     val context = LocalContext.current
     Box(
         modifier = Modifier
+            .fillMaxWidth()
+            .height(80.dp)
             .clip(RoundedCornerShape(12.dp))
-            .background(MaterialTheme.colorScheme.secondary.copy(alpha = if (isSelected) 0.3f else 0.1f))
             .border(
                 width = 2.dp,
-                color = if (isSelected) MaterialTheme.colorScheme.primary else Color.Transparent,
+                color = if (isSelected) Color.Red else Color.Transparent,
                 shape = RoundedCornerShape(12.dp)
             )
             .clickable { onClick(!isSelected) }
-            .padding(8.dp)
     ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.fillMaxWidth()
+        Image(
+            painter = painterResource(id = habitatName.getDrawableHabitat()),
+            contentDescription = null,
+            contentScale = ContentScale.Crop,
+            modifier = Modifier.matchParentSize()
+        )
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(8.dp),
+            contentAlignment = Alignment.Center
         ) {
-            Image(
-                painter = painterResource(id = habitatName.getDrawableHabitat()),
-                contentDescription = habitatName,
-                modifier = Modifier.size(48.dp)
-            )
-            Spacer(modifier = Modifier.height(4.dp))
             Text(
                 text = habitatName.getStringHabitat(context),
-                style = MaterialTheme.typography.bodySmall,
-                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
-                color = MaterialTheme.colorScheme.onSecondary
+                color = Color.White,
+                textAlign = TextAlign.Center,
+                style = TextStyle(
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Black,
+                    shadow = Shadow(
+                        color = Color.Black,
+                        offset = Offset(2f, 2f),
+                        blurRadius = 1f
+                    )
+                )
             )
         }
     }
