@@ -50,10 +50,11 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.vinithius.dex10.R
-import com.vinithius.dex10.extension.capitalize
+import com.vinithius.dex10.extension.*
 import com.vinithius.dex10.ui.MainActivity
 import com.vinithius.dex10.ui.viewmodel.PokemonViewModel
 import kotlinx.coroutines.CoroutineScope
@@ -61,6 +62,16 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.getViewModel
+import com.vinithius.dex10.datasource.data.AppPreferences.ViewMode
+import androidx.compose.runtime.collectAsState
+import com.android.billingclient.api.*
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.border
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Shadow
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 
 @Composable
 private fun getActivity(): MainActivity? {
@@ -82,9 +93,13 @@ fun GetFilterBar(
     var showBottomSheet by remember { mutableStateOf(false) }
     var labelTitle by remember { mutableStateOf(String()) }
     var loading by remember { mutableStateOf(false) }
+    var showViewModeSheet by remember { mutableStateOf(false) }
+
+    val isPremium by viewModel.premiumManager.isPremium.collectAsState(initial = false)
 
     val filterList = mutableListOf<String>().apply {
         add("first")
+        add("view_mode")
         addAll(filterMap.keys)
     }
 
@@ -101,8 +116,8 @@ fun GetFilterBar(
                             onCallBackClearFavoriteFilter.invoke()
                             activity?.trackButtonClick("Menu filter: Clear All")
                             loading = true
-                            filterMap.keys.toList().forEach {
-                                filterMap[it]?.let { clearMap ->
+                            filterMap.keys.forEach { key ->
+                                filterMap[key]?.let { clearMap ->
                                     clearAllFilter(clearMap)
                                 }
                             }
@@ -110,6 +125,21 @@ fun GetFilterBar(
                             CoroutineScope(Dispatchers.Main).launch {
                                 delay(500)
                                 loading = false
+                            }
+                        }
+                    )
+                }
+
+                "view_mode" -> {
+                    ViewHolderViewMode(
+                        viewModel = viewModel,
+                        onClick = {
+                            if (isPremium) {
+                                activity?.trackButtonClick("Menu filter: View Mode")
+                                showViewModeSheet = true
+                            } else {
+                                activity?.trackButtonClick("Menu filter: View Mode (Upsell)")
+                                viewModel.premiumManager.triggerUpsell()
                             }
                         }
                     )
@@ -160,6 +190,30 @@ fun GetFilterBar(
                 showBottomSheet = it
                 onCallBackFilter.invoke(filterMap)
             }
+        }
+    }
+
+    if (showViewModeSheet) {
+        ModalBottomSheet(
+            onDismissRequest = { showViewModeSheet = false },
+            sheetState = sheetState,
+            containerColor = MaterialTheme.colorScheme.secondary,
+            tonalElevation = 16.dp,
+            dragHandle = {
+                Box(
+                    modifier = Modifier
+                        .padding(8.dp)
+                        .width(50.dp)
+                        .height(6.dp)
+                        .clip(RoundedCornerShape(50))
+                        .background(MaterialTheme.colorScheme.onSecondary)
+                )
+            }
+        ) {
+            ViewModeBottomSheetContent(
+                viewModel = viewModel,
+                onClose = { showViewModeSheet = false }
+            )
         }
     }
 }
@@ -318,28 +372,53 @@ fun ContentBottomSheet(
             }
             Spacer(modifier = Modifier.height(16.dp))
             LazyVerticalGrid(
-                columns = GridCells.Fixed(2),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                columns = GridCells.Fixed(if (labelTitle == stringResource(R.string.type)) 2 else 2),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
                 modifier = Modifier.padding(8.dp)
             ) {
                 items(filterMap.keys.toList()) { filter ->
-                    Row(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(8.dp))
-                            .background(MaterialTheme.colorScheme.secondary.copy(alpha = 0.1f))
-                            .padding(horizontal = 16.dp, vertical = 8.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Checkbox(
-                            checked = filterMap[filter] == true,
-                            onCheckedChange = { isChecked ->
-                                activity?.trackButtonClick("$filter : $isChecked")
-                                filterMap[filter] = isChecked
-                            }
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(text = filter.capitalize(), style = MaterialTheme.typography.bodySmall)
+                    when (labelTitle) {
+                        stringResource(R.string.type) -> {
+                            TypeFilterItem(
+                                typeName = filter,
+                                isSelected = filterMap[filter] == true,
+                                onClick = { isChecked ->
+                                    activity?.trackButtonClick("$filter : $isChecked")
+                                    filterMap[filter] = isChecked
+                                }
+                            )
+                        }
+                        stringResource(R.string.habitat) -> {
+                            HabitatFilterItem(
+                                habitatName = filter,
+                                isSelected = filterMap[filter] == true,
+                                onClick = { isChecked ->
+                                    activity?.trackButtonClick("$filter : $isChecked")
+                                    filterMap[filter] = isChecked
+                                }
+                            )
+                        }
+                        stringResource(R.string.color) -> {
+                            ColorFilterItem(
+                                colorName = filter,
+                                isSelected = filterMap[filter] == true,
+                                onClick = { isChecked ->
+                                    activity?.trackButtonClick("$filter : $isChecked")
+                                    filterMap[filter] = isChecked
+                                }
+                            )
+                        }
+                        else -> {
+                            DefaultFilterItem(
+                                label = filter,
+                                isSelected = filterMap[filter] == true,
+                                onClick = { isChecked ->
+                                    activity?.trackButtonClick("$filter : $isChecked")
+                                    filterMap[filter] = isChecked
+                                }
+                            )
+                        }
                     }
                 }
             }
@@ -369,8 +448,160 @@ fun ContentBottomSheet(
 }
 
 private fun clearAllFilter(filterMap: SnapshotStateMap<String, Boolean>) {
-    filterMap.keys.toList().forEach {
-        filterMap[it] = false
+    filterMap.keys.forEach { key ->
+        filterMap[key] = false
+    }
+}
+
+
+@Composable
+fun TypeFilterItem(typeName: String, isSelected: Boolean, onClick: (Boolean) -> Unit) {
+    val context = LocalContext.current
+    Box(
+        modifier = Modifier
+            .clip(RoundedCornerShape(100))
+            .background(
+               if (isSelected) typeName.getDrawableIcoColor() 
+               else MaterialTheme.colorScheme.secondary.copy(alpha = 0.1f)
+            )
+            .border(
+                width = 2.dp,
+                color = if (isSelected) typeName.getDrawableIcoColor() else Color.Transparent,
+                shape = RoundedCornerShape(100)
+            )
+            .clickable { onClick(!isSelected) }
+            .padding(horizontal = 12.dp, vertical = 8.dp)
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Image(
+                painter = painterResource(id = typeName.getDrawableIco()),
+                contentDescription = typeName,
+                modifier = Modifier.size(24.dp)
+            )
+            Text(
+                text = typeName.getStringType(context),
+                color = if (isSelected) Color.White else MaterialTheme.colorScheme.onSecondary,
+                style = MaterialTheme.typography.bodySmall,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.weight(1f)
+            )
+            if (isSelected) {
+                Icon(
+                    imageVector = Icons.Default.Check,
+                    contentDescription = "Selected",
+                    tint = Color.White,
+                    modifier = Modifier.size(16.dp)
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun HabitatFilterItem(habitatName: String, isSelected: Boolean, onClick: (Boolean) -> Unit) {
+    val context = LocalContext.current
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(80.dp)
+            .clip(RoundedCornerShape(12.dp))
+            .border(
+                width = 2.dp,
+                color = if (isSelected) Color.Red else Color.Transparent,
+                shape = RoundedCornerShape(12.dp)
+            )
+            .clickable { onClick(!isSelected) }
+    ) {
+        Image(
+            painter = painterResource(id = habitatName.getDrawableHabitat()),
+            contentDescription = null,
+            contentScale = ContentScale.Crop,
+            modifier = Modifier.matchParentSize()
+        )
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(8.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = habitatName.getStringHabitat(context),
+                color = Color.White,
+                textAlign = TextAlign.Center,
+                style = TextStyle(
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Black,
+                    shadow = Shadow(
+                        color = Color.Black,
+                        offset = Offset(2f, 2f),
+                        blurRadius = 1f
+                    )
+                )
+            )
+        }
+    }
+}
+
+@Composable
+fun ColorFilterItem(colorName: String, isSelected: Boolean, onClick: (Boolean) -> Unit) {
+    Row(
+        modifier = Modifier
+            .clip(RoundedCornerShape(8.dp))
+            .background(MaterialTheme.colorScheme.secondary.copy(alpha = if (isSelected) 0.3f else 0.1f))
+            .border(
+                width = 1.dp,
+                color = if (isSelected) MaterialTheme.colorScheme.primary else Color.Transparent,
+                shape = RoundedCornerShape(8.dp)
+            )
+            .clickable { onClick(!isSelected) }
+            .padding(horizontal = 12.dp, vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Box(
+            modifier = Modifier
+                .size(20.dp)
+                .clip(RoundedCornerShape(4.dp))
+                .background(colorName.getParseColorByString())
+                .border(0.5.dp, Color.Gray, RoundedCornerShape(4.dp))
+        )
+        Spacer(modifier = Modifier.width(12.dp))
+        Text(
+            text = colorName.capitalize(),
+            modifier = Modifier.weight(1f),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSecondary
+        )
+        Checkbox(
+            checked = isSelected,
+            onCheckedChange = { onClick(it) },
+            modifier = Modifier.size(24.dp)
+        )
+    }
+}
+
+@Composable
+fun DefaultFilterItem(label: String, isSelected: Boolean, onClick: (Boolean) -> Unit) {
+    Row(
+        modifier = Modifier
+            .clip(RoundedCornerShape(8.dp))
+            .background(MaterialTheme.colorScheme.secondary.copy(alpha = 0.1f))
+            .clickable { onClick(!isSelected) }
+            .padding(horizontal = 12.dp, vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Checkbox(
+            checked = isSelected,
+            onCheckedChange = { onClick(it) }
+        )
+        Spacer(modifier = Modifier.width(8.dp))
+        Text(
+            text = label.capitalize(),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSecondary
+        )
     }
 }
 
@@ -381,4 +612,118 @@ fun Preview() {
     GetFilterBar(
         onCallBackClearFavoriteFilter = {}
     )
+}
+
+@Composable
+fun ViewHolderViewMode(
+    viewModel: PokemonViewModel,
+    onClick: () -> Unit
+) {
+    val currentViewMode by viewModel.viewMode.collectAsState()
+    
+    Box(
+        modifier = Modifier
+            .clip(shape = RoundedCornerShape(8.dp))
+            .background(MaterialTheme.colorScheme.secondary)
+            .clickable { onClick() }
+            .padding(horizontal = 8.dp, vertical = 4.dp),
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text(
+                text = when (currentViewMode) {
+                    ViewMode.LIST -> stringResource(R.string.view_list)
+                    else -> stringResource(R.string.view_auto)
+                },
+                color = MaterialTheme.colorScheme.onSecondary,
+                modifier = Modifier.padding(4.dp),
+                style = TextStyle(
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Bold,
+                    fontStyle = androidx.compose.ui.text.font.FontStyle.Normal,
+                )
+            )
+            Icon(
+                imageVector = Icons.Default.KeyboardArrowDown,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSecondary
+            )
+        }
+    }
+}
+
+@Composable
+fun ViewModeBottomSheetContent(
+    viewModel: PokemonViewModel,
+    onClose: () -> Unit
+) {
+    val currentViewMode by viewModel.viewMode.collectAsState()
+    val activity = getActivity()
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp)
+    ) {
+        Text(
+            text = stringResource(R.string.view_mode),
+            style = MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.padding(bottom = 16.dp)
+        )
+
+        ViewModeOption(
+            label = stringResource(R.string.view_list),
+            isSelected = currentViewMode == ViewMode.LIST,
+            onClick = {
+                activity?.trackButtonClick("View Mode: List")
+                viewModel.setViewMode(ViewMode.LIST)
+                onClose()
+            }
+        )
+        ViewModeOption(
+            label = stringResource(R.string.view_auto),
+            isSelected = currentViewMode == ViewMode.AUTO,
+            onClick = {
+                activity?.trackButtonClick("View Mode: Auto")
+                viewModel.setViewMode(ViewMode.AUTO)
+                onClose()
+            }
+        )
+        
+        Spacer(modifier = Modifier.height(24.dp))
+    }
+}
+
+@Composable
+fun ViewModeOption(
+    label: String,
+    isSelected: Boolean,
+    onClick: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(8.dp))
+            .background(if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.1f) else Color.Transparent)
+            .clickable { onClick() }
+            .padding(16.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = label,
+            modifier = Modifier.weight(1f),
+            style = MaterialTheme.typography.bodyLarge,
+            color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSecondary
+        )
+        if (isSelected) {
+            Icon(
+                imageVector = Icons.Default.Check,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary
+            )
+        }
+    }
 }

@@ -2,6 +2,7 @@ package com.vinithius.dex10.ui.screens
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.media.MediaPlayer
 import android.os.Build
 import android.text.Spanned
 import androidx.compose.animation.AnimatedVisibility
@@ -44,6 +45,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -55,6 +57,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
@@ -90,7 +93,6 @@ import coil.compose.rememberAsyncImagePainter
 import coil.decode.GifDecoder
 import coil.decode.ImageDecoderDecoder
 import coil.request.ImageRequest
-import com.google.android.gms.ads.nativead.NativeAd
 import com.valentinilk.shimmer.shimmer
 import com.vinithius.dex10.R
 import com.vinithius.dex10.admobbanners.AdAdvancedNative
@@ -111,6 +113,7 @@ import com.vinithius.dex10.extension.getColorByString
 import com.vinithius.dex10.extension.getDrawableHabitat
 import com.vinithius.dex10.extension.getFlavorTextForLanguage
 import com.vinithius.dex10.extension.getHtmlCompat
+import com.vinithius.dex10.extension.getIdIntoUrl
 import com.vinithius.dex10.extension.getListEvolutions
 import com.vinithius.dex10.extension.getSpriteItems
 import com.vinithius.dex10.extension.getStringEggGroup
@@ -178,9 +181,15 @@ private fun DefaultLoadingComposable(title: String) {
 
 @Composable
 private fun SetAnalyticScreenName(pokemonName: String) {
-    val context = LocalContext.current
-    val activity = context as? MainActivity
-    activity?.trackScreenView("Screen Detail: $pokemonName")
+    com.vinithius.dex10.analytics.AnalyticsManager.logScreenView(
+        "pokemon_detail",
+        "PokemonDetailScreen"
+    )
+    com.vinithius.dex10.analytics.AnalyticsManager.logEvent(
+        "view_pokemon",
+        "pokemon_name",
+        pokemonName
+    )
 }
 
 @Composable
@@ -292,6 +301,7 @@ fun SharedTransitionScope.MainCard(
     viewModel: PokemonViewModel = getViewModel()
 ) {
     val context = LocalContext.current
+    val isPremium by viewModel.premiumManager.isPremium.collectAsState(initial = false)
     val adUnitIdAdAdvancedNative by viewModel.adUnitIdAdAdvancedNative.observeAsState()
 
     Column(
@@ -339,6 +349,19 @@ fun SharedTransitionScope.MainCard(
                     } else {
                         pokemonId.LoadGifWithCoil(viewModel)
                     }
+
+                    // Zenith Cry Button
+                    Box(
+                        modifier = Modifier
+                            .align(Alignment.TopEnd)
+                            .padding(16.dp)
+                    ) {
+                        ZenithCryButton(
+                            viewModel = viewModel,
+                            color = color.getColorByString(isSystemInDarkTheme())
+                        )
+                    }
+
                     // weight and height
                     Column(
                         modifier = Modifier
@@ -460,15 +483,43 @@ fun SharedTransitionScope.MainCard(
         PokemonArts(viewModel, pokemonDetail)
         PokemonChart(viewModel, color, pokemonDetail)
         PokemonIsABaby()
-        PokemonEvolution(navController, pokemonDetail)
 
-        AdAdvancedNative(
-            adUnitIdProd = adUnitIdAdAdvancedNative,
-            isTablet = false,
-        )
+        val colorObj = color.getColorByString(isSystemInDarkTheme())
+
+        // Variations
+        val varieties = pokemonDetail?.specie?.varieties?.filter { !it.is_default }
+        if (!varieties.isNullOrEmpty()) {
+            SectionTitle(
+                title = stringResource(R.string.variations_and_forms),
+                color = colorObj,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 16.dp, bottom = 8.dp, start = 12.dp)
+            )
+            PokemonVariations(navController, pokemonDetail, viewModel)
+        }
+
+        // Evolutions
+        pokemonDetail?.evolution?.getListEvolutions()?.size?.takeIf { it > 0 }?.run {
+            SectionTitle(
+                title = stringResource(R.string.evolutions),
+                color = colorObj,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 16.dp, bottom = 8.dp, start = 12.dp)
+            )
+            PokemonEvolution(navController, pokemonDetail, viewModel)
+        }
+
+        if (!isPremium) {
+            AdAdvancedNative(
+                adUnitIdProd = adUnitIdAdAdvancedNative,
+                isTablet = false,
+            )
+        }
 
         // Tabs
-        TabWithPagerExample(pokemonDetail, color, viewModel)
+        TabWithPagerExample(navController, pokemonDetail, color, viewModel)
     }
 }
 
@@ -488,6 +539,7 @@ fun SharedTransitionScope.MainCardLargeScreen(
     viewModel: PokemonViewModel = getViewModel()
 ) {
     val context = LocalContext.current
+    val isPremium by viewModel.premiumManager.isPremium.collectAsState(initial = false)
     val adUnitIdAdAdvancedNative by viewModel.adUnitIdAdAdvancedNative.observeAsState()
 
     LazyVerticalGrid(
@@ -539,6 +591,19 @@ fun SharedTransitionScope.MainCardLargeScreen(
                         } else {
                             pokemonId.LoadGifWithCoil(viewModel)
                         }
+
+                        // Zenith Cry Button
+                        Box(
+                            modifier = Modifier
+                                .align(Alignment.TopEnd)
+                                .padding(16.dp)
+                        ) {
+                            ZenithCryButton(
+                                viewModel = viewModel,
+                                color = color.getColorByString(isSystemInDarkTheme())
+                            )
+                        }
+
                         // weight and height
                         Column(
                             modifier = Modifier
@@ -667,25 +732,50 @@ fun SharedTransitionScope.MainCardLargeScreen(
         item(span = { GridItemSpan(maxLineSpan) }) {
             PokemonArts(viewModel, pokemonDetail)
         }
-        // Ads
-        item(span = { GridItemSpan(maxLineSpan) }) {
-            AdAdvancedNative(
-                adUnitIdProd = adUnitIdAdAdvancedNative,
-                isTablet = true,
-            )
+        // Variations
+        val varieties = pokemonDetail?.specie?.varieties?.filter { !it.is_default }
+        if (!varieties.isNullOrEmpty()) {
+            item(span = { GridItemSpan(maxLineSpan) }) {
+                Column {
+                    SectionTitle(
+                        title = stringResource(R.string.variations_and_forms),
+                        color = color.getColorByString(isSystemInDarkTheme())
+                    )
+                    PokemonVariations(navController, pokemonDetail, viewModel)
+                }
+            }
         }
+
+        // Evolutions
         item(span = { GridItemSpan(maxLineSpan) }) {
-            PokemonEvolution(navController, pokemonDetail)
+            Column {
+                SectionTitle(
+                    title = stringResource(R.string.evolutions),
+                    color = color.getColorByString(isSystemInDarkTheme())
+                )
+                PokemonEvolution(navController, pokemonDetail, viewModel)
+            }
+        }
+
+        // Ads
+        if (!isPremium) {
+            item(span = { GridItemSpan(maxLineSpan) }) {
+                AdAdvancedNative(
+                    adUnitIdProd = adUnitIdAdAdvancedNative,
+                    isTablet = true,
+                )
+            }
         }
         // Tabs full-width
         item(span = { GridItemSpan(maxLineSpan) }) {
-            TabWithPagerExample(pokemonDetail, color, viewModel)
+            TabWithPagerExample(navController, pokemonDetail, color, viewModel)
         }
     }
 }
 
 @Composable
 fun TabWithPagerExample(
+    navController: NavController?,
     pokemonDetail: Pokemon?,
     color: String,
     viewModel: PokemonViewModel = getViewModel(),
@@ -695,7 +785,8 @@ fun TabWithPagerExample(
         stringResource(R.string.encounters),
         stringResource(R.string.eggs),
         stringResource(R.string.abilities),
-        stringResource(R.string.entries)
+        stringResource(R.string.entries),
+        stringResource(R.string.moves)
     )
     val pagerState = rememberPagerState(pageCount = { tabTitles.size })
     val coroutineScope = rememberCoroutineScope()
@@ -792,7 +883,12 @@ fun TabWithPagerExample(
 
                     4 -> {
                         activity?.trackButtonClick(tabTitles[4])
-                        PokemonEntries(pokemonDetail, viewModel)
+                        PokemonEntries(navController, pokemonDetail, viewModel)
+                    }
+
+                    5 -> {
+                        activity?.trackButtonClick(tabTitles[5])
+                        PokemonMoves(color, viewModel)
                     }
                 }
             }
@@ -1137,6 +1233,15 @@ private fun PokemonArts(
     viewModel: PokemonViewModel,
     pokemonDetail: Pokemon?,
 ) {
+    val color = viewModel.getPokemonColor()?.getColorByString(isSystemInDarkTheme()) ?: Color.Black
+    Column {
+        SectionTitle(
+            title = stringResource(R.string.all_images),
+            color = color,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 16.dp, bottom = 8.dp, start = 12.dp)
+        )
     var dataBottomSheet: SpriteItem? by remember { mutableStateOf(null) }
     val context = LocalContext.current
     val activity = getActivity()
@@ -1263,6 +1368,7 @@ private fun PokemonArts(
                 }
             }
         }
+    }
     }
 }
 
@@ -1538,6 +1644,7 @@ private fun PokemonEvolution(
                             Image(
                                 painter = painterResource(id = R.drawable.ic_baseline_arrow_forward_ios_24),
                                 contentDescription = "Arrow right",
+                                colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onSurface),
                                 modifier = Modifier
                                     .size(25.dp)
                                     .shimmer()
@@ -1597,6 +1704,7 @@ private fun PokemonEvolution(
                                     Image(
                                         painter = painterResource(id = R.drawable.ic_baseline_arrow_forward_ios_24),
                                         contentDescription = "Arrow right",
+                                        colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onSurface),
                                         modifier = Modifier.size(25.dp)
                                     )
                                 }
@@ -1606,6 +1714,130 @@ private fun PokemonEvolution(
                 }
             }
         },
+        error = { /* Do nothing yet */ }
+    )
+}
+
+@Composable
+private fun PokemonVariations(
+    navController: NavController?,
+    pokemonDetail: Pokemon?,
+    viewModel: PokemonViewModel = getViewModel()
+) {
+    val activity = getActivity()
+
+    StateRequest(
+        viewModel = viewModel,
+
+        loading = {
+            Column(
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .padding(6.dp),
+            ) {
+                val listShimmer = listOf(1, 2, 3)
+
+                LazyRow(
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    itemsIndexed(listShimmer) { _, _ ->
+                        Card(
+                            modifier = Modifier
+                                .padding(8.dp)
+                                .shimmer(),
+                            shape = RoundedCornerShape(8.dp),
+                            elevation = CardDefaults.elevatedCardElevation(4.dp),
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(70.dp)
+                                    .shimmer(),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                CircularProgressIndicator(
+                                    color = Color.White,
+                                    modifier = Modifier.size(30.dp)
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        },
+
+        success = {
+            Column(
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .padding(6.dp),
+            ) {
+                val currentPokemonId = pokemonDetail?.id ?: 0
+                val color = viewModel.getPokemonColor()
+                    ?.getColorByString(isSystemInDarkTheme())
+                    ?: Color.Black
+
+                val varieties: List<Pair<Int, String>> =
+                    pokemonDetail?.specie?.varieties
+                        ?.filter { it.is_default == false }
+                        ?.mapNotNull { variety ->
+                            val id = variety.pokemon.url?.getIdIntoUrl()?.toIntOrNull()
+                            val name = variety.pokemon.name
+                            if (id != null && id > 0 && !name.isNullOrBlank()) id to name else null
+                        }
+                        ?: emptyList()
+
+                if (varieties.isEmpty()) return@Column
+
+                LazyRow(
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    itemsIndexed(varieties) { _, data ->
+                        val varietyId = data.first
+                        val varietyName = data.second
+
+                        Card(
+                            modifier = if (currentPokemonId == varietyId) {
+                                Modifier
+                                    .padding(8.dp)
+                                    .border(
+                                        width = 1.dp,
+                                        color = color,
+                                        shape = RoundedCornerShape(8.dp)
+                                    )
+                            } else {
+                                Modifier.padding(8.dp)
+                            },
+                            shape = RoundedCornerShape(8.dp),
+                            elevation = CardDefaults.elevatedCardElevation(4.dp),
+                            onClick = {
+                                if (currentPokemonId != varietyId) {
+                                    viewModel.setIdPokemon(varietyId)
+                                    navController?.navigate("pokemonDetail/$varietyId")
+                                }
+                                activity?.trackButtonClick(
+                                    "Variation: ${varietyName.replaceFirstChar { it.uppercase() }}"
+                                )
+                            }
+                        ) {
+                            val imageUrl =
+                                "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/$varietyId.png"
+
+                            Box(
+                                modifier = Modifier.size(70.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Image(
+                                    painter = rememberAsyncImagePainter(imageUrl),
+                                    contentDescription = varietyName,
+                                    modifier = Modifier.size(60.dp)
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        },
+
         error = { /* Do nothing yet */ }
     )
 }
@@ -1965,6 +2197,7 @@ private fun PokemonAbilities(
 
 @Composable
 private fun PokemonEntries(
+    navController: NavController?,
     pokemonDetail: Pokemon?,
     viewModel: PokemonViewModel = getViewModel(),
 ) {
@@ -1984,6 +2217,9 @@ private fun PokemonEntries(
         success = {
             GenericBox {
                 pokemonDetail?.specie?.let { specie ->
+                    val color = viewModel.getPokemonColor()?.getColorByString(isSystemInDarkTheme())
+                        ?: Color.Black
+
                     specie.flavor_text_entries?.let { flavorTextEntries ->
                         flavorTextEntries.getFlavorTextForLanguage("en")?.run {
                             translateIfSupported(
@@ -2162,6 +2398,23 @@ fun LoadGifWithCoilToEvolution(
 
 // MOCKUP ////////////////////////////////////////////////////////////////////////////////////////
 
+@Composable
+private fun SectionTitle(
+    title: String,
+    color: Color,
+    modifier: Modifier = Modifier
+        .fillMaxWidth()
+        .padding(top = 16.dp, bottom = 8.dp)
+) {
+    Text(
+        text = title,
+        style = MaterialTheme.typography.titleLarge,
+        fontWeight = FontWeight.Bold,
+        color = color,
+        modifier = modifier
+    )
+}
+
 private fun getMockupPokemon(): Pokemon {
     return Pokemon(
         id = 1,
@@ -2183,4 +2436,109 @@ private fun getMockupPokemon(): Pokemon {
         damage = listOf(),
         favorite = false,
     )
+}
+
+@Composable
+fun ZenithCryButton(viewModel: PokemonViewModel, color: Color) {
+    val cryUrl by viewModel.cryUrl.observeAsState()
+
+    IconButton(
+        onClick = {
+            cryUrl?.let { url ->
+                try {
+                    MediaPlayer().apply {
+                        setDataSource(url)
+                        prepareAsync()
+                        setOnPreparedListener { start() }
+                        setOnCompletionListener { release() }
+                        setOnErrorListener { _, _, _ ->
+                            release()
+                            false
+                        }
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+            }
+        },
+        modifier = Modifier
+            .size(48.dp)
+            .background(color.copy(alpha = 0.2f), RoundedCornerShape(12.dp))
+    ) {
+        Icon(
+            imageVector = Icons.AutoMirrored.Filled.VolumeUp,
+            contentDescription = "Play Cry",
+            tint = color,
+            modifier = Modifier.size(24.dp)
+        )
+    }
+}
+
+@Composable
+fun PokemonMoves(color: String, viewModel: PokemonViewModel) {
+    val moves by viewModel.pokemonMoves.observeAsState()
+    val isDark = isSystemInDarkTheme()
+    val pokemonColor = color.getColorByString(isDark)
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp)
+    ) {
+        if (moves.isNullOrEmpty()) {
+            Text(
+                text = "No moves found",
+                style = MaterialTheme.typography.bodyMedium,
+                color = Color.Gray,
+                modifier = Modifier.padding(16.dp)
+            )
+        } else {
+            moves?.forEach { moveItem ->
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 4.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = pokemonColor.copy(alpha = 0.1f)
+                    ),
+                    shape = RoundedCornerShape(8.dp)
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(12.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column {
+                            Text(
+                                text = moveItem.move?.name?.capitalize() ?: "Unknown",
+                                style = MaterialTheme.typography.bodyLarge,
+                                fontWeight = FontWeight.Bold,
+                                color = pokemonColor
+                            )
+                            val method =
+                                moveItem.version_group_details?.firstOrNull()?.move_learn_method?.name
+                                    ?: "Unknown"
+                            Text(
+                                text = "Method: ${method.capitalize()}",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = Color.Gray
+                            )
+                        }
+                        val level =
+                            moveItem.version_group_details?.firstOrNull()?.level_learned_at ?: 0
+                        if (level > 0) {
+                            Text(
+                                text = "Lvl $level",
+                                style = MaterialTheme.typography.bodyMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.Gray
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
 }

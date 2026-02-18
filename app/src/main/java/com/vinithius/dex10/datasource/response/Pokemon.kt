@@ -18,5 +18,6 @@ data class Pokemon(
     var characteristic: Characteristic?,
     var specie: Specie?,
     var damage: List<Damage>,
-    var favorite: Boolean,
+    var moves: List<MoveResponse>? = null,
+    var favorite: Boolean = false,
 )

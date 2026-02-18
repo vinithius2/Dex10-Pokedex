@@ -34,4 +34,7 @@ interface PokemonRemoteDataSource {
     @GET("type/{type}")
     suspend fun getPokemonDamageRelations(@Path("type") type: String): Damage
 
+    @GET("move/{idOrName}")
+    suspend fun getMoveDetail(@Path("idOrName") idOrName: String): com.vinithius.dex10.datasource.response.MoveDetailsResponse
+
 }

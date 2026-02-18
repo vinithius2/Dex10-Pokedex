@@ -2,23 +2,40 @@ package com.vinithius.dex10.admobbanners
 
 import android.util.Log
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.material.BottomAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.navigation.NavController
+import androidx.navigation.compose.currentBackStackEntryAsState
 import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.AdSize
 import com.google.android.gms.ads.AdView
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.vinithius.dex10.BuildConfig
 import com.vinithius.dex10.ui.viewmodel.PokemonViewModel
+import com.vinithius.dex10.datasource.data.PremiumManager
+import org.koin.androidx.compose.get
 import org.koin.androidx.compose.getViewModel
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 
 // Teste Ad Unit ID
 private val adUnitIdTeste = "ca-app-pub-3940256099942544/6300978111"
 
 @Composable
-fun AdmobBanner() {
+fun AdmobBanner(
+    premiumManager: PremiumManager = get()
+) {
+    val isPremium by premiumManager.isPremium.collectAsState()
+
+    if (isPremium) {
+        return
+    }
+
+    com.vinithius.dex10.analytics.AnalyticsManager.logEvent("ad_impression_attempt", "screen", "banner")
+
     val adUnitId = getTypeAdUnitScreen()
     adUnitId?.takeIf { it.isNotEmpty() }?.let { validAdUnitId ->
         AndroidView(
@@ -35,7 +52,6 @@ fun AdmobBanner() {
                         loadAd(AdRequest.Builder().build())
                     } catch (e: IllegalStateException) {
                         FirebaseCrashlytics.getInstance().recordException(e)
-                        Log.e("AdmobBanner", "Failed to load ad: ${e.message}")
                     }
                 }
             }

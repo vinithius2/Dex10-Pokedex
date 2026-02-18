@@ -73,21 +73,19 @@
     <string name="damage">Dano</string>
     <string name="encounters">Encontros</string>
     <string name="no_data">Sem dados</string>
+    <string name="moves">Movimentos</string>
+    <string name="variations_and_forms">Variações e formas</string>
+    <string name="evolutions">Evoluções</string>
+    <string name="all_images">Todas as imagens</string>
     <string name="eggs">Ovos</string>
     <string name="abilities">Habilidades</string>
     <string name="info">Informações</string>
     <string name="entries">Entradas</string>
     <string name="no_description_available">Nenhuma descrição disponível.</string>
     <string name="about_abilities_hidden">A habilidade do Pokémon será uma de suas habilidades não ocultas. Habilidades secretas foram introduzidas na Geração V e são relativamente raras e geralmente requerem algum tipo de encontro especial.</string>
-    <string name="share_app_message">Confira o Dex10! 🧡✨
-Explore todos os Pokémon, veja estatísticas, habilidades e estratégias de batalha. Adicione seus favoritos e domine a eficácia de tipos!
-
-Baixe agora:
-📲 %1$s
-
-Eu uso e recomendo demais! 😍</string>
+    <string name="share_app_message">Confira o Dex10! 🧡✨\nExplore todos os Pokémon, veja estatísticas, habilidades e estratégias de batalha. Adicione seus favoritos e domine a eficácia de tipos!\n\nBaixe agora:\n📲 %1$s\n\nEu uso e recomendo demais! 😍</string>
     <string name="share_app_via">Compartilhar app via</string>
-    <string name="instagran">Instagran</string>
+    <string name="instagran">Instagram</string>
     <string name="facebook">Facebook</string>
     <string name="reddit">Reddit</string>
     <string name="privacy_policy">Política de Privacidade</string>
@@ -115,22 +113,19 @@ Eu uso e recomendo demais! 😍</string>
     <string name="know_this_first">Gostaríamos que você soubesse isto primeiro</string>
     <string name="ok">Ok</string>
     <string name="cancel">Cancelar</string>
-
-    <!-- FILTER -->
     <string name="type">Tipo</string>
     <string name="ability">Habilidade</string>
     <string name="color">Cor</string>
     <string name="habitat">Habitat</string>
-
-    <!-- STATS -->
-    <string name="hp">Hp</string>
+    <string name="view_mode">Modo de Visualização</string>
+    <string name="view_list">Lista</string>
+    <string name="view_auto">Automático</string>
+    <string name="hp">HP</string>
     <string name="attack">Ataque</string>
     <string name="defense">Defesa</string>
     <string name="special_attack">Ataque especial</string>
     <string name="special_defense">Defesa especial</string>
     <string name="speed">Velocidade</string>
-
-    <!-- Habitat -->
     <string name="cave">Caverna</string>
     <string name="forest">Floresta</string>
     <string name="grassland">Pastagem</string>
@@ -140,8 +135,6 @@ Eu uso e recomendo demais! 😍</string>
     <string name="sea">Mar</string>
     <string name="urban">Urbano</string>
     <string name="waters_edge">Beira d\'água</string>
-
-    <!-- TYPE -->
     <string name="bug">Inseto</string>
     <string name="dark">Sombrio</string>
     <string name="dragon">Dragão</string>
@@ -160,9 +153,7 @@ Eu uso e recomendo demais! 😍</string>
     <string name="steel">Aço</string>
     <string name="water">Água</string>
     <string name="unknow">Desconhecido</string>
-    <!-- TRANSLATER STATUS -->
     <string name="loading_translate">Carregando texto…</string>
-    <!-- SHAPES -->
     <string name="shape_ball">Esfera</string>
     <string name="shape_squiggle">Ondulado</string>
     <string name="shape_fish">Peixe</string>
@@ -177,7 +168,6 @@ Eu uso e recomendo demais! 😍</string>
     <string name="shape_humanoid">Humanoide</string>
     <string name="shape_bug_wings">Asas de Inseto</string>
     <string name="shape_armor">Armadura</string>
-    <!-- EGGS GROUPS -->
     <string name="egg_group_monster">Monstro</string>
     <string name="egg_group_water1">Água 1</string>
     <string name="egg_group_bug">Inseto</string>
@@ -193,12 +183,165 @@ Eu uso e recomendo demais! 😍</string>
     <string name="egg_group_ditto">Ditto</string>
     <string name="egg_group_dragon">Dragão</string>
     <string name="egg_group_no_eggs">Sem Ovo</string>
-    <!-- ERROR -->
     <string name="error_title">Algo deu errado</string>
     <string name="error_description">Não foi possível carregar os dados. Por favor, tente novamente mais tarde.</string>
-    <!-- COPYRIGHT -->
     <string name="copyright_title">Aviso sobre Direitos Autorais</string>
     <string name="copyright_description">Dex10 - Pokédex é um aplicativo criado por fãs e para fãs da franquia Pokémon. Todo o conteúdo relacionado a Pokémon, incluindo nomes, imagens, dados e demais elementos apresentados neste aplicativo, são propriedade intelectual da Nintendo, GAME FREAK e The Pokémon Company. Não reivindicamos autoria ou propriedade sobre esses materiais. Eles são utilizados com base no princípio de uso justo (fair use), com finalidade exclusivamente informativa, educativa e sem fins comerciais. Este aplicativo não é afiliado, patrocinado ou endossado por Nintendo, GAME FREAK ou The Pokémon Company. O desenvolvedor isenta-se de qualquer responsabilidade por eventuais questões legais decorrentes do uso de marcas registradas ou conteúdos protegidos por direitos autorais da franquia Pokémon.</string>
     <string name="accept_the_terms_and_dont_show_again">Aceito os termos e não desejo ver esta mensagem novamente</string>
     <string name="version">Versão</string>
+    <string name="dark_mode">Modo Escuro</string>
+    <string name="dark_mode_system">Seguir Sistema</string>
+    <string name="dark_mode_on">Sempre Ativado</string>
+    <string name="dark_mode_off">Sempre Desativado</string>
+    <string name="dark_mode_desc">Controlar a aparência do tema do aplicativo</string>
+    <string name="notifications">Notificações</string>
+    <string name="notifications_desc">Receber dicas e atualizações de Pokémon</string>
+    <string name="image_quality">Qualidade da Imagem</string>
+    <string name="image_quality_high">Alta (GIF + Arte)</string>
+    <string name="image_quality_low">Baixa (PNG estático)</string>
+    <string name="image_quality_desc">Qualidade mais baixa economiza dados e carrega mais rápido</string>
+    <string name="appearance">Aparência</string>
+    <string name="general">Geral</string>
+    <string name="performance">Desempenho</string>
+    <string name="open_menu">Abrir menu</string>
+    <string name="premium">Premium</string>
+    <string name="restore_purchases">Restaurar compras</string>
+    <string name="restore_purchases_desc">Restaurar suas compras anteriores</string>
+    <string name="premium_title">Desbloquear Pokedex Premium</string>
+    <string name="premium_subtitle">Obtenha a experiência definitiva e apoie o desenvolvimento!</string>
+    <string name="benefit_no_ads">Remover todos os anúncios</string>
+    <string name="benefit_unlimited_favorites">Favoritos ilimitados (Limite 50)</string>
+    <string name="benefit_dark_mode">Desbloquear Modo Escuro</string>
+    <string name="benefit_support_dev">Apoiar o desenvolvedor</string>
+    <string name="upgrade_now">Fazer upgrade agora</string>
+    <string name="go_premium">Mudar para Premium (Sem Anúncios)</string>
+    <string name="premium_upsell_title">Torne-se um Mestre</string>
+    <string name="premium_upsell_subtitle">Acesso vitalício por um pagamento único</string>
+    <string name="payment_one_time">Pagamento Único</string>
+    <string name="plan_trainer_header">Treinador</string>
+    <string name="plan_trainer_sub">Grátis para sempre</string>
+    <string name="plan_master_header">Mestre</string>
+    <string name="plan_master_sub">Acesso Vitalício 🏆</string>
+    <string name="feature_ads">Publicidade</string>
+    <string name="feature_team_builder">Team Builder</string>
+    <string name="feature_favorites">Favoritos</string>
+    <string name="feature_appearance">Aparência</string>
+    <string name="feature_security">Segurança</string>
+    <string name="feature_updates">Atualizações</string>
+    <string name="val_trainer_ads">Com Anúncios</string>
+    <string name="val_master_ads">100% Livre</string>
+    <string name="val_trainer_teams">Apenas 1 Time</string>
+    <string name="val_master_teams">Ilimitados</string>
+    <string name="val_trainer_favs">Limite de 50</string>
+    <string name="val_master_favs">Ilimitado</string>
+    <string name="val_trainer_appearance">Tema Claro</string>
+    <string name="val_master_appearance">Escuro &amp; Claro</string>
+    <string name="val_trainer_security">No Celular</string>
+    <string name="val_master_security">Backup na Nuvem ☁️</string>
+    <string name="val_trainer_updates">Padrão</string>
+    <string name="val_master_updates">Acesso Antecipado</string>
+    <string name="feature_grid_mode">Modo Visualização</string>
+    <string name="val_trainer_grid_mode">Apenas Lista</string>
+    <string name="val_master_grid_mode">Grid e Lista</string>
+    <string name="cta_upgrade">Desbloquear Agora — %1$s</string>
+    <string name="footer_google_play">Pagamento único e seguro via Google Play.</string>
+    <string name="buy_me_a_coffee">Pagar um café ☕</string>
+    <string name="donation_title">Pagar um café ao desenvolvedor</string>
+    <string name="donation_description">Se o Dex10 já te arrancou um sorriso ou ajudou na tua jornada, este é um cantinho especial para retribuir. Este gesto é 100% voluntário e serve como um abraço virtual, dando aquele gás extra de motivação para eu continuar a cuidar do app com todo o carinho. É a forma mais gentil de dizer \'valeu!\' e manter a minha moral lá no alto!</string>
+    <string name="cta_donate">Pagar café — %1$s</string>
+    <string name="format_label">Formato:</string>
+    <string name="format_1v1">1x1 (Singles)</string>
+    <string name="format_2v2">2x2 (Doubles)</string>
+    <string name="format_3v3">3x3 (VGC Short)</string>
+    <string name="format_6v6">6v6 (Full Team)</string>
+    <string name="team_notes_label">Notas de Estratégia</string>
+    <string name="team_notes_placeholder">Escreva aqui sua estratégia, itens-chave ou counters...</string>
+    <string name="strategy_tools">Ferramentas de Estratégia</string>
+    <string name="type_coverage_title">Cobertura de Tipos</string>
+    <string name="avg_stats_title">Média de Atributos do Time</string>
+    <string name="stat_hp">HP</string>
+    <string name="stat_atk">ATK</string>
+    <string name="stat_def">DEF</string>
+    <string name="stat_satk">SATK</string>
+    <string name="stat_sdef">SDEF</string>
+    <string name="stat_spe">SPE</string>
+    <string name="overview">Visão Geral</string>
+    <string name="strategy">Estratégia</string>
+    <string name="item">Item</string>
+    <string name="none">Nenhum</string>
+    <string name="loading_dots">Carregando…</string>
+    <string name="locked">Bloqueado</string>
+    <string name="delete_team">Excluir Time</string>
+    <string name="delete_team_confirm">Tem certeza que deseja excluir o time \"%1$s\"? Esta ação não pode ser desfeita.</string>
+    <string name="delete">Excluir</string>
+    <string name="new_team">Novo Time</string>
+    <string name="team_name">Nome do Time</string>
+    <string name="create">Criar</string>
+    <string name="no_teams_yet">Nenhum time ainda. Crie um!</string>
+    <string name="add_pokemon">Adicionar Pokemon</string>
+    <string name="defensive_weaknesses">Fraquezas Defensivas</string>
+    <string name="defensive_resistances">Resistências Defensivas</string>
+    <string name="save_notes">Salvar Notas</string>
+    <string name="edit_format">Editar Formato</string>
+    <string name="select_nature">Selecionar Nature</string>
+    <string name="nature">Nature</string>
+    <string name="neutral">Neutra</string>
+    <string name="beneficial">Benéfica</string>
+    <string name="ivs">IVs</string>
+    <string name="evs">EVs</string>
+    <string name="iv_title">Valores Individuais (0-31)</string>
+    <string name="ev_title">Valores de Esforço (0-252)</string>
+    <string name="max_all">Máx. Tudo (31)</string>
+    <string name="min_all">Mín. Tudo (0)</string>
+    <string name="common_spreads">Distribuições Comuns:</string>
+    <string name="physical">Físico</string>
+    <string name="special">Especial</string>
+    <string name="wall">Wall (Defensivo)</string>
+    <string name="final_stats_title">Atributos Finais (Level 100)</string>
+    <string name="stat_hp_full">HP</string>
+    <string name="stat_atk_full">Ataque</string>
+    <string name="stat_def_full">Defesa</string>
+    <string name="stat_spa_full">Atq. Esp.</string>
+    <string name="stat_spd_full">Def. Esp.</string>
+    <string name="stat_spe_full">Velocidade</string>
+    <string name="select_pokemon">Selecionar Pokemon</string>
+    <string name="choose_move">Escolha um movimento</string>
+    <string name="search_moves">Buscar movimentos…</string>
+    <string name="all">Todos</string>
+    <string name="by_level">Por Nível</string>
+    <string name="by_tm">Por TM</string>
+    <string name="by_egg">Por Cruzamento (Egg)</string>
+    <string name="by_tutor">Por Tutor</string>
+    <string name="other">Outros</string>
+    <string name="no_moves_found">Nenhum movimento encontrado</string>
+    <string name="search_hint">Tente mudar o filtro ou o termo de busca.</string>
+    <string name="edit_pokemon_details">Editar Detalhes do Pokemon</string>
+    <string name="nickname_label">Apelido (Nickname)</string>
+    <string name="nickname_placeholder">Digite o apelido</string>
+    <string name="ability_label">Habilidade (Ability)</string>
+    <string name="held_item_label">Item</string>
+    <string name="held_item_placeholder">ex: Life Orb, Leftovers</string>
+    <string name="stats_title">Atributos (IVs/EVs)</string>
+    <string name="hide_stats_editor">Ocultar Editor de Stats</string>
+    <string name="edit_stats">Editar IVs/EVs</string>
+    <string name="moveset_title">Movimentos (Moveset)</string>
+    <string name="move_slot_label">Movimento %1$d</string>
+    <string name="tap_to_select">Toque para selecionar</string>
+    <string name="save_changes">Salvar Alterações</string>
+    <string name="remove_from_team">Remover Pokemon do Time</string>
+    <string name="remove_confirm_title">Remover do Time</string>
+    <string name="remove_confirm_msg">Tem certeza que deseja remover %1$s?</string>
+    <string name="info_title">Como funciona o Team Builder?</string>
+    <string name="info_subtitle">Monte times competitivos como um profissional!</string>
+    <string name="info_base_stats_title">Base Stats (Status Base)</string>
+    <string name="info_base_stats_desc">Valores fixos de cada espécie de Pokémon (ex: Charizard tem Speed maior que Blastoise). É o ponto de partida.</string>
+    <string name="info_ivs_title">IVs (Individual Values)</string>
+    <string name="info_ivs_desc">O \'DNA\' do Pokémon. Varia de 0 a 31 para cada status. Em batalhas competitivas, usa-se 31 (máximo) para garantir o melhor desempenho, exceto em casos específicos (ex: 0 Attack para evitar dano de Foul Play).</string>
+    <string name="info_evs_title">EVs (Effort Values)</string>
+    <string name="info_evs_desc">Pontos ganhos com o treinamento. Você tem 510 pontos totais para distribuir, com máximo de 252 em um único status. Use isso para especializar seu Pokémon (ex: maximizar Speed e Attack).</string>
+    <string name="info_nature_title">Nature (Natureza)</string>
+    <string name="info_nature_desc">A personalidade do Pokémon. Aumenta um status em 10%% (+) e diminui outro em 10%% (-). Escolha uma Nature que aumente o ponto forte do seu Pokémon e diminua um status que ele não usa.</string>
+    <string name="got_it">Entendi</string>
+    <string name="my_teams">Criador de Times</string>
+    <string name="team_details">Detalhes do Time</string>
 </resources>

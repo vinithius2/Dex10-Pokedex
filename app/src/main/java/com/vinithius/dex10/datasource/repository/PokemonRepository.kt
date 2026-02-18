@@ -39,9 +39,9 @@ import kotlin.coroutines.resume
 class PokemonRepository(
     private val remoteDataSource: PokemonRemoteDataSource,
     private val localDataSource: PokemonDao
-) {
+) : IPokemonRepository {
 
-    suspend fun getPokemonEntityList(
+    override suspend fun getPokemonEntityList(
         context: Context,
         callBackLoadingFirebaseCounter: ((progress: Float) -> Unit),
         callBackLoadingFirebase: (() -> Unit),
@@ -115,7 +115,7 @@ class PokemonRepository(
 
     // LOCAL - DATABSE
 
-    suspend fun getAllPokemonEntities(): List<PokemonEntity> {
+    override suspend fun getAllPokemonEntities(): List<PokemonEntity> {
         return localDataSource.getAllPokemonsEntities()
     }
 
@@ -123,19 +123,19 @@ class PokemonRepository(
         return localDataSource.getCountPokemons()
     }
 
-    suspend fun getPokemonWithDetailsByName(name: String): PokemonWithDetails? {
+    override suspend fun getPokemonWithDetailsByName(name: String): PokemonWithDetails? {
         return localDataSource.getPokemonWithDetailsByName(name)
     }
 
-    suspend fun getPokemonWithDetailsByListName(pokemonNames: List<String>): List<PokemonWithDetails> {
+    override suspend fun getPokemonWithDetailsByListName(pokemonNames: List<String>): List<PokemonWithDetails> {
         return localDataSource.getPokemonWithDetailsByListName(pokemonNames)
     }
 
-    suspend fun getPokemonWithDetailsById(id: Int): PokemonWithDetails? {
+    override suspend fun getPokemonWithDetailsById(id: Int): PokemonWithDetails? {
         return localDataSource.getPokemonWithDetailsById(id)
     }
 
-    suspend fun getPokemonColorById(id: Int): String? {
+    override suspend fun getPokemonColorById(id: Int): String? {
         return localDataSource.getPokemonColorById(id)
     }
 
@@ -190,7 +190,7 @@ class PokemonRepository(
         }
     }
 
-    suspend fun getPokemonDetail(id: Int): Pokemon? {
+    override suspend fun getPokemonDetail(id: Int): Pokemon? {
         return try {
             remoteDataSource.getPokemonDetail(id)
         } catch (e: HttpException) {
@@ -200,7 +200,7 @@ class PokemonRepository(
         }
     }
 
-    suspend fun getPokemonEncounters(id: Int): List<Location>? {
+    override suspend fun getPokemonEncounters(id: Int): List<Location>? {
         return try {
             remoteDataSource.getPokemonEncounters(id)
         } catch (e: HttpException) {
@@ -210,7 +210,7 @@ class PokemonRepository(
         }
     }
 
-    suspend fun getPokemonEvolution(id: Int): EvolutionChain? {
+    override suspend fun getPokemonEvolution(id: Int): EvolutionChain? {
         return try {
             remoteDataSource.getPokemonEvolution(id)
         } catch (e: HttpException) {
@@ -220,7 +220,7 @@ class PokemonRepository(
         }
     }
 
-    suspend fun getPokemonCharacteristic(id: Int): Characteristic? {
+    override suspend fun getPokemonCharacteristic(id: Int): Characteristic? {
         return try {
             remoteDataSource.getPokemonCharacteristic(id)
         } catch (e: HttpException) {
@@ -230,7 +230,7 @@ class PokemonRepository(
         }
     }
 
-    suspend fun getPokemonSpecies(id: Int): Specie? {
+    override suspend fun getPokemonSpecies(id: Int): Specie? {
         return try {
             remoteDataSource.getPokemonSpecies(id)
         } catch (e: HttpException) {
@@ -240,7 +240,7 @@ class PokemonRepository(
         }
     }
 
-    suspend fun getPokemonDamageRelations(type: String): Damage? {
+    override suspend fun getPokemonDamageRelations(type: String): Damage? {
         return try {
             remoteDataSource.getPokemonDamageRelations(type)
         } catch (e: HttpException) {
@@ -250,7 +250,7 @@ class PokemonRepository(
         }
     }
 
-    suspend fun setFavorite(pokemon: PokemonEntity): Boolean {
+    override suspend fun setFavorite(pokemon: PokemonEntity): Boolean {
         val countUpdate = localDataSource.updatePokemonIsFavorite(pokemon)
         return countUpdate > 0
     }
@@ -295,6 +295,24 @@ class PokemonRepository(
         } catch (e: Exception) {
             FirebaseCrashlytics.getInstance().recordException(e)
             throw e
+        }
+    }
+
+   override suspend fun getMovesForPokemon(pokemonId: Int): List<com.vinithius.dex10.datasource.response.MoveResponse>? {
+        return try {
+            remoteDataSource.getPokemonDetail(pokemonId)?.moves
+        } catch (e: Exception) {
+            Log.e("PokemonRepository", "Error fetching moves for pokemon $pokemonId", e)
+            null
+        }
+    }
+
+    override suspend fun getMoveDetails(moveName: String): com.vinithius.dex10.datasource.response.MoveDetailsResponse? {
+        return try {
+            remoteDataSource.getMoveDetail(moveName)
+        } catch (e: Exception) {
+            Log.e("PokemonRepository", "Error fetching move details for $moveName", e)
+            null
         }
     }
 }

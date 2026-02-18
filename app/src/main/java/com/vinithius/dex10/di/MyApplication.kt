@@ -1,13 +1,18 @@
 package com.vinithius.dex10.di
 
 import androidx.room.Room
+import com.vinithius.dex10.BuildConfig
+import com.vinithius.dex10.datasource.data.AppPreferences
+import com.vinithius.dex10.datasource.data.PremiumManager
 import com.vinithius.dex10.datasource.database.AppDatabase
+import com.vinithius.dex10.datasource.repository.IPokemonRepository
 import com.vinithius.dex10.datasource.repository.PokemonRemoteDataSource
 import com.vinithius.dex10.datasource.repository.PokemonRepository
 import com.vinithius.dex10.ui.viewmodel.PokemonViewModel
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import org.koin.android.ext.koin.androidContext
+import org.koin.androidx.viewmodel.dsl.viewModel
 import org.koin.dsl.module
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
@@ -19,11 +24,23 @@ val repositoryModule = module {
 }
 
 val repositoryDataModule = module {
-    single { PokemonRepository(get(), get()) }
+    single<IPokemonRepository> { PokemonRepository(get(), get()) }
+    single<com.vinithius.dex10.datasource.repository.ITeamRepository> { 
+        com.vinithius.dex10.datasource.repository.TeamRepository(get()) 
+    }
 }
 
 val viewModelModule = module {
-    single { PokemonViewModel(get()) }
+    single { PokemonViewModel(get(), get(), get()) }
+    viewModel { com.vinithius.dex10.ui.viewmodel.TeamViewModel(get(), get(), get()) }
+}
+
+val appPreferencesModule = module {
+    single { AppPreferences(androidContext()) }
+}
+
+val premiumModule = module {
+    single { PremiumManager(androidContext()) }
 }
 
 val networkModule = module {
@@ -31,15 +48,9 @@ val networkModule = module {
 }
 
 val databaseModule = module {
-    single {
-        Room.databaseBuilder(
-            androidContext(),
-            AppDatabase::class.java,
-            "pokemon_database"
-        ).build()
-    }
+    single { AppDatabase.getInstance(androidContext()) }
     single { get<AppDatabase>().pokemonDao() }
-    single { PokemonRepository(get(), get()) }
+    single { get<AppDatabase>().teamDao() }
 }
 
 fun retrofit(): Retrofit {
@@ -48,10 +59,15 @@ fun retrofit(): Retrofit {
         .connectTimeout(30, TimeUnit.SECONDS)
         .readTimeout(30, TimeUnit.SECONDS)
         .writeTimeout(30, TimeUnit.SECONDS)
-        .addInterceptor(
-            HttpLoggingInterceptor().apply {
-                level = HttpLoggingInterceptor.Level.BODY
-            })
+        .apply {
+            if (BuildConfig.DEBUG) {
+                addInterceptor(
+                    HttpLoggingInterceptor().apply {
+                        level = HttpLoggingInterceptor.Level.BODY
+                    }
+                )
+            }
+        }
         .build()
 
     return Retrofit.Builder()
@@ -61,3 +77,4 @@ fun retrofit(): Retrofit {
         .build()
 
 }
+

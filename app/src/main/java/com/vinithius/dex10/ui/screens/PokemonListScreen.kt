@@ -5,6 +5,7 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.os.Build
+import androidx.compose.runtime.collectAsState
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
@@ -25,8 +26,10 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -68,6 +71,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.edit
 import androidx.core.net.toUri
@@ -109,6 +113,9 @@ import com.vinithius.dex10.ui.viewmodel.PokemonViewModel
 import com.vinithius.dex10.ui.viewmodel.RequestStateList
 import org.koin.androidx.compose.getViewModel
 import androidx.compose.foundation.lazy.itemsIndexed as listItemsIndexed
+import com.vinithius.dex10.datasource.data.AppPreferences
+import com.vinithius.dex10.datasource.data.AppPreferences.ViewMode
+import org.koin.java.KoinJavaComponent.inject
 
 const val URL_IMAGE = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/"
 
@@ -174,7 +181,8 @@ fun SharedTransitionScope.PokemonListScreen(
     val listState = rememberSaveable(saver = LazyListState.Saver) { LazyListState() }
     val gridState = rememberSaveable(saver = LazyGridState.Saver) { LazyGridState() }
 
-    // Ads list item
+    val isPremium by viewModel.premiumManager.isPremium.collectAsState(initial = false)
+
     val adUnitIdAdAdvancedNative by viewModel.adUnitIdAdAdvancedNative.observeAsState(String())
     val adUnitId = if (BuildConfig.DEBUG) {
         "ca-app-pub-3940256099942544/2247696110"
@@ -194,7 +202,8 @@ fun SharedTransitionScope.PokemonListScreen(
     val itemRangeForAdsTablet by viewModel.itemRangeForAdsTablet.observeAsState(22)
     val amountOfAds by viewModel.amountOfAds.observeAsState(12)
 
-    LaunchedEffect(adUnitId) {
+    LaunchedEffect(adUnitId, isPremium) {
+        if (isPremium) return@LaunchedEffect
         if (adUnitId.isBlank()) return@LaunchedEffect
         repeat(amountOfAds) {
             val loader = AdLoader.Builder(context, adUnitId)
@@ -252,8 +261,29 @@ fun SharedTransitionScope.PokemonListScreen(
             )
         }
 
-        val columns = (LocalContext.current as MainActivity).getWindowColumns()
+        val currentViewMode by viewModel.viewMode.collectAsState()
 
+        LaunchedEffect(currentViewMode) {
+            if (currentViewMode == ViewMode.LIST) {
+                val index = gridState.firstVisibleItemIndex
+                val offset = gridState.firstVisibleItemScrollOffset
+                listState.scrollToItem(index, offset)
+            } else {
+                val index = listState.firstVisibleItemIndex
+                val offset = listState.firstVisibleItemScrollOffset
+                gridState.scrollToItem(index, offset)
+            }
+        }
+        val configuration = LocalConfiguration.current
+        val screenWidthDp = configuration.screenWidthDp
+        
+        val effectiveColumns = when (currentViewMode) {
+            ViewMode.LIST -> 1
+            ViewMode.AUTO -> {
+                val calculated = (screenWidthDp / 160).coerceIn(2, 10)
+                calculated
+            }
+        }
         StateRequest(
             viewModel = viewModel,
             loadingFirebase = {
@@ -261,7 +291,7 @@ fun SharedTransitionScope.PokemonListScreen(
                 LoadingProgress(progress)
             },
             loading = {
-                LoadingPokemonList()
+                LoadingPokemonList(effectiveColumns)
             },
             success = {
                 GetFilterBar(
@@ -280,7 +310,7 @@ fun SharedTransitionScope.PokemonListScreen(
                         null
                     )
 
-                    if (columns == 1) {
+                    if (effectiveColumns == 1) {
                         LazyColumn(state = listState) {
                             listItemsIndexed(
                                 items = pokemonItems,
@@ -298,11 +328,13 @@ fun SharedTransitionScope.PokemonListScreen(
                                     pokemonData,
                                     navController,
                                     activity,
+                                    isPremium,
                                     onCallBackIsVisible = {
                                         isVisible = it
                                     },
+                                    isGrid = false
                                 )
-                                if ((index + 1) % itemRangeForAds == 0) { // A cada X pokemons, temos um anúncio.
+                                if (!isPremium && (index + 1) % itemRangeForAds == 0) { // A cada X pokemons, temos um anúncio.
                                     val ad = preloadedAds.getOrNull(index / itemRangeForAds)
                                     if (ad != null) {
                                         AndroidView(factory = {
@@ -314,7 +346,7 @@ fun SharedTransitionScope.PokemonListScreen(
                         }
                     } else {
                         LazyVerticalGrid(
-                            columns = GridCells.Fixed(columns),
+                            columns = GridCells.Fixed(effectiveColumns),
                             state = gridState,
                             modifier = Modifier.fillMaxSize(),
                             contentPadding = PaddingValues(8.dp),
@@ -324,10 +356,10 @@ fun SharedTransitionScope.PokemonListScreen(
 
                             var index = 0
                             while (index < pokemonItems.size) {
-                                if (index > 0 && index % adInterval == 0 && adIndex < preloadedAds.size) {
+                                if (!isPremium && index > 0 && index % adInterval == 0 && adIndex < preloadedAds.size) {
                                     val ad = preloadedAds.getOrNull(adIndex++)
                                     if (ad != null) {
-                                        item(span = { GridItemSpan(columns) }) {
+                                        item(span = { GridItemSpan(effectiveColumns) }) {
                                             AndroidView(
                                                 factory = { createNativeAdViewForTablet(context, ad) },
                                                 modifier = Modifier
@@ -351,7 +383,9 @@ fun SharedTransitionScope.PokemonListScreen(
                                         pokemonData,
                                         navController,
                                         activity,
+                                        isPremium,
                                         onCallBackIsVisible = { isVisible = it },
+                                        isGrid = true
                                     )
                                 }
                                 index++
@@ -383,7 +417,9 @@ private fun SharedTransitionScope.AnimatedItem(
     pokemonData: PokemonWithDetails,
     navController: NavController,
     activity: MainActivity?,
+    isPremium: Boolean,
     onCallBackIsVisible: (Boolean) -> Unit,
+    isGrid: Boolean
 ) {
     AnimatedVisibility(
         visible = isVisible,
@@ -411,12 +447,15 @@ private fun SharedTransitionScope.AnimatedItem(
                     id,
                     navController,
                     activity,
+                    isPremium
                 )
             },
             onClickFavorite = { pokemonFavorite ->
                 activity?.trackButtonClick("Click favorite item list: ${pokemonFavorite.pokemon.name}")
                 viewModel.setFavorite(pokemonFavorite.pokemon.id)
-            }
+            },
+            isPremium = isPremium,
+            isGrid = isGrid
         )
     }
 }
@@ -441,8 +480,9 @@ private fun onClickDetails(
     id: Int,
     navController: NavController,
     activity: MainActivity?,
+    isPremium: Boolean
 ) {
-    if (choiceOfTheDay) {
+    if (choiceOfTheDay && !isPremium) {
         with(viewModel) {
             if (isRewarded) {
                 adUnitIdChoiceOfTheDayRewardedShow(
@@ -461,6 +501,15 @@ private fun onClickDetails(
             )
         }
     } else {
+        if (choiceOfTheDay && isPremium) {
+            // Premium user: Reveal immediately without ad
+            val context = activity?.applicationContext
+            context?.getSharedPreferences("pokemon_prefs", Context.MODE_PRIVATE)?.edit {
+                 putBoolean("hide_pokemon_of_the_day", false)
+            }
+            viewModel.setHidePokemonOfTheDay(false)
+        }
+        
         goToDetails(
             navController,
             activity,
@@ -501,7 +550,9 @@ fun SharedTransitionScope.PokemonListItem(
     choiceOfTheDayStatus: Boolean = false,
     onCallBackFinishAnimation: (() -> Unit)?,
     onClickDetail: ((Int, Boolean) -> Unit)?,
-    onClickFavorite: ((PokemonWithDetails) -> Unit)?
+    onClickFavorite: ((PokemonWithDetails) -> Unit)?,
+    isPremium: Boolean,
+    isGrid: Boolean = false
 ) {
     val context = LocalContext.current
     val sharedPreferences = context.getSharedPreferences("pokemon_prefs", Context.MODE_PRIVATE)
@@ -545,7 +596,7 @@ fun SharedTransitionScope.PokemonListItem(
             .fillMaxWidth()
             .padding(8.dp)
             .clickable {
-                if (choiceOfTheDayStatus && dontShowAgain.not()) {
+                if (choiceOfTheDayStatus && !isPremium && dontShowAgain.not()) {
                     showDialog = true
                 } else {
                     clickAndGoToDetails(
@@ -565,7 +616,8 @@ fun SharedTransitionScope.PokemonListItem(
             animatedVisibilityScope,
             choiceOfTheDayStatus,
             onClickFavorite,
-            onCallBackFinishAnimation
+            onCallBackFinishAnimation,
+            isGrid
         )
     }
 }
@@ -593,6 +645,7 @@ fun SharedTransitionScope.Holder(
     choiceOfTheDayStatus: Boolean = false,
     onClickFavorite: ((PokemonWithDetails) -> Unit)?,
     onCallBackFinishAnimation: (() -> Unit)?,
+    isGrid: Boolean = false
 ) {
 
     val context = LocalContext.current
@@ -638,97 +691,73 @@ fun SharedTransitionScope.Holder(
         habitat
     }
 
-    Box(modifier = modifierBox) {
-        Image(
-            painter = painterResource(id = habitatRes),
-            contentDescription = null,
-            contentScale = ContentScale.Crop,
-            modifier = modifierBackground.then(Modifier.matchParentSize())
-        )
+    if (isGrid) {
         Box(
-            modifier = Modifier
-                .drawBehind {
-                    val strokeWidth = 8f
-                    val yPosition = (size.height - strokeWidth) + 4
-                    drawLine(
-                        color = pokemonData.pokemon.color.getParseColorByString(),
-                        start = Offset(0f, yPosition),
-                        end = Offset(size.width, yPosition),
-                        strokeWidth = strokeWidth
-                    )
-                }
+            modifier = modifierBox
+                .height(200.dp) // Fixed height only for Grid
         ) {
-            Row(
-                modifier = Modifier.padding(8.dp),
-                verticalAlignment = Alignment.CenterVertically
+            Image(
+                painter = painterResource(id = habitatRes),
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = modifierBackground.then(Modifier.matchParentSize())
+            )
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .drawBehind {
+                        val strokeWidth = 8f
+                        val yPosition = (size.height - strokeWidth) + 4
+                        drawLine(
+                            color = pokemonData.pokemon.color.getParseColorByString(),
+                            start = Offset(0f, yPosition),
+                            end = Offset(size.width, yPosition),
+                            strokeWidth = strokeWidth
+                        )
+                    }
             ) {
-                Column(
+                // Top Row: Number, Name and Pokeball
+                Row(
                     modifier = Modifier
-                        .weight(1f)
-                        .align(Alignment.CenterVertically)
+                        .fillMaxWidth()
+                        .padding(8.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.Top
                 ) {
-                    var result = String.format("Nº%03d", pokemonData.pokemon.id)
-                    var name = pokemonData.pokemon.name.capitalize()
-                    if (choiceOfTheDayStatus && hidePokemonOfTheDay) {
-                        result = String()
-                        name = "????"
-                    }
-                    if (choiceOfTheDayStatus) {
-                        val choiceOfTheDay = stringResource(R.string.choice_of_the_day)
-                        result = "$result ($choiceOfTheDay)"
-                    }
-                    Text(
-                        text = result,
-                        color = Color.White,
-                        modifier = Modifier.padding(start = 8.dp),
-                        style = TextStyle(
-                            fontSize = 10.sp,
-                            fontWeight = FontWeight.Bold,
-                            fontStyle = FontStyle.Normal,
-                            shadow = Shadow(
-                                color = Color.Black,
-                                offset = Offset(
-                                    2f,
-                                    2f
-                                ),
-                                blurRadius = 1f
+                    Column(modifier = Modifier.weight(1f)) {
+                        var result = String.format("Nº%03d", pokemonData.pokemon.id)
+                        var name = pokemonData.pokemon.name.capitalize()
+
+                        if (choiceOfTheDayStatus && hidePokemonOfTheDay) {
+                            result = String()
+                            name = "????"
+                        }
+                        if (choiceOfTheDayStatus) {
+                            val choiceOfTheDay = stringResource(R.string.choice_of_the_day)
+                            result = "$result ($choiceOfTheDay)"
+                        }
+
+                        Text(
+                            text = result,
+                            color = Color.White,
+                            style = TextStyle(
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Bold,
+                                shadow = Shadow(color = Color.Black, offset = Offset(1f, 1f), blurRadius = 1f)
                             )
                         )
-                    )
-                    Spacer(modifier = Modifier.size(5.dp))
-                    Text(
-                        text = name,
-                        modifier = Modifier.padding(start = 8.dp),
-                        color = Color.White,
-                        style = TextStyle(
-                            fontSize = 24.sp,
-                            fontWeight = FontWeight.Black,
-                            fontStyle = FontStyle.Normal,
-                            shadow = Shadow(
-                                color = Color.Black,
-                                offset = Offset(
-                                    2f,
-                                    2f
-                                ),
-                                blurRadius = 1f
-                            )
-                        ),
-                    )
-                    Spacer(modifier = Modifier.size(5.dp))
-                    StatComponent(pokemonData, choiceOfTheDayStatus, hidePokemonOfTheDay)
-                    Spacer(modifier = Modifier.size(5.dp))
-                    TypeListDataBase(pokemonData.types, choiceOfTheDayStatus, hidePokemonOfTheDay)
-                }
-                LoadGifWithCoil(
-                    viewModel,
-                    pokemonData,
-                    animatedVisibilityScope,
-                    choiceOfTheDayStatus,
-                    hidePokemonOfTheDay
-                )
-                Column(
-                    modifier = Modifier.align(Alignment.CenterVertically)
-                ) {
+                        Text(
+                            text = name,
+                            color = Color.White,
+                            maxLines = 1,
+                            style = TextStyle(
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Black,
+                                shadow = Shadow(color = Color.Black, offset = Offset(1f, 1f), blurRadius = 1f)
+                            ),
+                        )
+                    }
+
                     PokeballComponent(
                         favorite = pokemonData.pokemon.favorite,
                         choiceOfTheDayStatus = choiceOfTheDayStatus,
@@ -742,47 +771,184 @@ fun SharedTransitionScope.Holder(
                         }
                     }
                 }
+
+                // Center: Pokemon Image
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.Center)
+                        .padding(top = 20.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    LoadGifWithCoil(
+                        viewModel,
+                        pokemonData,
+                        animatedVisibilityScope,
+                        choiceOfTheDayStatus,
+                        hidePokemonOfTheDay,
+                        isGrid
+                    )
+                }
+
+                // Bottom section: Stats and Type
+                Column(
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .fillMaxWidth()
+                        .padding(8.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    StatComponent(pokemonData, choiceOfTheDayStatus, hidePokemonOfTheDay, isGrid)
+                    Spacer(modifier = Modifier.height(4.dp))
+                    TypeListDataBase(pokemonData.types, choiceOfTheDayStatus, hidePokemonOfTheDay)
+                }
+            }
+        }
+    } else {
+        // ORIGINAL LIST LAYOUT
+        Box(modifier = modifierBox) {
+            Image(
+                painter = painterResource(id = habitatRes),
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = modifierBackground.then(Modifier.matchParentSize())
+            )
+            Box(
+                modifier = Modifier
+                    .drawBehind {
+                        val strokeWidth = 8f
+                        val yPosition = (size.height - strokeWidth) + 4
+                        drawLine(
+                            color = pokemonData.pokemon.color.getParseColorByString(),
+                            start = Offset(0f, yPosition),
+                            end = Offset(size.width, yPosition),
+                            strokeWidth = strokeWidth
+                        )
+                    }
+            ) {
+                Row(
+                    modifier = Modifier.padding(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .weight(1f)
+                            .align(Alignment.CenterVertically)
+                    ) {
+                        var result = String.format("Nº%03d", pokemonData.pokemon.id)
+                        var name = pokemonData.pokemon.name.capitalize()
+                        if (choiceOfTheDayStatus && hidePokemonOfTheDay) {
+                            result = String()
+                            name = "????"
+                        }
+                        if (choiceOfTheDayStatus) {
+                            val choiceOfTheDay = stringResource(R.string.choice_of_the_day)
+                            result = "$result ($choiceOfTheDay)"
+                        }
+                        Text(
+                            text = result,
+                            color = Color.White,
+                            modifier = Modifier.padding(start = 8.dp),
+                            style = TextStyle(
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Bold,
+                                fontStyle = FontStyle.Normal,
+                                shadow = Shadow(
+                                    color = Color.Black,
+                                    offset = Offset(
+                                        2f,
+                                        2f
+                                    ),
+                                    blurRadius = 1f
+                                )
+                            )
+                        )
+                        Spacer(modifier = Modifier.size(5.dp))
+                        Text(
+                            text = name,
+                            modifier = Modifier.padding(start = 8.dp),
+                            color = Color.White,
+                            style = TextStyle(
+                                fontSize = 24.sp,
+                                fontWeight = FontWeight.Black,
+                                fontStyle = FontStyle.Normal,
+                                shadow = Shadow(
+                                    color = Color.Black,
+                                    offset = Offset(
+                                        2f,
+                                        2f
+                                    ),
+                                    blurRadius = 1f
+                                )
+                            ),
+                        )
+                        Spacer(modifier = Modifier.size(5.dp))
+                        StatComponent(pokemonData, choiceOfTheDayStatus, hidePokemonOfTheDay, isGrid)
+                        Spacer(modifier = Modifier.size(5.dp))
+                        TypeListDataBase(pokemonData.types, choiceOfTheDayStatus, hidePokemonOfTheDay)
+                    }
+                    LoadGifWithCoil(
+                        viewModel,
+                        pokemonData,
+                        animatedVisibilityScope,
+                        choiceOfTheDayStatus,
+                        hidePokemonOfTheDay,
+                        isGrid
+                    )
+                    Column(
+                        modifier = Modifier.align(Alignment.CenterVertically)
+                    ) {
+                        PokeballComponent(
+                            favorite = pokemonData.pokemon.favorite,
+                            choiceOfTheDayStatus = choiceOfTheDayStatus,
+                            hidePokemonOfTheDay = hidePokemonOfTheDay,
+                            onCallBackFinishAnimation = {
+                                onCallBackFinishAnimation?.invoke()
+                            }
+                        ) {
+                            onClickFavorite?.run {
+                                onClickFavorite(pokemonData)
+                            }
+                        }
+                    }
+                }
             }
         }
     }
 }
-
 @Composable
 fun StatComponent(
     pokemonData: PokemonWithDetails,
     choiceOfTheDayStatus: Boolean = false,
-    hidePokemonOfTheDay: Boolean = false
+    hidePokemonOfTheDay: Boolean = false,
+    isGrid: Boolean = false
 ) {
     val context = LocalContext.current
-    Column(
-        modifier = Modifier.padding(start = 8.dp)
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.Center,
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        Row(
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            pokemonData.stats.take(3).forEachIndexed { index, stat ->
-                var result = "${stat.name.value.getStringStat(context)}: ${stat.baseStat}"
-                if (hidePokemonOfTheDay && choiceOfTheDayStatus) {
-                    result = "${stat.name.value.capitalize()}: ??"
-                }
-                Text(
-                    text = result,
-                    style = TextStyle(
-                        fontSize = 8.sp,
-                        color = Color.White,
-                        fontWeight = FontWeight.SemiBold,
-                        fontStyle = FontStyle.Normal,
-                        shadow = Shadow(
-                            color = Color.Black,
-                            offset = Offset(1f, 1f),
-                            blurRadius = 1f
-                        )
+        pokemonData.stats.take(3).forEachIndexed { index, stat ->
+            var result = "${stat.name.value.getStringStat(context)}: ${stat.baseStat}"
+            if (hidePokemonOfTheDay && choiceOfTheDayStatus) {
+                result = "${stat.name.value.capitalize().take(2)}: ??"
+            }
+            Text(
+                text = result,
+                style = TextStyle(
+                    fontSize = 8.sp,
+                    color = Color.White,
+                    fontWeight = FontWeight.SemiBold,
+                    fontStyle = FontStyle.Normal,
+                    shadow = Shadow(
+                        color = Color.Black,
+                        offset = Offset(1f, 1f),
+                        blurRadius = 1f
                     )
                 )
-                if (index < 2) {
-                    Spacer(modifier = Modifier.size(8.dp))
-                }
+            )
+            if (index < 2) {
+                Spacer(modifier = Modifier.width(4.dp))
             }
         }
     }
@@ -795,7 +961,8 @@ fun SharedTransitionScope.LoadGifWithCoil(
     pokemonData: PokemonWithDetails,
     animatedVisibilityScope: AnimatedVisibilityScope?,
     choiceOfTheDayStatus: Boolean = false,
-    hidePokemonOfTheDay: Boolean = false
+    hidePokemonOfTheDay: Boolean = false,
+    isGrid: Boolean = false
 ) {
     val context = LocalContext.current
     val imageLoader = ImageLoader.Builder(context)
@@ -808,15 +975,29 @@ fun SharedTransitionScope.LoadGifWithCoil(
         }
         .build()
 
+    // Check image quality preference
+    val appPreferences: AppPreferences by inject(AppPreferences::class.java)
+    val isLowQuality by appPreferences.lowQualityImages.collectAsState()
+
+    // When low quality, always use static PNG instead of potentially animated path
+    val imageUrl = if (isLowQuality) {
+        "$URL_IMAGE${pokemonData.pokemon.id}.png"
+    } else {
+        pokemonData.pokemon.imagePath ?: "$URL_IMAGE${pokemonData.pokemon.id}.png"
+    }
+
     val imageRequest = ImageRequest.Builder(context)
-        .data(pokemonData.pokemon.imagePath ?: "$URL_IMAGE/${pokemonData.pokemon.id}.png")
+        .data(imageUrl)
         .crossfade(true)
         .error(android.R.drawable.ic_menu_report_image)
         .build()
 
+    val imageSize = if (isGrid) 55.dp else 70.dp
+    val progressSize = if (isGrid) 22.dp else 30.dp
+
     Box(
         modifier = Modifier
-            .size(70.dp)
+            .size(imageSize)
     ) {
         val painter = rememberAsyncImagePainter(
             model = imageRequest,
@@ -840,7 +1021,7 @@ fun SharedTransitionScope.LoadGifWithCoil(
                 color = Color.White,
                 modifier = Modifier
                     .align(Alignment.Center)
-                    .size(30.dp)
+                    .size(progressSize)
             )
         }
         // Final result
@@ -848,7 +1029,7 @@ fun SharedTransitionScope.LoadGifWithCoil(
             painter = painter,
             contentDescription = pokemonData.pokemon.name,
             modifier = Modifier
-                .size(70.dp)
+                .size(imageSize)
                 .sharedElement(
                     state = rememberSharedContentState(key = "${pokemonData.pokemon.id}"),
                     animatedVisibilityScope = animatedVisibilityScope!!,
@@ -876,7 +1057,8 @@ fun PokemonListScreenPreview() {
                 false,
                 null,
                 null,
-                null
+                null,
+                false
             )
         }
     }

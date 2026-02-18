@@ -8,6 +8,7 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.material3.Typography
 import androidx.compose.ui.graphics.Color
+import com.vinithius.dex10.datasource.data.AppPreferences
 
 private val LightColors = lightColorScheme(
     primary = LightPrimary,
@@ -42,12 +43,19 @@ val ColorScheme.text: Color
 @Composable
 fun ThemeDex10(
     darkTheme: Boolean = isSystemInDarkTheme(),
+    darkModeOverride: Int = AppPreferences.DARK_MODE_SYSTEM,
     content: @Composable () -> Unit
 ) {
-    val colorScheme = if (darkTheme) DarkColors else LightColors
+    val isDark = when (darkModeOverride) {
+        AppPreferences.DARK_MODE_ON -> true
+        AppPreferences.DARK_MODE_OFF -> false
+        else -> darkTheme
+    }
+    val colorScheme = if (isDark) DarkColors else LightColors
     MaterialTheme(
         colorScheme = colorScheme,
         typography = Typography(),
         content = content
     )
 }
+

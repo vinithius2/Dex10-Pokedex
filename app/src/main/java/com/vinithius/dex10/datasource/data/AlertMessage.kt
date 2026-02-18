@@ -1,10 +1,15 @@
+package com.vinithius.dex10.datasource.data
+
 import android.content.Context
+import com.google.gson.annotations.SerializedName
 import com.vinithius.dex10.R
 
 data class AlertMessage(
     val show: Boolean,
-    val version_code: Long?,
-    val url_action: String?,
+    @SerializedName("version_code")
+    val versionCode: Long?,
+    @SerializedName("url_action")
+    val urlAction: String?,
     val content: Map<String, LocalizedContent>
 ) {
     fun getLocalizedContent(
@@ -18,7 +23,7 @@ data class AlertMessage(
         return content[code] ?: content["en"] ?: LocalizedContent(
             title = String(),
             message = String(),
-            title_button = String()
+            titleButton = String()
         )
     }
 }
@@ -26,5 +31,7 @@ data class AlertMessage(
 data class LocalizedContent(
     val title: String,
     val message: String,
-    val title_button: String
+    @SerializedName("title_button")
+    val titleButton: String
 )
+

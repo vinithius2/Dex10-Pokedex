@@ -6,5 +6,9 @@
         <item>fr</item>
         <item>hi</item>
         <item>zh</item>
+        <item>ja</item>
+        <item>de</item>
+        <item>it</item>
+        <item>ko</item>
     </string-array>
 </resources>

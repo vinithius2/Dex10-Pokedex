@@ -1,7 +1,8 @@
 package com.vinithius.dex10.ui.viewmodel
 
-import AlertMessage
+import com.vinithius.dex10.datasource.data.AlertMessage
 import android.content.Context
+import android.graphics.Bitmap
 import android.util.Log
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.snapshots.SnapshotStateMap
@@ -12,7 +13,7 @@ import coil.compose.AsyncImagePainter
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.vinithius.dex10.R
 import com.vinithius.dex10.datasource.database.PokemonWithDetails
-import com.vinithius.dex10.datasource.repository.PokemonRepository
+import com.vinithius.dex10.datasource.repository.IPokemonRepository
 import com.vinithius.dex10.datasource.response.Damage
 import com.vinithius.dex10.datasource.response.Pokemon
 import com.vinithius.dex10.extension.getIdIntoUrl
@@ -25,7 +26,26 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-class PokemonViewModel(private val repository: PokemonRepository) : ViewModel() {
+
+import com.vinithius.dex10.datasource.data.PremiumManager
+import com.vinithius.dex10.datasource.data.AppPreferences
+import kotlinx.coroutines.flow.StateFlow
+
+import kotlinx.coroutines.CoroutineDispatcher
+
+class PokemonViewModel(
+    private val repository: IPokemonRepository,
+    val premiumManager: PremiumManager,
+    private val appPreferences: AppPreferences,
+    private val dispatcher: CoroutineDispatcher = Dispatchers.IO
+) : ViewModel() {
+
+    // View Mode
+    val viewMode: StateFlow<AppPreferences.ViewMode> = appPreferences.viewMode
+
+    fun setViewMode(mode: AppPreferences.ViewMode) {
+        appPreferences.setViewMode(mode)
+    }
 
     // Filter
 
@@ -42,6 +62,8 @@ class PokemonViewModel(private val repository: PokemonRepository) : ViewModel() 
     private val _pokemonIsFavorite = MutableLiveData<Pokemon>()
     val pokemonIsFavorite: LiveData<Pokemon>
         get() = _pokemonIsFavorite
+
+
 
     private val _searchNameFilter = MutableLiveData<String>()
     val searchNameFilter: LiveData<String>
@@ -92,6 +114,12 @@ class PokemonViewModel(private val repository: PokemonRepository) : ViewModel() 
     private val _idPokemon = MutableLiveData(0)
     val idPokemon: LiveData<Int>
         get() = _idPokemon
+
+    private val _pokemonMoves = MutableLiveData<List<com.vinithius.dex10.datasource.response.MoveResponse>?>()
+    val pokemonMoves: LiveData<List<com.vinithius.dex10.datasource.response.MoveResponse>?> = _pokemonMoves
+
+    private val _cryUrl = MutableLiveData<String?>()
+    val cryUrl: LiveData<String?> = _cryUrl
 
     // Pokemon images
     private val _sharedPokemonImages = MutableLiveData<Map<String, AsyncImagePainter>>()
@@ -222,7 +250,7 @@ class PokemonViewModel(private val repository: PokemonRepository) : ViewModel() 
         _itemRangeForAdsTablet.postValue(value)
     }
 
-    private val _amountOfAds= MutableLiveData<Int>(12)
+    private val _amountOfAds = MutableLiveData<Int>(12)
     val amountOfAds: LiveData<Int>
         get() = _amountOfAds
 
@@ -351,11 +379,13 @@ class PokemonViewModel(private val repository: PokemonRepository) : ViewModel() 
         _idPokemon.postValue(value)
     }
 
+
+
     /**
      * Get pokemons list with Pokémon of the Day logic.
      */
     fun getPokemonList(context: Context) {
-        CoroutineScope(Dispatchers.IO).launch {
+        CoroutineScope(dispatcher).launch {
             _isDetailFavorite.postValue(false)
             try {
                 val result = repository.getPokemonEntityList(
@@ -503,15 +533,49 @@ class PokemonViewModel(private val repository: PokemonRepository) : ViewModel() 
     /**
      * Set favorite pokemon to database.
      */
+    /**
+     * Set favorite pokemon to database.
+     */
     fun setFavorite(pokemonId: Int) {
-        CoroutineScope(Dispatchers.IO).launch {
+        CoroutineScope(dispatcher).launch {
             try {
-                _pokemonList.value?.map { pokemonMap ->
-                    if (pokemonMap.pokemon.id == pokemonId) {
-                        pokemonMap.pokemon.favorite = pokemonMap.pokemon.favorite.not()
-                        _isDetailFavorite.postValue(pokemonMap.pokemon.favorite)
-                        repository.setFavorite(pokemonMap.pokemon)
+                val currentList = _pokemonList.value ?: return@launch
+                val targetPokemonMap = currentList.find { it.pokemon.id == pokemonId }
+
+                if (targetPokemonMap != null) {
+                    val isCurrentlyFavorite = targetPokemonMap.pokemon.favorite
+                    // If we are about to ADD a favorite (it's currently false)
+                    if (!isCurrentlyFavorite) {
+                         val isPremium = premiumManager.isPremium.value
+                         if (!isPremium) {
+                             val currentFavoritesCount = currentList.count { it.pokemon.favorite }
+                             if (currentFavoritesCount >= PremiumManager.FREE_FAVORITE_LIMIT) {
+                                 com.vinithius.dex10.analytics.AnalyticsManager.logLimitReached("favorite_limit")
+                                 premiumManager.triggerUpsell()
+                                 return@launch
+                             }
+                         }
                     }
+                    
+                    // Proceed with toggle
+                    val newFavoriteStatus = !isCurrentlyFavorite
+                    
+                    // Create a copy of the item with new favorite status to force Compose update
+                    val newPokemonEntity = targetPokemonMap.pokemon.copy(favorite = newFavoriteStatus)
+                    val newPokemonWithDetails = targetPokemonMap.copy(pokemon = newPokemonEntity)
+                    
+                    val newList = currentList.toMutableList()
+                    val index = newList.indexOfFirst { it.pokemon.id == pokemonId }
+                    if (index != -1) {
+                        newList[index] = newPokemonWithDetails
+                    }
+                    
+                    _isDetailFavorite.postValue(newFavoriteStatus)
+                    repository.setFavorite(newPokemonEntity)
+                    
+                    // Post new list reference
+                    _pokemonList.postValue(newList)
+                    _pokemonListBackup.postValue(newList) // Update backup as well if needed
                 }
             } catch (e: Exception) {
                 FirebaseCrashlytics.getInstance().recordException(e)
@@ -521,7 +585,7 @@ class PokemonViewModel(private val repository: PokemonRepository) : ViewModel() 
     }
 
     private fun getDetailFavorite() {
-        CoroutineScope(Dispatchers.IO).launch {
+        CoroutineScope(dispatcher).launch {
             try {
                 val isFavorite = _pokemonList.value?.firstOrNull {
                     it.pokemon.id == _idPokemon.value
@@ -574,7 +638,7 @@ class PokemonViewModel(private val repository: PokemonRepository) : ViewModel() 
     private fun getFilterPokemon(
         context: Context,
     ) {
-        CoroutineScope(Dispatchers.IO).launch {
+        CoroutineScope(dispatcher).launch {
             _stateList.postValue(RequestStateList.Loading)
             try {
                 val searchQuery = _searchNameFilter.value.orEmpty()
@@ -629,11 +693,14 @@ class PokemonViewModel(private val repository: PokemonRepository) : ViewModel() 
             return
         }
 
-        CoroutineScope(Dispatchers.IO).launch {
+        CoroutineScope(dispatcher).launch {
             _stateDetail.postValue(RequestStateDetail.Loading)
 
             try {
                 val pokemon = repository.getPokemonDetail(id)
+                _pokemonDetail.postValue(pokemon)
+                _cryUrl.postValue("https://raw.githubusercontent.com/PokeAPI/cries/main/cries/pokemon/latest/${id}.ogg")
+                _pokemonMoves.postValue(pokemon?.moves)
 
                 if (pokemon == null) {
                     _stateDetail.postValue(RequestStateDetail.Error(NullPointerException("Pokemon not found")))
@@ -725,6 +792,21 @@ class PokemonViewModel(private val repository: PokemonRepository) : ViewModel() 
         val names = pair.map { it.first }
         return _pokemonListBackup.value?.filter { it.pokemon.name in names }
             ?.map { it.pokemon.id to it.pokemon.name }
+    }
+
+    suspend fun getMovesForPokemon(pokemonId: Int): List<com.vinithius.dex10.datasource.response.MoveResponse>? {
+        return repository.getMovesForPokemon(pokemonId)
+    }
+
+    suspend fun getMoveDetails(moveName: String): com.vinithius.dex10.datasource.response.MoveDetailsResponse? {
+        return withContext(dispatcher) {
+            try {
+                repository.getMoveDetails(moveName)
+            } catch (e: Exception) {
+                Log.e("PokemonViewModel", "Error fetching move details for $moveName", e)
+                null
+            }
+        }
     }
 
 }
