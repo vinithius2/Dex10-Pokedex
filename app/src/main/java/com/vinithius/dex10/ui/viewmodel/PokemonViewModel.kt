@@ -28,14 +28,24 @@ import java.util.Locale
 
 
 import com.vinithius.dex10.datasource.data.PremiumManager
+import com.vinithius.dex10.datasource.data.AppPreferences
+import kotlinx.coroutines.flow.StateFlow
 
 import kotlinx.coroutines.CoroutineDispatcher
 
 class PokemonViewModel(
     private val repository: IPokemonRepository,
     val premiumManager: PremiumManager,
+    private val appPreferences: AppPreferences,
     private val dispatcher: CoroutineDispatcher = Dispatchers.IO
 ) : ViewModel() {
+
+    // View Mode
+    val viewMode: StateFlow<AppPreferences.ViewMode> = appPreferences.viewMode
+
+    fun setViewMode(mode: AppPreferences.ViewMode) {
+        appPreferences.setViewMode(mode)
+    }
 
     // Filter
 

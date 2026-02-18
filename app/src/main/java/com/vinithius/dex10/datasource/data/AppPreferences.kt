@@ -25,6 +25,15 @@ class AppPreferences(context: Context) {
         const val DARK_MODE_SYSTEM = 0
         const val DARK_MODE_ON = 1
         const val DARK_MODE_OFF = 2
+        private const val KEY_VIEW_MODE = "view_mode"
+    }
+
+    enum class ViewMode(val value: Int) {
+        LIST(0), AUTO(1);
+
+        companion object {
+            fun fromInt(value: Int) = values().firstOrNull { it.value == value } ?: LIST
+        }
     }
 
     private val prefs: SharedPreferences =
@@ -64,5 +73,14 @@ class AppPreferences(context: Context) {
     fun setLowQualityImages(value: Boolean) {
         prefs.edit().putBoolean(KEY_LOW_QUALITY, value).apply()
         _lowQualityImages.value = value
+    }
+
+    // --- View Mode ---
+    private val _viewMode = MutableStateFlow(ViewMode.fromInt(prefs.getInt(KEY_VIEW_MODE, ViewMode.LIST.value)))
+    val viewMode: StateFlow<ViewMode> = _viewMode.asStateFlow()
+
+    fun setViewMode(value: ViewMode) {
+        prefs.edit().putInt(KEY_VIEW_MODE, value.value).apply()
+        _viewMode.value = value
     }
 }

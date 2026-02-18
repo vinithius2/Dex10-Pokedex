@@ -31,7 +31,7 @@ val repositoryDataModule = module {
 }
 
 val viewModelModule = module {
-    single { PokemonViewModel(get(), get()) }
+    single { PokemonViewModel(get(), get(), get()) }
     viewModel { com.vinithius.dex10.ui.viewmodel.TeamViewModel(get(), get(), get()) }
 }
 

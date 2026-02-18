@@ -77,14 +77,14 @@ import androidx.compose.foundation.lazy.grid.items as gridItems
 // Page list Loading
 
 @Composable
-fun LoadingPokemonList() {
-    val columns = (LocalContext.current as MainActivity).getWindowColumns()
+fun LoadingPokemonList(columns: Int? = null) {
+    val currentColumns = columns ?: (LocalContext.current as MainActivity).getWindowColumns()
     val listMockup = (1..30).toList()
     Column(
         modifier = Modifier.fillMaxSize()
     ) {
         GetFilterLoading()
-        if (columns == 1) {
+        if (currentColumns == 1) {
             LazyColumn {
                 items(
                     items = listMockup,
@@ -102,7 +102,7 @@ fun LoadingPokemonList() {
             }
         } else {
             LazyVerticalGrid(
-                columns = GridCells.Fixed(columns)
+                columns = GridCells.Fixed(currentColumns)
             ) {
                 gridItems(
                     items = listMockup,
@@ -114,7 +114,7 @@ fun LoadingPokemonList() {
                         elevation = CardDefaults.elevatedCardElevation(5.dp),
                         shape = RoundedCornerShape(16.dp)
                     ) {
-                        HolderPokemonList()
+                        HolderPokemonGrid()
                     }
                 }
             }
@@ -366,7 +366,6 @@ fun StatComponent() {
                     fontSize = 8.sp,
                     color = Color.White,
                     fontWeight = FontWeight.SemiBold,
-                    fontStyle = androidx.compose.ui.text.font.FontStyle.Normal,
                     shadow = Shadow(
                         color = Color.Black,
                         offset = Offset(
@@ -385,7 +384,6 @@ fun StatComponent() {
                     fontSize = 8.sp,
                     color = Color.White,
                     fontWeight = FontWeight.SemiBold,
-                    fontStyle = androidx.compose.ui.text.font.FontStyle.Normal,
                     shadow = Shadow(
                         color = Color.Black,
                         offset = Offset(
@@ -404,7 +402,6 @@ fun StatComponent() {
                     fontSize = 8.sp,
                     color = Color.White,
                     fontWeight = FontWeight.SemiBold,
-                    fontStyle = androidx.compose.ui.text.font.FontStyle.Normal,
                     shadow = Shadow(
                         color = Color.Black,
                         offset = Offset(
@@ -419,6 +416,115 @@ fun StatComponent() {
     }
 }
 
+@Composable
+fun StatComponentGrid() {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.Center,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        val stats = listOf("HP", "Atk", "Def")
+        stats.forEachIndexed { index, stat ->
+            Text(
+                text = "$stat: Loading",
+                modifier = Modifier.shimmer(),
+                style = TextStyle(
+                    fontSize = 8.sp,
+                    color = Color.White,
+                    fontWeight = FontWeight.SemiBold,
+                    fontStyle = androidx.compose.ui.text.font.FontStyle.Normal,
+                    shadow = Shadow(
+                        color = Color.Black,
+                        offset = Offset(1f, 1f),
+                        blurRadius = 1f
+                    )
+                )
+            )
+            if (index < 2) {
+                Spacer(modifier = Modifier.width(4.dp))
+            }
+        }
+    }
+}
+
+@SuppressLint("DefaultLocale")
+@Composable
+fun HolderPokemonGrid() {
+    Box(
+        modifier = Modifier
+            .height(200.dp)
+            .fillMaxWidth()
+    ) {
+        // Top Row: Number, Name and Pokeball
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(8.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.Top
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                val numberPokemon = String.format("Nº%03d", 0)
+                Text(
+                    text = numberPokemon,
+                    color = Color.White,
+                    modifier = Modifier.shimmer(),
+                    style = TextStyle(
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.Bold,
+                        shadow = Shadow(color = Color.Black, offset = Offset(1f, 1f), blurRadius = 1f)
+                    )
+                )
+                Text(
+                    text = stringResource(R.string.loading),
+                    modifier = Modifier.shimmer(),
+                    color = Color.White,
+                    style = TextStyle(
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Black,
+                        shadow = Shadow(color = Color.Black, offset = Offset(1f, 1f), blurRadius = 1f)
+                    ),
+                )
+            }
+
+            PokeballComponent(
+                favorite = false,
+                isShimmer = true
+            )
+        }
+
+        // Center: Loading Progress
+        Box(
+            modifier = Modifier
+                .align(Alignment.Center)
+                .padding(top = 20.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            CircularProgressIndicator(
+                color = Color.White,
+                modifier = Modifier.size(30.dp)
+            )
+        }
+
+        // Bottom section: Stats and Type
+        Column(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .fillMaxWidth()
+                .padding(8.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            StatComponentGrid()
+            Spacer(modifier = Modifier.height(4.dp))
+            Row(
+                horizontalArrangement = Arrangement.Center,
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                TypeItemShimmer()
+            }
+        }
+    }
+}
 @Preview
 @Composable
 private fun LoadingPokemonListPreview() {

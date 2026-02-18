@@ -62,6 +62,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.getViewModel
+import com.vinithius.dex10.datasource.data.AppPreferences.ViewMode
+import androidx.compose.runtime.collectAsState
 import com.android.billingclient.api.*
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
@@ -91,9 +93,13 @@ fun GetFilterBar(
     var showBottomSheet by remember { mutableStateOf(false) }
     var labelTitle by remember { mutableStateOf(String()) }
     var loading by remember { mutableStateOf(false) }
+    var showViewModeSheet by remember { mutableStateOf(false) }
+
+    val isPremium by viewModel.premiumManager.isPremium.collectAsState(initial = false)
 
     val filterList = mutableListOf<String>().apply {
         add("first")
+        add("view_mode")
         addAll(filterMap.keys)
     }
 
@@ -119,6 +125,21 @@ fun GetFilterBar(
                             CoroutineScope(Dispatchers.Main).launch {
                                 delay(500)
                                 loading = false
+                            }
+                        }
+                    )
+                }
+
+                "view_mode" -> {
+                    ViewHolderViewMode(
+                        viewModel = viewModel,
+                        onClick = {
+                            if (isPremium) {
+                                activity?.trackButtonClick("Menu filter: View Mode")
+                                showViewModeSheet = true
+                            } else {
+                                activity?.trackButtonClick("Menu filter: View Mode (Upsell)")
+                                viewModel.premiumManager.triggerUpsell()
                             }
                         }
                     )
@@ -169,6 +190,30 @@ fun GetFilterBar(
                 showBottomSheet = it
                 onCallBackFilter.invoke(filterMap)
             }
+        }
+    }
+
+    if (showViewModeSheet) {
+        ModalBottomSheet(
+            onDismissRequest = { showViewModeSheet = false },
+            sheetState = sheetState,
+            containerColor = MaterialTheme.colorScheme.secondary,
+            tonalElevation = 16.dp,
+            dragHandle = {
+                Box(
+                    modifier = Modifier
+                        .padding(8.dp)
+                        .width(50.dp)
+                        .height(6.dp)
+                        .clip(RoundedCornerShape(50))
+                        .background(MaterialTheme.colorScheme.onSecondary)
+                )
+            }
+        ) {
+            ViewModeBottomSheetContent(
+                viewModel = viewModel,
+                onClose = { showViewModeSheet = false }
+            )
         }
     }
 }
@@ -567,4 +612,118 @@ fun Preview() {
     GetFilterBar(
         onCallBackClearFavoriteFilter = {}
     )
+}
+
+@Composable
+fun ViewHolderViewMode(
+    viewModel: PokemonViewModel,
+    onClick: () -> Unit
+) {
+    val currentViewMode by viewModel.viewMode.collectAsState()
+    
+    Box(
+        modifier = Modifier
+            .clip(shape = RoundedCornerShape(8.dp))
+            .background(MaterialTheme.colorScheme.secondary)
+            .clickable { onClick() }
+            .padding(horizontal = 8.dp, vertical = 4.dp),
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text(
+                text = when (currentViewMode) {
+                    ViewMode.LIST -> stringResource(R.string.view_list)
+                    else -> stringResource(R.string.view_auto)
+                },
+                color = MaterialTheme.colorScheme.onSecondary,
+                modifier = Modifier.padding(4.dp),
+                style = TextStyle(
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Bold,
+                    fontStyle = androidx.compose.ui.text.font.FontStyle.Normal,
+                )
+            )
+            Icon(
+                imageVector = Icons.Default.KeyboardArrowDown,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSecondary
+            )
+        }
+    }
+}
+
+@Composable
+fun ViewModeBottomSheetContent(
+    viewModel: PokemonViewModel,
+    onClose: () -> Unit
+) {
+    val currentViewMode by viewModel.viewMode.collectAsState()
+    val activity = getActivity()
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp)
+    ) {
+        Text(
+            text = stringResource(R.string.view_mode),
+            style = MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.padding(bottom = 16.dp)
+        )
+
+        ViewModeOption(
+            label = stringResource(R.string.view_list),
+            isSelected = currentViewMode == ViewMode.LIST,
+            onClick = {
+                activity?.trackButtonClick("View Mode: List")
+                viewModel.setViewMode(ViewMode.LIST)
+                onClose()
+            }
+        )
+        ViewModeOption(
+            label = stringResource(R.string.view_auto),
+            isSelected = currentViewMode == ViewMode.AUTO,
+            onClick = {
+                activity?.trackButtonClick("View Mode: Auto")
+                viewModel.setViewMode(ViewMode.AUTO)
+                onClose()
+            }
+        )
+        
+        Spacer(modifier = Modifier.height(24.dp))
+    }
+}
+
+@Composable
+fun ViewModeOption(
+    label: String,
+    isSelected: Boolean,
+    onClick: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(8.dp))
+            .background(if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.1f) else Color.Transparent)
+            .clickable { onClick() }
+            .padding(16.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = label,
+            modifier = Modifier.weight(1f),
+            style = MaterialTheme.typography.bodyLarge,
+            color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSecondary
+        )
+        if (isSelected) {
+            Icon(
+                imageVector = Icons.Default.Check,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary
+            )
+        }
+    }
 }

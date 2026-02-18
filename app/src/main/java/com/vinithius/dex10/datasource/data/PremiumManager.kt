@@ -28,6 +28,7 @@ class PremiumManager(
         private const val KEY_IS_PREMIUM = "is_premium"
         private const val KEY_DEBUG_PREMIUM = "debug_premium"
         const val SKU_PREMIUM = "dex10_pro_lifetime"
+        const val SKU_COFFEE = "donation_coffee_small"
         const val FREE_TEAM_LIMIT = 1
         const val FREE_FAVORITE_LIMIT = 50
     }
@@ -70,11 +71,19 @@ class PremiumManager(
     private val _showUpsell = MutableStateFlow(false)
     val showUpsell: StateFlow<Boolean> = _showUpsell.asStateFlow()
 
+    private val _showDonation = MutableStateFlow(false)
+    val showDonation: StateFlow<Boolean> = _showDonation.asStateFlow()
+
     private var billingClient: BillingClient? = null
     private var productDetails: ProductDetails? = null
 
     private val _premiumPrice = MutableStateFlow<String?>(null)
     val premiumPrice: StateFlow<String?> = _premiumPrice.asStateFlow()
+
+    private val _coffeePrice = MutableStateFlow<String?>(null)
+    val coffeePrice: StateFlow<String?> = _coffeePrice.asStateFlow()
+
+    private var coffeeProductDetails: ProductDetails? = null
 
     /**
      * Initialize and connect the BillingClient.
@@ -138,6 +147,10 @@ class PremiumManager(
             QueryProductDetailsParams.Product.newBuilder()
                 .setProductId(SKU_PREMIUM)
                 .setProductType(BillingClient.ProductType.INAPP)
+                .build(),
+            QueryProductDetailsParams.Product.newBuilder()
+                .setProductId(SKU_COFFEE)
+                .setProductType(BillingClient.ProductType.INAPP)
                 .build()
         )
 
@@ -147,9 +160,13 @@ class PremiumManager(
 
         billingClient?.queryProductDetailsAsync(params) { billingResult, productDetailsList ->
             if (billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
-                productDetails = productDetailsList.firstOrNull()
+                productDetails = productDetailsList.find { it.productId == SKU_PREMIUM }
                 _premiumPrice.value = productDetails?.oneTimePurchaseOfferDetails?.formattedPrice
-                Log.d(TAG, "Product details: ${productDetails?.name}, Price: ${_premiumPrice.value}")
+
+                coffeeProductDetails = productDetailsList.find { it.productId == SKU_COFFEE }
+                _coffeePrice.value = coffeeProductDetails?.oneTimePurchaseOfferDetails?.formattedPrice
+
+                Log.d(TAG, "Premium Price: ${_premiumPrice.value}, Coffee Price: ${_coffeePrice.value}")
             }
         }
     }
@@ -158,10 +175,17 @@ class PremiumManager(
      * Launch the purchase flow for the premium one-time purchase.
      */
     fun launchPurchaseFlow(activity: Activity) {
-        val details = productDetails
+        launchBillingFlow(activity, productDetails, SKU_PREMIUM)
+    }
+
+    fun launchDonationFlow(activity: Activity) {
+        launchBillingFlow(activity, coffeeProductDetails, SKU_COFFEE)
+    }
+
+    private fun launchBillingFlow(activity: Activity, details: ProductDetails?, sku: String) {
         if (details == null) {
-            Log.e(TAG, "Product details not available yet")
-            com.vinithius.dex10.analytics.AnalyticsManager.logPurchaseFail("details_null")
+            Log.e(TAG, "Product details not available yet for $sku")
+            com.vinithius.dex10.analytics.AnalyticsManager.logPurchaseFail("${sku}_details_null")
             return
         }
 
@@ -174,8 +198,8 @@ class PremiumManager(
         val billingFlowParams = BillingFlowParams.newBuilder()
             .setProductDetailsParamsList(productDetailsParamsList)
             .build()
-        
-        com.vinithius.dex10.analytics.AnalyticsManager.logPurchaseAttempt("manual_click")
+
+        com.vinithius.dex10.analytics.AnalyticsManager.logPurchaseAttempt(sku)
         billingClient?.launchBillingFlow(activity, billingFlowParams)
     }
 
@@ -193,6 +217,8 @@ class PremiumManager(
                             if (!purchase.isAcknowledged) {
                                 acknowledgePurchase(purchase)
                             }
+                        } else if (purchase.products.contains(SKU_COFFEE)) {
+                            consumeCoffeePurchase(purchase)
                         }
                     }
                 }
@@ -227,6 +253,23 @@ class PremiumManager(
         }
     }
 
+    private fun consumeCoffeePurchase(purchase: Purchase) {
+        val params = ConsumeParams.newBuilder()
+            .setPurchaseToken(purchase.purchaseToken)
+            .build()
+
+        CoroutineScope(Dispatchers.IO).launch {
+            billingClient?.consumeAsync(params) { result, _ ->
+                if (result.responseCode == BillingClient.BillingResponseCode.OK) {
+                    Log.d(TAG, "Coffee purchase consumed successfully")
+                    com.vinithius.dex10.analytics.AnalyticsManager.logPurchaseSuccess()
+                } else {
+                    Log.e(TAG, "Consume failed: ${result.debugMessage}")
+                }
+            }
+        }
+    }
+
 
 
     /**
@@ -241,6 +284,20 @@ class PremiumManager(
      */
     fun dismissUpsell() {
         _showUpsell.value = false
+    }
+
+    /**
+     * Show the donation bottom sheet.
+     */
+    fun triggerDonation() {
+        _showDonation.value = true
+    }
+
+    /**
+     * Dismiss the donation bottom sheet.
+     */
+    fun dismissDonation() {
+        _showDonation.value = false
     }
 
     /**

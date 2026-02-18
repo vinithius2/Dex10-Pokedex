@@ -117,6 +117,9 @@
     <string name="ability">Habilidade</string>
     <string name="color">Cor</string>
     <string name="habitat">Habitat</string>
+    <string name="view_mode">Modo de Visualização</string>
+    <string name="view_list">Lista</string>
+    <string name="view_auto">Automático</string>
     <string name="hp">HP</string>
     <string name="attack">Ataque</string>
     <string name="defense">Defesa</string>
@@ -237,8 +240,15 @@
     <string name="val_master_security">Backup na Nuvem ☁️</string>
     <string name="val_trainer_updates">Padrão</string>
     <string name="val_master_updates">Acesso Antecipado</string>
+    <string name="feature_grid_mode">Modo Visualização</string>
+    <string name="val_trainer_grid_mode">Apenas Lista</string>
+    <string name="val_master_grid_mode">Grid e Lista</string>
     <string name="cta_upgrade">Desbloquear Agora — %1$s</string>
     <string name="footer_google_play">Pagamento único e seguro via Google Play.</string>
+    <string name="buy_me_a_coffee">Pagar um café ☕</string>
+    <string name="donation_title">Pagar um café ao desenvolvedor</string>
+    <string name="donation_description">Se o Dex10 já te arrancou um sorriso ou ajudou na tua jornada, este é um cantinho especial para retribuir. Este gesto é 100% voluntário e serve como um abraço virtual, dando aquele gás extra de motivação para eu continuar a cuidar do app com todo o carinho. É a forma mais gentil de dizer \'valeu!\' e manter a minha moral lá no alto!</string>
+    <string name="cta_donate">Pagar café — %1$s</string>
     <string name="format_label">Formato:</string>
     <string name="format_1v1">1x1 (Singles)</string>
     <string name="format_2v2">2x2 (Doubles)</string>
@@ -330,7 +340,7 @@
     <string name="info_evs_title">EVs (Effort Values)</string>
     <string name="info_evs_desc">Pontos ganhos com o treinamento. Você tem 510 pontos totais para distribuir, com máximo de 252 em um único status. Use isso para especializar seu Pokémon (ex: maximizar Speed e Attack).</string>
     <string name="info_nature_title">Nature (Natureza)</string>
-    <string name="info_nature_desc">A personalidade do Pokémon. Aumenta um status em 10% (+) e diminui outro em 10% (-). Escolha uma Nature que aumente o ponto forte do seu Pokémon e diminua um status que ele não usa.</string>
+    <string name="info_nature_desc">A personalidade do Pokémon. Aumenta um status em 10%% (+) e diminui outro em 10%% (-). Escolha uma Nature que aumente o ponto forte do seu Pokémon e diminua um status que ele não usa.</string>
     <string name="got_it">Entendi</string>
     <string name="my_teams">Meus Times</string>
     <string name="team_details">Detalhes do Time</string>

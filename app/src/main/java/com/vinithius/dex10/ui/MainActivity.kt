@@ -104,6 +104,7 @@ import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.vinithius.dex10.datasource.data.AppPreferences
 import com.vinithius.dex10.ui.screens.SettingsScreen
 import com.vinithius.dex10.ui.components.UpsellBottomSheet
+import com.vinithius.dex10.ui.components.DonationBottomSheet
 import kotlinx.coroutines.launch
 import org.koin.java.KoinJavaComponent.inject
 import com.google.android.gms.ads.MobileAds
@@ -450,6 +451,18 @@ fun MainScreen(
             onPurchaseClick = {
                 premiumManager?.dismissUpsell()
                 premiumManager?.launchPurchaseFlow(activity)
+            },
+        )
+    }
+
+    // Donation Sheet Logic
+    val showDonation by (premiumManager?.showDonation ?: MutableStateFlow(false)).collectAsState()
+    if (showDonation) {
+        DonationBottomSheet(
+            onDismiss = { premiumManager?.dismissDonation() },
+            onDonateClick = {
+                premiumManager?.dismissDonation()
+                premiumManager?.launchDonationFlow(activity)
             },
         )
     }
@@ -1025,11 +1038,11 @@ private fun DrawerContent(
 
         HorizontalDivider()
 
-        // Premium Section
+        // Premium and Donation Section
         val isPremium by viewModel.premiumManager.isPremium.collectAsState()
         if (!isPremium) {
             DrawerItem(
-                icon = Icons.Default.Star, // Or a diamond/crown icon if available
+                icon = Icons.Default.Star,
                 label = stringResource(id = R.string.go_premium),
                 onClick = {
                     onCloseDrawer()
@@ -1037,8 +1050,19 @@ private fun DrawerContent(
                     viewModel.premiumManager.triggerUpsell()
                 }
             )
-            HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
         }
+
+        DrawerItem(
+            icon = Icons.Default.Favorite,
+            label = stringResource(id = R.string.buy_me_a_coffee),
+            onClick = {
+                onCloseDrawer()
+                activity?.trackButtonClick("Drawer: buy me a coffee")
+                viewModel.premiumManager.triggerDonation()
+            }
+        )
+
+        HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
 
         // Team Builder
         NavigationDrawerItem(
@@ -1110,17 +1134,6 @@ private fun DrawerContent(
             )
         }
 
-        if (hasDonate) {
-            DrawerItem(
-                icon = Icons.Default.Favorite,
-                label = stringResource(id = R.string.donate_to_developer),
-                onClick = {
-                    onCloseDrawer()
-                    activity?.trackButtonClick("Drawer: donate")
-                    // Do nothing yet
-                }
-            )
-        }
 
         HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
 
