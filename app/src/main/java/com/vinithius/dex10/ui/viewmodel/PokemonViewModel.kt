@@ -105,6 +105,12 @@ class PokemonViewModel(
     val idPokemon: LiveData<Int>
         get() = _idPokemon
 
+    private val _pokemonMoves = MutableLiveData<List<com.vinithius.dex10.datasource.response.MoveResponse>?>()
+    val pokemonMoves: LiveData<List<com.vinithius.dex10.datasource.response.MoveResponse>?> = _pokemonMoves
+
+    private val _cryUrl = MutableLiveData<String?>()
+    val cryUrl: LiveData<String?> = _cryUrl
+
     // Pokemon images
     private val _sharedPokemonImages = MutableLiveData<Map<String, AsyncImagePainter>>()
     val sharedPokemonImages: LiveData<Map<String, AsyncImagePainter>> = _sharedPokemonImages
@@ -682,6 +688,9 @@ class PokemonViewModel(
 
             try {
                 val pokemon = repository.getPokemonDetail(id)
+                _pokemonDetail.postValue(pokemon)
+                _cryUrl.postValue("https://raw.githubusercontent.com/PokeAPI/cries/main/cries/pokemon/latest/${id}.ogg")
+                _pokemonMoves.postValue(pokemon?.moves)
 
                 if (pokemon == null) {
                     _stateDetail.postValue(RequestStateDetail.Error(NullPointerException("Pokemon not found")))

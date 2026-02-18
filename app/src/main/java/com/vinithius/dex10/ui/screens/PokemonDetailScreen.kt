@@ -2,6 +2,7 @@ package com.vinithius.dex10.ui.screens
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.media.MediaPlayer
 import android.os.Build
 import android.text.Spanned
 import androidx.compose.animation.AnimatedVisibility
@@ -45,6 +46,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -98,6 +100,8 @@ import com.vinithius.dex10.admobbanners.AdAdvancedNative
 import com.vinithius.dex10.components.ErrorStatus
 import com.vinithius.dex10.components.TypeItem
 import com.vinithius.dex10.components.TypeItemShimmer
+import com.vinithius.dex10.extension.capitalize
+import com.vinithius.dex10.extension.getColorByString
 import com.vinithius.dex10.components.TypeListResponse
 import com.vinithius.dex10.datasource.mapper.fromDefaultToListType
 import com.vinithius.dex10.datasource.response.Pokemon
@@ -340,6 +344,19 @@ fun SharedTransitionScope.MainCard(
                     } else {
                         pokemonId.LoadGifWithCoil(viewModel)
                     }
+
+                    // Zenith Cry Button
+                    Box(
+                        modifier = Modifier
+                            .align(Alignment.TopEnd)
+                            .padding(16.dp)
+                    ) {
+                        ZenithCryButton(
+                            viewModel = viewModel,
+                            color = color.getColorByString(isSystemInDarkTheme())
+                        )
+                    }
+
                     // weight and height
                     Column(
                         modifier = Modifier
@@ -543,6 +560,19 @@ fun SharedTransitionScope.MainCardLargeScreen(
                         } else {
                             pokemonId.LoadGifWithCoil(viewModel)
                         }
+
+                        // Zenith Cry Button
+                        Box(
+                            modifier = Modifier
+                                .align(Alignment.TopEnd)
+                                .padding(16.dp)
+                        ) {
+                            ZenithCryButton(
+                                viewModel = viewModel,
+                                color = color.getColorByString(isSystemInDarkTheme())
+                            )
+                        }
+
                         // weight and height
                         Column(
                             modifier = Modifier
@@ -701,7 +731,8 @@ fun TabWithPagerExample(
         stringResource(R.string.encounters),
         stringResource(R.string.eggs),
         stringResource(R.string.abilities),
-        stringResource(R.string.entries)
+        stringResource(R.string.entries),
+        stringResource(R.string.moves)
     )
     val pagerState = rememberPagerState(pageCount = { tabTitles.size })
     val coroutineScope = rememberCoroutineScope()
@@ -799,6 +830,11 @@ fun TabWithPagerExample(
                     4 -> {
                         activity?.trackButtonClick(tabTitles[4])
                         PokemonEntries(pokemonDetail, viewModel)
+                    }
+
+                    5 -> {
+                        activity?.trackButtonClick(tabTitles[5])
+                        PokemonMoves(color, viewModel)
                     }
                 }
             }
@@ -2189,4 +2225,106 @@ private fun getMockupPokemon(): Pokemon {
         damage = listOf(),
         favorite = false,
     )
+}
+
+@Composable
+fun ZenithCryButton(viewModel: PokemonViewModel, color: Color) {
+    val cryUrl by viewModel.cryUrl.observeAsState()
+
+    IconButton(
+        onClick = {
+            cryUrl?.let { url ->
+                try {
+                    MediaPlayer().apply {
+                        setDataSource(url)
+                        prepareAsync()
+                        setOnPreparedListener { start() }
+                        setOnCompletionListener { release() }
+                        setOnErrorListener { _, _, _ ->
+                            release()
+                            false
+                        }
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+            }
+        },
+        modifier = Modifier
+            .size(48.dp)
+            .background(color.copy(alpha = 0.2f), RoundedCornerShape(12.dp))
+    ) {
+        Icon(
+            imageVector = Icons.AutoMirrored.Filled.VolumeUp,
+            contentDescription = "Play Cry",
+            tint = color,
+            modifier = Modifier.size(24.dp)
+        )
+    }
+}
+
+@Composable
+fun PokemonMoves(color: String, viewModel: PokemonViewModel) {
+    val moves by viewModel.pokemonMoves.observeAsState()
+    val isDark = isSystemInDarkTheme()
+    val pokemonColor = color.getColorByString(isDark)
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp)
+    ) {
+        if (moves.isNullOrEmpty()) {
+            Text(
+                text = "No moves found",
+                style = MaterialTheme.typography.bodyMedium,
+                color = Color.Gray,
+                modifier = Modifier.padding(16.dp)
+            )
+        } else {
+            moves?.forEach { moveItem ->
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 4.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = pokemonColor.copy(alpha = 0.1f)
+                    ),
+                    shape = RoundedCornerShape(8.dp)
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(12.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column {
+                            Text(
+                                text = moveItem.move?.name?.capitalize() ?: "Unknown",
+                                style = MaterialTheme.typography.bodyLarge,
+                                fontWeight = FontWeight.Bold,
+                                color = pokemonColor
+                            )
+                            val method = moveItem.version_group_details?.firstOrNull()?.move_learn_method?.name ?: "Unknown"
+                            Text(
+                                text = "Method: ${method.capitalize()}",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = Color.Gray
+                            )
+                        }
+                        val level = moveItem.version_group_details?.firstOrNull()?.level_learned_at ?: 0
+                        if (level > 0) {
+                            Text(
+                                text = "Lvl $level",
+                                style = MaterialTheme.typography.bodyMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.Gray
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
