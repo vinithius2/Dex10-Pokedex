@@ -330,6 +330,6 @@
     <string name="info_nature_title">प्रकृति (Nature)</string>
     <string name="info_nature_desc">पोकेमोन का व्यक्तित्व। एक आँकड़े को 10% (+) बढ़ाता है और दूसरे को 10% (-) कम करता है। ऐसी प्रकृति चुनें जो आपके पोकेमोन के मजबूत बिंदु को बढ़ाए और उस आँकड़े को कम करे जिसका वह उपयोग नहीं करता है।</string>
     <string name="got_it">समझ गया</string>
-    <string name="my_teams">मेरी टीमें</string>
+    <string name="my_teams">टीम बिल्डर</string>
     <string name="team_details">टीम का विवरण</string>
 </resources>

@@ -330,6 +330,6 @@
     <string name="info_nature_title">Wesen (Nature)</string>
     <string name="info_nature_desc">Die Persönlichkeit des Pokémon. Verstärkt einen Wert um 10% (+) und senkt einen anderen um 10% (-). Wähle ein Wesen, das die Stärken deines Pokémon betont.</string>
     <string name="got_it">Verstanden</string>
-    <string name="my_teams">Meine Teams</string>
+    <string name="my_teams">Team-Ersteller</string>
     <string name="team_details">Team-Details</string>
 </resources>

@@ -330,6 +330,6 @@
     <string name="info_nature_title">性格</string>
     <string name="info_nature_desc">宝可梦的性格。会使一项数值增加 10% (+)，另一项降低 10% (-)。选择一个能增加宝可梦强项并降低其不常用数值的性格。</string>
     <string name="got_it">明白了</string>
-    <string name="my_teams">我的队伍</string>
+    <string name="my_teams">队伍构建器</string>
     <string name="team_details">队伍详情</string>
 </resources>

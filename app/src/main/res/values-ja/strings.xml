@@ -330,6 +330,6 @@
     <string name="info_nature_title">性格</string>
     <string name="info_nature_desc">ポケモンの「個性」。ひとつの能力が1.1倍（+）になり、別の能力が0.9倍（-）になります。ポケモンの長所を伸ばし、使わない能力を下げる性格を選びましょう。</string>
     <string name="got_it">わかった</string>
-    <string name="my_teams">マイチーム</string>
+    <string name="my_teams">チームビルダー</string>
     <string name="team_details">チーム詳細</string>
 </resources>

@@ -330,6 +330,6 @@
     <string name="info_nature_title">성격 (Nature)</string>
     <string name="info_nature_desc">포켓몬의 성격. 한 능력치를 1.1배(+) 높이고 다른 하나를 0.9배(-) 낮춥니다. 포켓몬의 장점을 살리고 불필요한 능력치를 낮추는 성격을 선택하세요.</string>
     <string name="got_it">확인했습니다</string>
-    <string name="my_teams">나의 팀</string>
+    <string name="my_teams">팀 빌더</string>
     <string name="team_details">팀 상세 정보</string>
 </resources>

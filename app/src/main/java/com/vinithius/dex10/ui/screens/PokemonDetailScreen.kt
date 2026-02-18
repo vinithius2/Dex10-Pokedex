@@ -1644,7 +1644,7 @@ private fun PokemonEvolution(
                             Image(
                                 painter = painterResource(id = R.drawable.ic_baseline_arrow_forward_ios_24),
                                 contentDescription = "Arrow right",
-                                colorFilter = ColorFilter.tint(if (isSystemInDarkTheme()) Color.White else Color.Black),
+                                colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onSurface),
                                 modifier = Modifier
                                     .size(25.dp)
                                     .shimmer()
@@ -1704,7 +1704,7 @@ private fun PokemonEvolution(
                                     Image(
                                         painter = painterResource(id = R.drawable.ic_baseline_arrow_forward_ios_24),
                                         contentDescription = "Arrow right",
-                                        colorFilter = ColorFilter.tint(if (isSystemInDarkTheme()) Color.White else Color.Black),
+                                        colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onSurface),
                                         modifier = Modifier.size(25.dp)
                                     )
                                 }

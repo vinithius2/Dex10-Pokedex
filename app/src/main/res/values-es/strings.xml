@@ -330,6 +330,6 @@
     <string name="info_nature_title">Nature (Naturaleza)</string>
     <string name="info_nature_desc">La personalidad del Pokémon. Aumenta una estadística en un 10% (+) y disminuye otra en un 10% (-). Elige una Naturaleza que aumente el punto fuerte de tu Pokémon y disminuya una estadística que no use.</string>
     <string name="got_it">Entendido</string>
-    <string name="my_teams">Mis Equipos</string>
+    <string name="my_teams">Constructor de Equipos</string>
     <string name="team_details">Detalles del Equipo</string>
 </resources>

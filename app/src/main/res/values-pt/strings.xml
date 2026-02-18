@@ -342,6 +342,6 @@
     <string name="info_nature_title">Nature (Natureza)</string>
     <string name="info_nature_desc">A personalidade do Pokémon. Aumenta um status em 10%% (+) e diminui outro em 10%% (-). Escolha uma Nature que aumente o ponto forte do seu Pokémon e diminua um status que ele não usa.</string>
     <string name="got_it">Entendi</string>
-    <string name="my_teams">Meus Times</string>
+    <string name="my_teams">Criador de Times</string>
     <string name="team_details">Detalhes do Time</string>
 </resources>
