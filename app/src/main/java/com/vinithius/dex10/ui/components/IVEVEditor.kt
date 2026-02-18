@@ -34,7 +34,6 @@ fun IVEVEditor(
     var showIVEditor by remember { mutableStateOf(true) }
     
     // Theme Theme colors
-    val backgroundColor = MaterialTheme.colorScheme.background
     val cardColor = MaterialTheme.colorScheme.surfaceVariant
     val primaryRed = MaterialTheme.colorScheme.primary
     val onSurfaceVariant = MaterialTheme.colorScheme.onSurfaceVariant
@@ -43,7 +42,6 @@ fun IVEVEditor(
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .background(backgroundColor)
     ) {
         // BEGIN: ToggleTabs (Premium Segmented Style)
         Surface(

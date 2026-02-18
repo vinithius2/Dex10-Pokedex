@@ -477,23 +477,23 @@ fun TeamMemberCard(member: TeamMemberEntity, viewModel: TeamViewModel, hasError:
                 Box(modifier = Modifier.size(80.dp), contentAlignment = Alignment.Center) {
                     Image(painter = rememberAsyncImagePainter(ImageRequest.Builder(LocalContext.current).data(imageUrl).crossfade(true).build()), contentDescription = pokemonName, modifier = Modifier.size(70.dp))
                 }
-                Text(text = pokemonName, style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold, shadow = Shadow(color = Color.Black, offset = Offset(1f, 1f), blurRadius = 2f)), maxLines = 1, color = Color.White)
-                if (!member.nickname.isNullOrBlank()) Text(text = "\"${member.nickname}\"", style = MaterialTheme.typography.bodySmall, maxLines = 1, fontStyle = androidx.compose.ui.text.font.FontStyle.Italic, color = Color.White)
+                Text(text = pokemonName, style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold, shadow = Shadow(color = Color.Black.copy(alpha = 0.3f), offset = Offset(1f, 1f), blurRadius = 2f)), maxLines = 1, color = MaterialTheme.colorScheme.onSurface)
+                if (!member.nickname.isNullOrBlank()) Text(text = "\"${member.nickname}\"", style = MaterialTheme.typography.bodySmall, maxLines = 1, fontStyle = androidx.compose.ui.text.font.FontStyle.Italic, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 Spacer(modifier = Modifier.height(4.dp))
                 Column(modifier = Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f), RoundedCornerShape(8.dp)).padding(4.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
                         details?.stats?.take(6)?.forEach { stat ->
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Text(text = stat.name.value.take(3).uppercase().replace("SPE", "SPD"), style = MaterialTheme.typography.labelSmall.copy(fontSize = 8.sp), color = Color.White.copy(alpha = 0.7f))
-                                Text(text = stat.baseStat.toString(), style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = Color.White)
+                                Text(text = stat.name.value.take(3).uppercase().replace("SPE", "SPD"), style = MaterialTheme.typography.labelSmall.copy(fontSize = 8.sp), color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f))
+                                Text(text = stat.baseStat.toString(), style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = MaterialTheme.colorScheme.onSurface)
                             }
                         }
                     }
                     Spacer(modifier = Modifier.height(4.dp))
-                    HorizontalDivider(color = Color.White.copy(alpha = 0.1f))
+                    HorizontalDivider(color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.1f))
                     Spacer(modifier = Modifier.height(4.dp))
-                    Text(text = "${stringResource(R.string.moves)}: ${member.move1 ?: "-"}, ${member.move2 ?: "-"}", maxLines = 1, overflow = TextOverflow.Ellipsis, style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp), color = Color.White.copy(alpha = 0.9f))
-                    Text(text = "${stringResource(R.string.item)}: ${member.item ?: stringResource(R.string.none)}", maxLines = 1, overflow = TextOverflow.Ellipsis, style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp), color = Color.White.copy(alpha = 0.9f))
+                    Text(text = "${stringResource(R.string.moves)}: ${member.move1 ?: "-"}, ${member.move2 ?: "-"}", maxLines = 1, overflow = TextOverflow.Ellipsis, style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp), color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.9f))
+                    Text(text = "${stringResource(R.string.item)}: ${member.item ?: stringResource(R.string.none)}", maxLines = 1, overflow = TextOverflow.Ellipsis, style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp), color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.9f))
                 }
             }
         }

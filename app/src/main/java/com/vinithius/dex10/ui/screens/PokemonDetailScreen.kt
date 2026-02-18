@@ -736,21 +736,25 @@ fun SharedTransitionScope.MainCardLargeScreen(
         val varieties = pokemonDetail?.specie?.varieties?.filter { !it.is_default }
         if (!varieties.isNullOrEmpty()) {
             item(span = { GridItemSpan(maxLineSpan) }) {
-                SectionTitle(
-                    title = stringResource(R.string.variations_and_forms),
-                    color = color.getColorByString(isSystemInDarkTheme())
-                )
-                PokemonVariations(navController, pokemonDetail, viewModel)
+                Column {
+                    SectionTitle(
+                        title = stringResource(R.string.variations_and_forms),
+                        color = color.getColorByString(isSystemInDarkTheme())
+                    )
+                    PokemonVariations(navController, pokemonDetail, viewModel)
+                }
             }
         }
 
         // Evolutions
         item(span = { GridItemSpan(maxLineSpan) }) {
-            SectionTitle(
-                title = stringResource(R.string.evolutions),
-                color = color.getColorByString(isSystemInDarkTheme())
-            )
-            PokemonEvolution(navController, pokemonDetail, viewModel)
+            Column {
+                SectionTitle(
+                    title = stringResource(R.string.evolutions),
+                    color = color.getColorByString(isSystemInDarkTheme())
+                )
+                PokemonEvolution(navController, pokemonDetail, viewModel)
+            }
         }
 
         // Ads
@@ -1230,13 +1234,14 @@ private fun PokemonArts(
     pokemonDetail: Pokemon?,
 ) {
     val color = viewModel.getPokemonColor()?.getColorByString(isSystemInDarkTheme()) ?: Color.Black
-    SectionTitle(
-        title = stringResource(R.string.all_images),
-        color = color,
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(top = 16.dp, bottom = 8.dp, start = 12.dp)
-    )
+    Column {
+        SectionTitle(
+            title = stringResource(R.string.all_images),
+            color = color,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 16.dp, bottom = 8.dp, start = 12.dp)
+        )
     var dataBottomSheet: SpriteItem? by remember { mutableStateOf(null) }
     val context = LocalContext.current
     val activity = getActivity()
@@ -1363,6 +1368,7 @@ private fun PokemonArts(
                 }
             }
         }
+    }
     }
 }
 
@@ -1638,6 +1644,7 @@ private fun PokemonEvolution(
                             Image(
                                 painter = painterResource(id = R.drawable.ic_baseline_arrow_forward_ios_24),
                                 contentDescription = "Arrow right",
+                                colorFilter = ColorFilter.tint(if (isSystemInDarkTheme()) Color.White else Color.Black),
                                 modifier = Modifier
                                     .size(25.dp)
                                     .shimmer()
@@ -1697,6 +1704,7 @@ private fun PokemonEvolution(
                                     Image(
                                         painter = painterResource(id = R.drawable.ic_baseline_arrow_forward_ios_24),
                                         contentDescription = "Arrow right",
+                                        colorFilter = ColorFilter.tint(if (isSystemInDarkTheme()) Color.White else Color.Black),
                                         modifier = Modifier.size(25.dp)
                                     )
                                 }
