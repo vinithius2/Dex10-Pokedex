@@ -17,7 +17,9 @@ data class Pokemon(
     var evolution: EvolutionChain?,
     var characteristic: Characteristic?,
     var specie: Specie?,
-    var damage: List<Damage>,
+    var damage: List<Damage>? = null,
     var moves: List<MoveResponse>? = null,
+    var tcgCards: List<TcgCard>? = null,
+    var animeInfo: JikanAnimeInfo? = null,
     var favorite: Boolean = false,
 )

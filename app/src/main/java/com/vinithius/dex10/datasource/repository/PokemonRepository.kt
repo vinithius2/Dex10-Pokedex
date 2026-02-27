@@ -27,6 +27,7 @@ import com.vinithius.dex10.datasource.response.Location
 import com.vinithius.dex10.datasource.response.Pokemon
 import com.vinithius.dex10.datasource.response.PokemonDataWrapper
 import com.vinithius.dex10.datasource.response.Specie
+import com.vinithius.dex10.datasource.response.TcgCard
 import com.vinithius.dex10.ui.MainActivity.Companion.FAVORITES
 import com.vinithius.dex10.ui.MainActivity.Companion.MAX_POKEMONS
 import kotlinx.coroutines.Dispatchers
@@ -38,6 +39,8 @@ import kotlin.coroutines.resume
 
 class PokemonRepository(
     private val remoteDataSource: PokemonRemoteDataSource,
+    private val tcgRemoteDataSource: TcgRemoteDataSource,
+    private val jikanRemoteDataSource: JikanRemoteDataSource,
     private val localDataSource: PokemonDao
 ) : IPokemonRepository {
 
@@ -203,7 +206,7 @@ class PokemonRepository(
     override suspend fun getPokemonEncounters(id: Int): List<Location>? {
         return try {
             remoteDataSource.getPokemonEncounters(id)
-        } catch (e: HttpException) {
+        } catch (e: Exception) {
             FirebaseCrashlytics.getInstance().recordException(e)
             Log.e("Encounters (ID: $id) ", e.toString())
             null
@@ -213,7 +216,7 @@ class PokemonRepository(
     override suspend fun getPokemonEvolution(id: Int): EvolutionChain? {
         return try {
             remoteDataSource.getPokemonEvolution(id)
-        } catch (e: HttpException) {
+        } catch (e: Exception) {
             FirebaseCrashlytics.getInstance().recordException(e)
             Log.e("EvolutionChain (ID: $id) ", e.toString())
             null
@@ -223,7 +226,7 @@ class PokemonRepository(
     override suspend fun getPokemonCharacteristic(id: Int): Characteristic? {
         return try {
             remoteDataSource.getPokemonCharacteristic(id)
-        } catch (e: HttpException) {
+        } catch (e: Exception) {
             FirebaseCrashlytics.getInstance().recordException(e)
             Log.e("Characteristic (ID: $id) ", e.toString())
             null
@@ -233,7 +236,7 @@ class PokemonRepository(
     override suspend fun getPokemonSpecies(id: Int): Specie? {
         return try {
             remoteDataSource.getPokemonSpecies(id)
-        } catch (e: HttpException) {
+        } catch (e: Exception) {
             FirebaseCrashlytics.getInstance().recordException(e)
             Log.e("Specie (ID: $id) ", e.toString())
             null
@@ -243,7 +246,7 @@ class PokemonRepository(
     override suspend fun getPokemonDamageRelations(type: String): Damage? {
         return try {
             remoteDataSource.getPokemonDamageRelations(type)
-        } catch (e: HttpException) {
+        } catch (e: Exception) {
             FirebaseCrashlytics.getInstance().recordException(e)
             Log.e("Damage (Type: $type) ", e.toString())
             null
@@ -313,6 +316,65 @@ class PokemonRepository(
         } catch (e: Exception) {
             Log.e("PokemonRepository", "Error fetching move details for $moveName", e)
             null
+        }
+    }
+
+    override suspend fun getTcgCards(name: String): List<com.vinithius.dex10.datasource.response.TcgCard>? {
+        return try {
+            val searchName = formatPokemonNameForSearch(name)
+            Log.d("PokemonRepository", "Fetching TCGdex cards for: $searchName")
+            val results = tcgRemoteDataSource.getTcgCards(searchName)
+            
+            // Post-fetch filter: Ensure the card name strictly relates to the searched Pokémon
+            // Filters out things like "Mr. Briney's Compassion" when searching for "Mr. Mime"
+            results.filter { card ->
+                val cardName = card.name.lowercase()
+                val targetName = searchName.lowercase()
+                cardName.contains(targetName)
+            }
+        } catch (e: Exception) {
+            Log.e("PokemonRepository", "Error fetching TCG cards for $name", e)
+            null
+        }
+    }
+
+    override suspend fun getAnimeInfo(name: String): com.vinithius.dex10.datasource.response.JikanAnimeInfo? {
+        return try {
+            val searchName = formatPokemonNameForSearch(name)
+            Log.d("PokemonRepository", "Fetching Anime info for: $searchName")
+            val charSearch = jikanRemoteDataSource.searchCharacter(searchName)
+            val character = charSearch.data.firstOrNull() ?: return null
+            
+            val voices = jikanRemoteDataSource.getCharacterVoices(character.mal_id)
+            val japaneseVoice = voices.data.find { it.language == "Japanese" }
+            
+            com.vinithius.dex10.datasource.response.JikanAnimeInfo(
+                characterName = character.name,
+                characterImageUrl = character.images?.jpg?.image_url,
+                voiceActorName = japaneseVoice?.person?.name,
+                voiceActorImageUrl = japaneseVoice?.person?.images?.jpg?.image_url
+            )
+        } catch (e: Exception) {
+            Log.e("PokemonRepository", "Error fetching anime info for $name", e)
+            null
+        }
+    }
+
+    /**
+     * Formats Pokémon names for external services like TCGdex and Jikan.
+     * PokeAPI names (ho-oh, mr-mime) are transformed to their official formatting
+     * (Ho-Oh, Mr. Mime) to increase search precision.
+     */
+    private fun formatPokemonNameForSearch(name: String): String {
+        val lowercaseName = name.lowercase()
+        return when {
+            lowercaseName == "ho-oh" -> "Ho-Oh"
+            lowercaseName == "mr-mime" -> "Mr. Mime"
+            lowercaseName == "mime-jr" -> "Mime Jr."
+            lowercaseName == "porygon-z" -> "Porygon-Z"
+            lowercaseName.contains("tapu-") -> name.split("-").joinToString(" ") { it.replaceFirstChar { c -> c.uppercase() } }
+            lowercaseName.contains("type-null") -> "Type: Null"
+            else -> name.split("-").first().replaceFirstChar { it.uppercase() }
         }
     }
 }

@@ -31,8 +31,10 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -44,6 +46,7 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material.icons.filled.Close
@@ -72,6 +75,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -85,6 +90,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.zIndex
 import androidx.navigation.NavController
 import coil.ImageLoader
@@ -103,6 +109,8 @@ import com.vinithius.dex10.components.TypeListResponse
 import com.vinithius.dex10.datasource.mapper.fromDefaultToListType
 import com.vinithius.dex10.datasource.response.Pokemon
 import com.vinithius.dex10.datasource.response.Type
+import com.vinithius.dex10.datasource.response.TcgCard
+import com.vinithius.dex10.datasource.response.JikanAnimeInfo
 import com.vinithius.dex10.extension.LoadGifWithCoil
 import com.vinithius.dex10.extension.LoadGifWithCoilToSprite
 import com.vinithius.dex10.extension.SpriteItem
@@ -215,6 +223,12 @@ fun SharedTransitionScope.PokemonDetailScreen(
     val choiceOfTheDayStatus by viewModel.choiceOfTheDay.observeAsState(false)
     val painter = viewModel.getSharedImage(pokemonId.toString())
     val columns = (LocalContext.current as MainActivity).getWindowColumns()
+
+    androidx.compose.runtime.DisposableEffect(Unit) {
+        onDispose {
+            viewModel.clearPokemonDetail()
+        }
+    }
 
     LaunchedEffect(id) {
         if (id != null) {
@@ -481,6 +495,7 @@ fun SharedTransitionScope.MainCard(
         }
         Spacer(modifier = Modifier.size(5.dp))
         PokemonArts(viewModel, pokemonDetail)
+        PokemonTcgSection(pokemonDetail, color.getColorByString(isSystemInDarkTheme()))
         PokemonChart(viewModel, color, pokemonDetail)
         PokemonIsABaby()
 
@@ -732,6 +747,9 @@ fun SharedTransitionScope.MainCardLargeScreen(
         item(span = { GridItemSpan(maxLineSpan) }) {
             PokemonArts(viewModel, pokemonDetail)
         }
+        item(span = { GridItemSpan(maxLineSpan) }) {
+            PokemonTcgSection(pokemonDetail, color.getColorByString(isSystemInDarkTheme()))
+        }
         // Variations
         val varieties = pokemonDetail?.specie?.varieties?.filter { !it.is_default }
         if (!varieties.isNullOrEmpty()) {
@@ -783,6 +801,7 @@ fun TabWithPagerExample(
     val tabTitles = listOf(
         stringResource(R.string.damage),
         stringResource(R.string.encounters),
+        stringResource(R.string.anime_info),
         stringResource(R.string.eggs),
         stringResource(R.string.abilities),
         stringResource(R.string.entries),
@@ -873,25 +892,304 @@ fun TabWithPagerExample(
 
                     2 -> {
                         activity?.trackButtonClick(tabTitles[2])
-                        PokemonEggs(pokemonDetail, color, viewModel)
+                        AnimeInfoSection(pokemonDetail, color.getColorByString(isSystemInDarkTheme()))
                     }
 
                     3 -> {
                         activity?.trackButtonClick(tabTitles[3])
-                        PokemonAbilities(pokemonDetail, color, viewModel)
+                        PokemonEggs(pokemonDetail, color, viewModel)
                     }
 
                     4 -> {
                         activity?.trackButtonClick(tabTitles[4])
-                        PokemonEntries(navController, pokemonDetail, viewModel)
+                        PokemonAbilities(pokemonDetail, color, viewModel)
                     }
 
                     5 -> {
                         activity?.trackButtonClick(tabTitles[5])
+                        PokemonEntries(navController, pokemonDetail, viewModel)
+                    }
+
+                    6 -> {
+                        activity?.trackButtonClick(tabTitles[6])
                         PokemonMoves(color, viewModel)
                     }
                 }
             }
+        }
+    }
+}
+
+@Composable
+fun PokemonTcgSection(pokemonDetail: Pokemon?, color: Color) {
+    val cards = pokemonDetail?.tcgCards
+    var selectedImageUrl by remember { mutableStateOf<String?>(null) }
+    var selectedTitle by remember { mutableStateOf("") }
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 16.dp, bottom = 8.dp)
+    ) {
+        SectionTitle(
+            title = stringResource(R.string.tcg_cards),
+            color = color,
+            modifier = Modifier.padding(start = 12.dp, bottom = 8.dp)
+        )
+        if (cards == null) {
+            // Shimmer Loading State
+            LazyRow(
+                contentPadding = PaddingValues(horizontal = 12.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                items(3) {
+                    Box(
+                        modifier = Modifier
+                            .width(150.dp)
+                            .height(210.dp)
+                            .clip(RoundedCornerShape(8.dp))
+                            .shimmer()
+                            .background(Color.Gray.copy(alpha = 0.3f))
+                    )
+                }
+            }
+        } else if (cards.isNotEmpty()) {
+            LazyRow(
+                contentPadding = PaddingValues(horizontal = 12.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                items(cards.size) { index ->
+                    val card = cards[index]
+                    var isVisible by remember { mutableStateOf(true) }
+                    
+                    if (isVisible) {
+                        Card(
+                            modifier = Modifier
+                                .width(150.dp)
+                                .height(210.dp)
+                                .clickable { 
+                                    selectedImageUrl = card.getLargeImage()
+                                    selectedTitle = card.name
+                                },
+                            shape = RoundedCornerShape(8.dp),
+                            elevation = CardDefaults.cardElevation(4.dp)
+                        ) {
+                            Box(modifier = Modifier.fillMaxSize()) {
+                                val painter = rememberAsyncImagePainter(
+                                    ImageRequest.Builder(LocalContext.current)
+                                        .data(data = card.getSmallImage())
+                                        .crossfade(true)
+                                        .build()
+                                )
+
+                                if (painter.state is AsyncImagePainter.State.Loading) {
+                                    CircularProgressIndicator(
+                                        modifier = Modifier
+                                            .align(Alignment.Center)
+                                            .size(32.dp),
+                                        color = color
+                                    )
+                                }
+
+                                if (painter.state is AsyncImagePainter.State.Error) {
+                                    isVisible = false
+                                }
+
+                                Image(
+                                    painter = painter,
+                                    contentDescription = card.name,
+                                    contentScale = ContentScale.Fit,
+                                    modifier = Modifier.fillMaxSize()
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        } else {
+            Text(
+                "No cards found",
+                modifier = Modifier.padding(12.dp),
+                fontSize = 12.sp,
+                color = Color.Gray
+            )
+        }
+    }
+
+    selectedImageUrl?.let { url ->
+        ZoomableImageDialog(imageUrl = url, title = selectedTitle, onDismiss = { selectedImageUrl = null })
+    }
+}
+
+@Composable
+fun ZoomableImageDialog(imageUrl: String, title: String, onDismiss: () -> Unit) {
+    var scale by remember { mutableStateOf(1f) }
+    var offset by remember { mutableStateOf(Offset.Zero) }
+
+    Dialog(
+        onDismissRequest = onDismiss,
+        properties = DialogProperties(usePlatformDefaultWidth = false)
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.Black.copy(alpha = 0.9f))
+                .pointerInput(Unit) {
+                    detectTransformGestures { _, pan, zoom, _ ->
+                        scale = (scale * zoom).coerceIn(1f, 5f)
+                        val extraWidth = (scale - 1) * size.width
+                        val extraHeight = (scale - 1) * size.height
+                        val maxX = extraWidth / 2
+                        val maxY = extraHeight / 2
+                        offset = Offset(
+                            x = (offset.x + pan.x * scale).coerceIn(-maxX, maxX),
+                            y = (offset.y + pan.y * scale).coerceIn(-maxY, maxY)
+                        )
+                    }
+                }
+        ) {
+            val painter = rememberAsyncImagePainter(
+                ImageRequest.Builder(LocalContext.current)
+                    .data(data = imageUrl)
+                    .crossfade(true)
+                    .build()
+            )
+
+            if (painter.state is AsyncImagePainter.State.Loading) {
+                CircularProgressIndicator(
+                    modifier = Modifier
+                        .align(Alignment.Center)
+                        .size(48.dp),
+                    color = Color.White
+                )
+            }
+
+            Image(
+                painter = painter,
+                contentDescription = title,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .graphicsLayer(
+                        scaleX = scale,
+                        scaleY = scale,
+                        translationX = offset.x,
+                        translationY = offset.y
+                    ),
+                contentScale = ContentScale.Fit
+            )
+            
+            IconButton(
+                onClick = onDismiss,
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(16.dp)
+                    .background(Color.White.copy(alpha = 0.3f), RoundedCornerShape(12.dp))
+            ) {
+                Icon(Icons.Default.Close, contentDescription = "Close", tint = Color.White)
+            }
+        }
+    }
+}
+
+@Composable
+fun AnimeInfoSection(pokemonDetail: Pokemon?, color: Color) {
+    val animeInfo = pokemonDetail?.animeInfo
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp)
+            .verticalScroll(rememberScrollState()),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceEvenly,
+            verticalAlignment = Alignment.Top
+        ) {
+            // Character Image
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(
+                    text = stringResource(R.string.character_anime),
+                    style = MaterialTheme.typography.titleMedium,
+                    color = color,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+                if (animeInfo == null) {
+                    Box(
+                        modifier = Modifier
+                            .size(150.dp)
+                            .clip(RoundedCornerShape(12.dp))
+                            .shimmer()
+                            .background(Color.Gray.copy(alpha = 0.3f))
+                    )
+                } else {
+                    Card(
+                        modifier = Modifier.size(150.dp),
+                        shape = RoundedCornerShape(12.dp),
+                        elevation = CardDefaults.cardElevation(4.dp)
+                    ) {
+                        Image(
+                            painter = rememberAsyncImagePainter(animeInfo.characterImageUrl),
+                            contentDescription = "Character",
+                            modifier = Modifier.fillMaxSize(),
+                            contentScale = ContentScale.Crop
+                        )
+                    }
+                }
+            }
+
+            // Voice Actor Image
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(
+                    text = stringResource(R.string.voice_actor),
+                    style = MaterialTheme.typography.titleMedium,
+                    color = color,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+                if (animeInfo == null) {
+                    Box(
+                        modifier = Modifier
+                            .size(150.dp)
+                            .clip(RoundedCornerShape(12.dp))
+                            .shimmer()
+                            .background(Color.Gray.copy(alpha = 0.3f))
+                    )
+                } else {
+                    Card(
+                        modifier = Modifier.size(150.dp),
+                        shape = RoundedCornerShape(12.dp),
+                        elevation = CardDefaults.cardElevation(4.dp)
+                    ) {
+                        Image(
+                            painter = rememberAsyncImagePainter(animeInfo.voiceActorImageUrl),
+                            contentDescription = "Voice Actor",
+                            modifier = Modifier.fillMaxSize(),
+                            contentScale = ContentScale.Crop
+                        )
+                    }
+                }
+            }
+        }
+        
+        if (animeInfo == null) {
+             Box(
+                modifier = Modifier
+                    .padding(top = 16.dp)
+                    .width(200.dp)
+                    .height(20.dp)
+                    .shimmer()
+                    .background(Color.Gray.copy(alpha = 0.3f))
+            )
+        } else {
+            Text(
+                text = "${animeInfo.characterName} / ${animeInfo.voiceActorName}",
+                style = MaterialTheme.typography.bodyLarge,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(top = 16.dp)
+            )
         }
     }
 }
@@ -1319,54 +1617,12 @@ private fun PokemonArts(
     )
 
     if (showBottomSheet) {
-        Dialog(onDismissRequest = { showBottomSheet = false }) {
-            Surface(
-                shape = RoundedCornerShape(16.dp),
-                color = if (isSystemInDarkTheme()) Color.DarkGray else Color.LightGray,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .fillMaxHeight(0.8f)
-            ) {
-                dataBottomSheet?.let { data ->
-                    Column(
-                        modifier = Modifier.fillMaxSize()
-                    ) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Spacer(modifier = Modifier.weight(1f))
-
-                            Text(
-                                text = data.title.capitalize(),
-                                style = MaterialTheme.typography.bodyLarge,
-                                fontWeight = FontWeight.Bold,
-                                textAlign = TextAlign.Center,
-                                color = if (isSystemInDarkTheme()) Color.LightGray else Color.DarkGray
-                            )
-
-                            Box(modifier = Modifier.weight(1f)) {
-                                IconButton(
-                                    onClick = {
-                                        showBottomSheet = false
-                                        activity?.trackButtonClick("Close dialog image detail")
-                                    },
-                                    modifier = Modifier.align(Alignment.CenterEnd)
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Default.Close,
-                                        contentDescription = stringResource(R.string.close),
-                                        tint = MaterialTheme.colorScheme.onSecondary
-                                    )
-                                }
-                            }
-                        }
-
-                        Spacer(modifier = Modifier.height(16.dp))
-                        data.LoadGifWithCoilToSprite(context, true)
-                    }
-                }
-            }
+        dataBottomSheet?.let { data ->
+            ZoomableImageDialog(
+                imageUrl = data.url,
+                title = data.title,
+                onDismiss = { showBottomSheet = false }
+            )
         }
     }
     }
@@ -1900,7 +2156,7 @@ private fun PokemonDamage(
 
                 Spacer(modifier = Modifier.size(10.dp))
                 Column(modifier = Modifier.fillMaxWidth()) { // Use uma Column para organizar os itens
-                    pokemonDetail.damage.forEach { damageItem ->
+                    pokemonDetail.damage?.forEach { damageItem ->
                         GenericBox {
                             Box(
                                 modifier = Modifier.fillMaxWidth(),

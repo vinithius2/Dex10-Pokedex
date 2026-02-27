@@ -20,11 +20,13 @@ import java.util.concurrent.TimeUnit
 
 
 val repositoryModule = module {
-    single { get<Retrofit>().create(PokemonRemoteDataSource::class.java) }
+    single { get<Retrofit>(qualifier = org.koin.core.qualifier.named("pokeapi")).create(PokemonRemoteDataSource::class.java) }
+    single { get<Retrofit>(qualifier = org.koin.core.qualifier.named("tcg")).create(com.vinithius.dex10.datasource.repository.TcgRemoteDataSource::class.java) }
+    single { get<Retrofit>(qualifier = org.koin.core.qualifier.named("jikan")).create(com.vinithius.dex10.datasource.repository.JikanRemoteDataSource::class.java) }
 }
 
 val repositoryDataModule = module {
-    single<IPokemonRepository> { PokemonRepository(get(), get()) }
+    single<IPokemonRepository> { PokemonRepository(get(), get(), get(), get()) }
     single<com.vinithius.dex10.datasource.repository.ITeamRepository> { 
         com.vinithius.dex10.datasource.repository.TeamRepository(get()) 
     }
@@ -44,7 +46,9 @@ val premiumModule = module {
 }
 
 val networkModule = module {
-    single { retrofit() }
+    single(qualifier = org.koin.core.qualifier.named("pokeapi")) { retrofit("https://pokeapi.co/api/v2/") }
+    single(qualifier = org.koin.core.qualifier.named("tcg")) { retrofit("https://api.tcgdex.net/v2/en/") }
+    single(qualifier = org.koin.core.qualifier.named("jikan")) { retrofit("https://api.jikan.moe/v4/") }
 }
 
 val databaseModule = module {
@@ -53,12 +57,18 @@ val databaseModule = module {
     single { get<AppDatabase>().teamDao() }
 }
 
-fun retrofit(): Retrofit {
+fun retrofit(baseUrl: String): Retrofit {
 
     val okHttpClient = OkHttpClient.Builder()
         .connectTimeout(30, TimeUnit.SECONDS)
         .readTimeout(30, TimeUnit.SECONDS)
         .writeTimeout(30, TimeUnit.SECONDS)
+        .addInterceptor { chain ->
+            val request = chain.request().newBuilder()
+                .header("User-Agent", "PokeDexApp/1.0")
+                .build()
+            chain.proceed(request)
+        }
         .apply {
             if (BuildConfig.DEBUG) {
                 addInterceptor(
@@ -71,7 +81,7 @@ fun retrofit(): Retrofit {
         .build()
 
     return Retrofit.Builder()
-        .baseUrl("https://pokeapi.co/api/v2/")
+        .baseUrl(baseUrl)
         .client(okHttpClient)
         .addConverterFactory(GsonConverterFactory.create())
         .build()

@@ -43,6 +43,8 @@ class PokemonViewModel(
     // View Mode
     val viewMode: StateFlow<AppPreferences.ViewMode> = appPreferences.viewMode
 
+    private var detailJob: kotlinx.coroutines.Job? = null
+
     fun setViewMode(mode: AppPreferences.ViewMode) {
         appPreferences.setViewMode(mode)
     }
@@ -693,12 +695,15 @@ class PokemonViewModel(
             return
         }
 
-        CoroutineScope(dispatcher).launch {
+        detailJob?.cancel()
+        detailJob = CoroutineScope(dispatcher).launch {
+            _pokemonDetail.postValue(null)
             _stateDetail.postValue(RequestStateDetail.Loading)
+            // also reset extras to be safe
+            _pokemonMoves.postValue(null)
 
             try {
                 val pokemon = repository.getPokemonDetail(id)
-                _pokemonDetail.postValue(pokemon)
                 _cryUrl.postValue("https://raw.githubusercontent.com/PokeAPI/cries/main/cries/pokemon/latest/${id}.ogg")
                 _pokemonMoves.postValue(pokemon?.moves)
 
@@ -707,26 +712,35 @@ class PokemonViewModel(
                     return@launch
                 }
 
-                // Lançar as tarefas em paralelo
-                val encountersDeferred = async { getPokemonEncounters(pokemon) }
-                val characteristicDeferred = async { getPokemonCharacteristic(pokemon) }
-                val speciesDeferred = async { getPokemonSpecies(pokemon) }
-                val damageRelationsDeferred = async { getPokemonDamageRelations(pokemon) }
+                _pokemonDetail.postValue(pokemon.copy()) // Usa copy para garantir nova instância
 
-                // Esperar todas as tarefas completarem
+                // Lançar as tarefas em paralelo com tratamento de erro individual
+                val encountersDeferred = async { runCatching { getPokemonEncounters(pokemon) } }
+                val characteristicDeferred = async { runCatching { getPokemonCharacteristic(pokemon) } }
+                val speciesDeferred = async { runCatching { getPokemonSpecies(pokemon) } }
+                val damageRelationsDeferred = async { runCatching { getPokemonDamageRelations(pokemon) } }
+                val tcgCardsDeferred = async { runCatching { repository.getTcgCards(pokemon.name) } }
+                val animeInfoDeferred = async { runCatching { repository.getAnimeInfo(pokemon.name) } }
+
+                // Esperar tarefas essenciais
                 encountersDeferred.await()
                 characteristicDeferred.await()
                 speciesDeferred.await()
                 damageRelationsDeferred.await()
+                
+                // Atribuir dados opcionais se houver sucesso
+                pokemon.tcgCards = tcgCardsDeferred.await().getOrNull()
+                pokemon.animeInfo = animeInfoDeferred.await().getOrNull()
 
                 _stateDetail.postValue(RequestStateDetail.Success)
-                _pokemonDetail.postValue(pokemon)
+                _pokemonDetail.postValue(pokemon.copy()) // Posta novamente com copy() para notificar o sucesso com dados enriquecidos
                 repository.getPokemonColorById(id)?.let {
                     _pokemonColor.postValue(it)
                 }
                 getDetailFavorite()
 
             } catch (e: Exception) {
+                if (e is kotlinx.coroutines.CancellationException) return@launch
                 FirebaseCrashlytics.getInstance().recordException(e)
                 FirebaseCrashlytics.getInstance().setCustomKey("pokemon_id", id)
                 _stateDetail.postValue(RequestStateDetail.Error(e))
@@ -807,6 +821,13 @@ class PokemonViewModel(
                 null
             }
         }
+    }
+
+    fun clearPokemonDetail() {
+        _pokemonDetail.postValue(null)
+        _stateDetail.postValue(RequestStateDetail.Loading)
+        _isDetailFavorite.postValue(false)
+        _pokemonMoves.postValue(null)
     }
 
 }

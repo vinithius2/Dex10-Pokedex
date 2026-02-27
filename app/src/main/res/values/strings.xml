@@ -398,4 +398,8 @@
     <string name="got_it">Got it</string>
     <string name="my_teams">Team Builder</string>
     <string name="team_details">Team Details</string>
+    <string name="tcg_cards">TCG Cards</string>
+    <string name="anime_info">Anime Info</string>
+    <string name="voice_actor">Voice Actor (Seiyuu)</string>
+    <string name="character_anime">Anime Appearance</string>
 </resources>

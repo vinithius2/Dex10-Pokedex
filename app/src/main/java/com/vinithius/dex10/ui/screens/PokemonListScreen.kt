@@ -180,6 +180,7 @@ fun SharedTransitionScope.PokemonListScreen(
     val sharedPreferences = context.getSharedPreferences("pokemon_prefs", Context.MODE_PRIVATE)
     val listState = rememberSaveable(saver = LazyListState.Saver) { LazyListState() }
     val gridState = rememberSaveable(saver = LazyGridState.Saver) { LazyGridState() }
+    var isInitialState by remember { mutableStateOf(true) }
 
     val isPremium by viewModel.premiumManager.isPremium.collectAsState(initial = false)
 
@@ -264,6 +265,10 @@ fun SharedTransitionScope.PokemonListScreen(
         val currentViewMode by viewModel.viewMode.collectAsState()
 
         LaunchedEffect(currentViewMode) {
+            if (isInitialState) {
+                isInitialState = false
+                return@LaunchedEffect
+            }
             if (currentViewMode == ViewMode.LIST) {
                 val index = gridState.firstVisibleItemIndex
                 val offset = gridState.firstVisibleItemScrollOffset

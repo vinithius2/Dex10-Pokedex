@@ -78,7 +78,6 @@ private fun LoadGifWithCoilToSpriteNoSupportZoom(
     val imageRequest = ImageRequest.Builder(context)
         .data(url)
         .crossfade(true)
-        .error(android.R.drawable.ic_menu_report_image)
         .build()
 
     Box(
@@ -128,7 +127,6 @@ private fun LoadGifWithCoilToSpriteSupportZoom(
     val imageRequest = ImageRequest.Builder(context)
         .data(url)
         .crossfade(true)
-        .error(android.R.drawable.ic_menu_report_image)
         .build()
 
 // Estados para controlar o zoom e o deslocamento
