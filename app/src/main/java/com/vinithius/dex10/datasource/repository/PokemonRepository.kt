@@ -367,14 +367,36 @@ class PokemonRepository(
      */
     private fun formatPokemonNameForSearch(name: String): String {
         val lowercaseName = name.lowercase()
-        return when {
-            lowercaseName == "ho-oh" -> "Ho-Oh"
-            lowercaseName == "mr-mime" -> "Mr. Mime"
-            lowercaseName == "mime-jr" -> "Mime Jr."
-            lowercaseName == "porygon-z" -> "Porygon-Z"
-            lowercaseName.contains("tapu-") -> name.split("-").joinToString(" ") { it.replaceFirstChar { c -> c.uppercase() } }
-            lowercaseName.contains("type-null") -> "Type: Null"
-            else -> name.split("-").first().replaceFirstChar { it.uppercase() }
+        return when (lowercaseName) {
+            "ho-oh" -> "Ho-Oh"
+            "mr-mime" -> "Mr. Mime"
+            "mr-rime" -> "Mr. Rime"
+            "mime-jr" -> "Mime Jr."
+            "porygon-z" -> "Porygon-Z"
+            "type-null" -> "Type: Null"
+            "jangmo-o" -> "Jangmo-o"
+            "hakamo-o" -> "Hakamo-o"
+            "kommo-o" -> "Kommo-o"
+            "sirfetchd" -> "Sirfetch'd"
+            "farfetchd" -> "Farfetch'd"
+            else -> {
+                if (lowercaseName.startsWith("tapu-") ||
+                    lowercaseName.startsWith("iron-") ||
+                    lowercaseName.startsWith("scream-") ||
+                    lowercaseName.startsWith("brute-") ||
+                    lowercaseName.startsWith("flutter-") ||
+                    lowercaseName.startsWith("slither-") ||
+                    lowercaseName.startsWith("sandy-") ||
+                    lowercaseName.startsWith("roaring-") ||
+                    lowercaseName.startsWith("walking-") ||
+                    lowercaseName.startsWith("gouging-") ||
+                    lowercaseName.startsWith("raging-")
+                ) {
+                    name.split("-").joinToString(" ") { it.replaceFirstChar { c -> c.uppercase() } }
+                } else {
+                    name.split("-").first().replaceFirstChar { it.uppercase() }
+                }
+            }
         }
     }
 }
