@@ -23,7 +23,9 @@ import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -89,7 +91,7 @@ fun GetFilterBar(
 ) {
     val activity = getActivity()
     val filterMap by viewModel.pokemonFilterList.observeAsState(mapOf())
-    val sheetState = rememberModalBottomSheetState()
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var showBottomSheet by remember { mutableStateOf(false) }
     var labelTitle by remember { mutableStateOf(String()) }
     var loading by remember { mutableStateOf(false) }
@@ -372,7 +374,7 @@ fun ContentBottomSheet(
             }
             Spacer(modifier = Modifier.height(16.dp))
             LazyVerticalGrid(
-                columns = GridCells.Fixed(if (labelTitle == stringResource(R.string.type)) 2 else 2),
+                columns = GridCells.Fixed(2),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
                 modifier = Modifier.padding(8.dp)
@@ -424,24 +426,35 @@ fun ContentBottomSheet(
             }
         }
         // Buttons fixed bellow
-        Row(
+        Column(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .fillMaxWidth()
-                .padding(16.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                .padding(horizontal = 16.dp, vertical = 8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             Button(
+                onClick = {
+                    activity?.trackButtonClick("Bottom sheet: Apply filter")
+                    coroutineScope.launch { sheetState.hide() }.invokeOnCompletion {
+                        if (!sheetState.isVisible) onClickListener.invoke(false)
+                    }
+                },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(stringResource(R.string.apply_filter))
+            }
+            OutlinedButton(
                 onClick = {
                     activity?.trackButtonClick("Bottom sheet: Clear all")
                     clearAllFilter(filterMap)
                 },
-                modifier = Modifier.weight(1f)
-            ) {
-                Text(
-                    text = stringResource(R.string.clear_all),
-                    color = Color.White
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.outlinedButtonColors(
+                    contentColor = MaterialTheme.colorScheme.onSecondary
                 )
+            ) {
+                Text(stringResource(R.string.clear_all))
             }
         }
     }

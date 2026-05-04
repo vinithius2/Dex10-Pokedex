@@ -7,9 +7,7 @@
     <string name="pikachu">Pikachu</string>
     <string name="unknown">Unknown</string>
     <string name="capture_rate">Capture rate:</string>
-    <string name="shape">Shape:</string>
     <string name="base_exp">Base Exp:</string>
-    <string name="generation">Generation:</string>
     <string name="ico_mythical">Ico mythical</string>
     <string name="is_a_baby">IS A BABY!</string>
     <string name="ico_left">Ico Left</string>
@@ -121,6 +119,13 @@
     <string name="ability">Ability</string>
     <string name="color">Color</string>
     <string name="habitat">Habitat</string>
+    <string name="generation">Region</string>
+    <string name="category">Category</string>
+    <string name="shape">Shape</string>
+    <string name="growth_rate">Growth Rate</string>
+    <string name="egg_group">Egg Group</string>
+    <string name="base_total">Base Total</string>
+    <string name="apply_filter">Apply</string>
     <string name="view_mode">View Mode</string>
     <string name="view_list">List</string>
     <string name="view_auto">Automatic</string>
@@ -248,6 +253,10 @@
     <string name="plan_master_header">Master</string>
     <string name="plan_master_sub">Lifetime Access 🏆</string>
 
+    <string name="promo_banner_title">⭐ Unlock everything — one-time purchase</string>
+    <string name="promo_banner_subtitle">No ads · Unlimited TCG cards · All features · Pay once, keep forever</string>
+    <string name="promo_banner_cta">Buy once</string>
+
     <string name="feature_ads">Advertising</string>
     <string name="feature_team_builder">Team Builder</string>
     <string name="feature_favorites">Favorites</string>
@@ -273,6 +282,9 @@
     <string name="feature_grid_mode">Grid View</string>
     <string name="val_trainer_grid_mode">List Only</string>
     <string name="val_master_grid_mode">Grid &amp; List</string>
+    <string name="feature_tcg_cards">TCG Cards</string>
+    <string name="val_trainer_tcg_cards">First 3</string>
+    <string name="val_master_tcg_cards">All cards</string>
 
     <string name="cta_upgrade">Unlock Now — %1$s</string>
     <string name="footer_google_play">One-time and secure payment via Google Play.</string>
@@ -398,4 +410,9 @@
     <string name="got_it">Got it</string>
     <string name="my_teams">Team Builder</string>
     <string name="team_details">Team Details</string>
+    <string name="tcg_cards">TCG Cards</string>
+    <string name="tcg_unlock_label">See all cards</string>
+    <string name="anime_info">Anime Info</string>
+    <string name="voice_actor">Voice Actor (Seiyuu)</string>
+    <string name="character_anime">Anime Appearance</string>
 </resources>
