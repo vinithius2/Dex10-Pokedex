@@ -7,9 +7,7 @@
     <string name="pikachu">पिकाचू</string>
     <string name="unknown">अज्ञात</string>
     <string name="capture_rate">पकड़ने की दर:</string>
-    <string name="shape">आकार:</string>
     <string name="base_exp">आधार अनुभव (Base Exp):</string>
-    <string name="generation">पीढ़ी (Generation):</string>
     <string name="ico_mythical">मिथकीय आइकन</string>
     <string name="is_a_baby">यह एक बेबी पोकेमोन है!</string>
     <string name="ico_left">बायां आइकन</string>
@@ -113,6 +111,13 @@
     <string name="ability">क्षमता</string>
     <string name="color">रंग</string>
     <string name="habitat">निवास स्थान</string>
+    <string name="generation">क्षेत्र</string>
+    <string name="category">श्रेणी</string>
+    <string name="shape">आकार</string>
+    <string name="growth_rate">विकास दर</string>
+    <string name="egg_group">अंडा समूह</string>
+    <string name="base_total">आधार कुल</string>
+    <string name="apply_filter">लागू करें</string>
     <string name="hp">स्वास्थ्य (HP)</string>
     <string name="attack">आक्रमण</string>
     <string name="defense">रक्षा</string>
@@ -332,4 +337,11 @@
     <string name="got_it">समझ गया</string>
     <string name="my_teams">टीम बिल्डर</string>
     <string name="team_details">टीम का विवरण</string>
+    <string name="promo_banner_title">⭐ सब कुछ अनलॉक करें — एकमुश्त खरीदारी</string>
+    <string name="promo_banner_subtitle">कोई विज्ञापन नहीं · असीमित TCG कार्ड · सभी सुविधाएं · एक बार भुगतान, हमेशा के लिए</string>
+    <string name="promo_banner_cta">एक बार खरीदें</string>
+    <string name="tcg_unlock_label">सभी कार्ड देखें</string>
+    <string name="feature_tcg_cards">TCG कार्ड</string>
+    <string name="val_trainer_tcg_cards">पहले 3</string>
+    <string name="val_master_tcg_cards">सभी</string>
 </resources>

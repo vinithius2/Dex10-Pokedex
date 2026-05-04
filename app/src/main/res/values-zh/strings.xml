@@ -7,9 +7,7 @@
     <string name="pikachu">皮卡丘</string>
     <string name="unknown">未知</string>
     <string name="capture_rate">捕获率：</string>
-    <string name="shape">体型：</string>
     <string name="base_exp">基础经验：</string>
-    <string name="generation">世代：</string>
     <string name="ico_mythical">幻之宝可梦图标</string>
     <string name="is_a_baby">是幼年宝可梦！</string>
     <string name="ico_left">左图标</string>
@@ -113,6 +111,13 @@
     <string name="ability">特性</string>
     <string name="color">颜色</string>
     <string name="habitat">栖息地</string>
+    <string name="generation">地区</string>
+    <string name="category">类别</string>
+    <string name="shape">形状</string>
+    <string name="growth_rate">成长率</string>
+    <string name="egg_group">蛋组</string>
+    <string name="base_total">种族值总和</string>
+    <string name="apply_filter">应用</string>
     <string name="hp">ＨＰ</string>
     <string name="attack">攻击</string>
     <string name="defense">防御</string>
@@ -332,4 +337,11 @@
     <string name="got_it">明白了</string>
     <string name="my_teams">队伍构建器</string>
     <string name="team_details">队伍详情</string>
+    <string name="promo_banner_title">⭐ 解锁全部内容 — 一次性买断</string>
+    <string name="promo_banner_subtitle">无广告 · 无限TCG卡牌 · 全部功能 · 一次付费，永久使用</string>
+    <string name="promo_banner_cta">一次买断</string>
+    <string name="tcg_unlock_label">查看所有卡牌</string>
+    <string name="feature_tcg_cards">TCG卡牌</string>
+    <string name="val_trainer_tcg_cards">前3张</string>
+    <string name="val_master_tcg_cards">全部</string>
 </resources>
