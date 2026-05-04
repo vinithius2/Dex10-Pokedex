@@ -96,6 +96,7 @@ import com.vinithius.dex10.components.LoadingPokemonList
 import com.vinithius.dex10.components.LoadingProgress
 import com.vinithius.dex10.components.PokeballComponent
 import com.vinithius.dex10.components.TopAlertBanner
+import com.vinithius.dex10.ui.components.PremiumPromoBanner
 import com.vinithius.dex10.components.TypeListDataBase
 import com.vinithius.dex10.datasource.database.Ability
 import com.vinithius.dex10.datasource.database.PokemonEntity
@@ -307,6 +308,12 @@ fun SharedTransitionScope.PokemonListScreen(
                         getFilterBarData(it, viewModel, context)
                     }
                 )
+
+                if (!isPremium) {
+                    PremiumPromoBanner(
+                        onUpgradeClick = { viewModel.premiumManager.triggerUpsell() }
+                    )
+                }
 
                 if (pokemonItems.isNotEmpty()) {
                     var isVisible by remember { mutableStateOf(true) }
@@ -930,7 +937,7 @@ fun StatComponent(
     val context = LocalContext.current
     Row(
         modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.Center,
+        horizontalArrangement = if (isGrid) Arrangement.Center else Arrangement.Start,
         verticalAlignment = Alignment.CenterVertically
     ) {
         pokemonData.stats.take(3).forEachIndexed { index, stat ->

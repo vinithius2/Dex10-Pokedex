@@ -7,7 +7,20 @@ data class JikanCharacterSearchResponse(
 data class JikanCharacterData(
     val mal_id: Int,
     val name: String,
-    val images: JikanImages?
+    val images: JikanImages?,
+    val anime: List<JikanCharacterAnimeEntry>?
+)
+
+data class JikanCharacterAnimeEntry(
+    val role: String?,
+    val anime: JikanAnimeRef?
+)
+
+data class JikanAnimeRef(
+    val mal_id: Int?,
+    val type: String?,
+    val name: String?,
+    val url: String?
 )
 
 data class JikanImages(

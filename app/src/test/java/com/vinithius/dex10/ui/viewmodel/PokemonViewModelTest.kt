@@ -2,6 +2,7 @@ package com.vinithius.dex10.ui.viewmodel
 
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.lifecycle.MutableLiveData
+import com.vinithius.dex10.datasource.data.AppPreferences
 import com.vinithius.dex10.datasource.data.PremiumManager
 import com.vinithius.dex10.datasource.database.PokemonEntity
 import com.vinithius.dex10.datasource.database.PokemonWithDetails
@@ -41,6 +42,7 @@ class PokemonViewModelTest {
 
     private val repository: IPokemonRepository = mockk(relaxed = true)
     private val premiumManager: PremiumManager = mockk(relaxed = true)
+    private val appPreferences: AppPreferences = mockk(relaxed = true)
 
     private lateinit var viewModel: PokemonViewModel
     private val testDispatcher = StandardTestDispatcher()
@@ -48,12 +50,14 @@ class PokemonViewModelTest {
     @Before
     fun setup() {
         Dispatchers.setMain(testDispatcher)
-        
+
+        every { appPreferences.viewMode } returns MutableStateFlow(AppPreferences.ViewMode.LIST)
+
         // Mock AnalyticsManager
         mockkObject(com.vinithius.dex10.analytics.AnalyticsManager)
         every { com.vinithius.dex10.analytics.AnalyticsManager.logLimitReached(any()) } returns Unit
 
-        viewModel = PokemonViewModel(repository, premiumManager, testDispatcher)
+        viewModel = PokemonViewModel(repository, premiumManager, appPreferences, testDispatcher)
     }
 
     @After

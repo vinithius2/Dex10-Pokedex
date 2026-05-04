@@ -30,7 +30,6 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.*
 import com.vinithius.dex10.R
@@ -46,28 +45,13 @@ fun PokemonPickerSheet(
     viewModel: PokemonViewModel = getViewModel()
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-    val context = LocalContext.current
     var searchQuery by remember { mutableStateOf("") }
-    
-    // We can use the existing list from ViewModel
-    // Note: getPokemonList() might be paginated or full load. 
-    // Let's use pokemonListBackup which seems to be the full filtered list in MainActivity usage.
-    // Observe the FILTERED list from ViewModel
-    val pokemonList by viewModel.pokemonList.observeAsState(emptyList())
-    val searchNameFilter by viewModel.searchNameFilter.observeAsState("")
 
-    // Sync local query with ViewModel if needed, but here we want Picker to own its state
-    // but trigger the VM filtering.
-    
-    // Trigger search when local query changes
-    LaunchedEffect(searchQuery) {
-        viewModel.getPokemonSearch(searchQuery, context)
-    }
-
-    // Cleanup search when sheet is dismissed
-    LaunchedEffect(Unit) {
-        // Optional: clear search on open
-        // viewModel.getPokemonSearch("", context)
+    // Always use the full unfiltered backup — picker must never reflect main-list filters.
+    val allPokemon by viewModel.pokemonListBackup.observeAsState(emptyList())
+    val pokemonList = remember(searchQuery, allPokemon) {
+        if (searchQuery.isBlank()) allPokemon
+        else allPokemon.filter { it.pokemon.name.contains(searchQuery, ignoreCase = true) }
     }
 
     ModalBottomSheet(

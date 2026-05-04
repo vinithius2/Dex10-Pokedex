@@ -7,9 +7,7 @@
     <string name="pikachu">Pikachu</string>
     <string name="unknown">Desconocido</string>
     <string name="capture_rate">Tasa de captura:</string>
-    <string name="shape">Forma:</string>
     <string name="base_exp">Exp. Base:</string>
-    <string name="generation">Generación:</string>
     <string name="ico_mythical">Ícono mítico</string>
     <string name="is_a_baby">¡ES UN BEBÉ!</string>
     <string name="ico_left">Ícono izquierdo</string>
@@ -113,6 +111,13 @@
     <string name="ability">Habilidad</string>
     <string name="color">Color</string>
     <string name="habitat">Hábitat</string>
+    <string name="generation">Región</string>
+    <string name="category">Categoría</string>
+    <string name="shape">Forma</string>
+    <string name="growth_rate">Tasa de Crecimiento</string>
+    <string name="egg_group">Grupo de Huevo</string>
+    <string name="base_total">Total Base</string>
+    <string name="apply_filter">Aplicar</string>
     <string name="hp">Hp</string>
     <string name="attack">Ataque</string>
     <string name="defense">Defensa</string>
@@ -332,4 +337,11 @@
     <string name="got_it">Entendido</string>
     <string name="my_teams">Constructor de Equipos</string>
     <string name="team_details">Detalles del Equipo</string>
+    <string name="promo_banner_title">⭐ Desbloquea todo — pago único</string>
+    <string name="promo_banner_subtitle">Sin anuncios · TCG ilimitado · Todas las funciones · Paga una vez, úsalo siempre</string>
+    <string name="promo_banner_cta">Compra única</string>
+    <string name="tcg_unlock_label">Ver todas las cartas</string>
+    <string name="feature_tcg_cards">Cartas TCG</string>
+    <string name="val_trainer_tcg_cards">Primeras 3</string>
+    <string name="val_master_tcg_cards">Todas</string>
 </resources>

@@ -54,4 +54,8 @@ interface IPokemonRepository {
 
     // Anime (Jikan)
     suspend fun getAnimeInfo(name: String): com.vinithius.dex10.datasource.response.JikanAnimeInfo?
+
+    // Enrichment (background, non-blocking)
+    suspend fun getLocalPokemonList(): List<PokemonWithDetails>?
+    suspend fun runEnrichmentIfNeeded(context: Context)
 }

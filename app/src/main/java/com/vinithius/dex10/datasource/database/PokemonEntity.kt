@@ -50,7 +50,7 @@ data class Type(
 
 @Entity(
     tableName = "pokemon",
-    indices = [Index(value = ["name"])] // Para melhorar buscas por nome de Pokémon
+    indices = [Index(value = ["name"])]
 )
 data class PokemonEntity(
     @PrimaryKey val id: Int = 0,
@@ -58,7 +58,14 @@ data class PokemonEntity(
     @ColumnInfo(name = "color") val color: String,
     @ColumnInfo(name = "habitat") val habitat: String,
     @ColumnInfo(name = "favorite") var favorite: Boolean = false,
-    @ColumnInfo(name = "image_path") val imagePath: String?
+    @ColumnInfo(name = "image_path") val imagePath: String?,
+    @ColumnInfo(name = "generation") val generation: String = "",
+    @ColumnInfo(name = "is_legendary") val isLegendary: Boolean = false,
+    @ColumnInfo(name = "is_mythical") val isMythical: Boolean = false,
+    @ColumnInfo(name = "is_baby") val isBaby: Boolean = false,
+    @ColumnInfo(name = "shape") val shape: String = "",
+    @ColumnInfo(name = "growth_rate") val growthRate: String = "",
+    @ColumnInfo(name = "egg_groups") val eggGroups: String = ""
 )
 
 // Relações --->
