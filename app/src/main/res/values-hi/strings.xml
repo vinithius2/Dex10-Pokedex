@@ -62,6 +62,7 @@
     <string name="try_again">फिर से प्रयास करें</string>
     <string name="empty_list">खाली सूची</string>
     <string name="dont_close_app">कृपया ऐप बंद न करें, और सोने की कोशिश न करें, ठीक है?</string>
+    <string name="loading_finalizing">डेटा अंतिम रूप दिया जा रहा है…</string>
     <string name="back">पीछे</string>
     <string name="from">से:</string>
     <string name="to">को:</string>

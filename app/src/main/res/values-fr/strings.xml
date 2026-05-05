@@ -62,6 +62,7 @@
     <string name="try_again">Réessayer</string>
     <string name="empty_list">Liste vide</string>
     <string name="dont_close_app">S\'il vous plaît, ne fermez pas l\'application, et essayez de ne pas vous endormir, d\'accord ?</string>
+    <string name="loading_finalizing">Finalisation des données…</string>
     <string name="back">Retour</string>
     <string name="from">De :</string>
     <string name="to">À :</string>

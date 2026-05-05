@@ -135,7 +135,8 @@ import com.vinithius.dex10.extension.getWindowColumns
 import com.vinithius.dex10.extension.translateIfSupported
 import com.vinithius.dex10.ui.MainActivity
 import com.vinithius.dex10.ui.theme.text
-import com.vinithius.dex10.ui.viewmodel.PokemonViewModel
+import com.vinithius.dex10.ui.viewmodel.PokemonViewModel
+import com.vinithius.dex10.ui.viewmodel.rememberPokemonViewModel
 import com.vinithius.dex10.ui.viewmodel.RequestStateDetail
 import ir.ehsannarmani.compose_charts.RowChart
 import ir.ehsannarmani.compose_charts.models.BarProperties
@@ -217,7 +218,7 @@ fun SharedTransitionScope.PokemonDetailScreen(
     navController: NavController?,
     pokemonId: Int,
     animatedVisibilityScope: AnimatedVisibilityScope?,
-    viewModel: PokemonViewModel = getViewModel()
+    viewModel: PokemonViewModel = rememberPokemonViewModel()
 ) {
     // Observes
     val id by viewModel.idPokemon.observeAsState()
@@ -315,7 +316,7 @@ fun SharedTransitionScope.MainCard(
     pokemonDetail: Pokemon?,
     color: String,
     painter: AsyncImagePainter? = null,
-    viewModel: PokemonViewModel = getViewModel()
+    viewModel: PokemonViewModel = rememberPokemonViewModel()
 ) {
     val context = LocalContext.current
     val isPremium by viewModel.premiumManager.isPremium.collectAsState(initial = false)
@@ -562,7 +563,7 @@ fun SharedTransitionScope.MainCardLargeScreen(
     color: String,
     painter: AsyncImagePainter? = null,
     columns: Int = 1,
-    viewModel: PokemonViewModel = getViewModel()
+    viewModel: PokemonViewModel = rememberPokemonViewModel()
 ) {
     val context = LocalContext.current
     val isPremium by viewModel.premiumManager.isPremium.collectAsState(initial = false)
@@ -817,7 +818,7 @@ fun TabWithPagerExample(
     navController: NavController?,
     pokemonDetail: Pokemon?,
     color: String,
-    viewModel: PokemonViewModel = getViewModel(),
+    viewModel: PokemonViewModel = rememberPokemonViewModel(),
 ) {
     val hasAnimeDubber = !pokemonDetail?.animeInfo?.voiceActorName.isNullOrBlank()
     val tabItems = buildList {
@@ -1910,7 +1911,7 @@ private fun ChartLoadingComposable() {
 
 @Composable
 private fun PokemonIsABaby(
-    viewModel: PokemonViewModel = getViewModel()
+    viewModel: PokemonViewModel = rememberPokemonViewModel()
 ) {
     val pokemonDetail by viewModel.pokemonDetail.observeAsState()
     AnimatedVisibility(
@@ -1965,7 +1966,7 @@ private fun PokemonIsABabyPreview() {
 private fun PokemonEvolution(
     navController: NavController?,
     pokemonDetail: Pokemon?,
-    viewModel: PokemonViewModel = getViewModel()
+    viewModel: PokemonViewModel = rememberPokemonViewModel()
 ) {
     val activity = getActivity()
     StateRequest(
@@ -2084,7 +2085,7 @@ private fun PokemonEvolution(
 private fun PokemonVariations(
     navController: NavController?,
     pokemonDetail: Pokemon?,
-    viewModel: PokemonViewModel = getViewModel()
+    viewModel: PokemonViewModel = rememberPokemonViewModel()
 ) {
     val activity = getActivity()
 
@@ -2238,7 +2239,7 @@ private fun GenericBox(
 @Composable
 private fun PokemonDamage(
     pokemonDetail: Pokemon?,
-    viewModel: PokemonViewModel = getViewModel()
+    viewModel: PokemonViewModel = rememberPokemonViewModel()
 ) {
     StateRequest(
         viewModel = viewModel,
@@ -2311,7 +2312,7 @@ private fun PokemonDamage(
 private fun PokemonEncounters(
     pokemonDetail: Pokemon?,
     color: String?,
-    viewModel: PokemonViewModel = getViewModel()
+    viewModel: PokemonViewModel = rememberPokemonViewModel()
 ) {
     StateRequest(
         viewModel = viewModel,
@@ -2383,7 +2384,7 @@ private fun PokemonEncounters(
 private fun PokemonEggs(
     pokemonDetail: Pokemon?,
     color: String?,
-    viewModel: PokemonViewModel = getViewModel()
+    viewModel: PokemonViewModel = rememberPokemonViewModel()
 ) {
     val context = LocalContext.current
     StateRequest(
@@ -2456,7 +2457,7 @@ private fun PokemonEggs(
 private fun PokemonAbilities(
     pokemonDetail: Pokemon?,
     color: String?,
-    viewModel: PokemonViewModel = getViewModel()
+    viewModel: PokemonViewModel = rememberPokemonViewModel()
 ) {
     val context = LocalContext.current
     StateRequest(
@@ -2561,7 +2562,7 @@ private fun PokemonAbilities(
 private fun PokemonEntries(
     navController: NavController?,
     pokemonDetail: Pokemon?,
-    viewModel: PokemonViewModel = getViewModel(),
+    viewModel: PokemonViewModel = rememberPokemonViewModel(),
 ) {
     val loading = stringResource(R.string.loading_translate)
     var encounterText by remember { mutableStateOf(loading) }

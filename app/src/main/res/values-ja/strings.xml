@@ -62,6 +62,7 @@
     <string name="try_again">やり直す</string>
     <string name="empty_list">リストが空です</string>
     <string name="dont_close_app">アプリを閉じないでください。寝落ちしないように気をつけて！</string>
+    <string name="loading_finalizing">データを仕上げています…</string>
     <string name="back">戻る</string>
     <string name="from">から:</string>
     <string name="to">まで:</string>

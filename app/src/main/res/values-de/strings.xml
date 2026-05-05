@@ -62,6 +62,7 @@
     <string name="try_again">Nochmal versuchen</string>
     <string name="empty_list">Leere Liste</string>
     <string name="dont_close_app">Bitte schließe die App nicht und versuche nicht einzuschlafen, okay?</string>
+    <string name="loading_finalizing">Daten werden finalisiert…</string>
     <string name="back">Zurück</string>
     <string name="from">Von:</string>
     <string name="to">Bis:</string>
