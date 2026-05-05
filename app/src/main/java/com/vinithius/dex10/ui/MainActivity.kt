@@ -70,6 +70,8 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
@@ -134,15 +136,14 @@ import com.vinithius.dex10.ui.theme.ThemeDex10
 import com.vinithius.dex10.ui.viewmodel.PokemonViewModel
 import com.vinithius.dex10.ui.viewmodel.RequestStateDetail
 import com.vinithius.dex10.ui.viewmodel.RequestStateList
-import org.koin.androidx.compose.getViewModel
-import org.koin.androidx.viewmodel.ext.android.viewModel
+import com.vinithius.dex10.ui.viewmodel.rememberPokemonViewModel
 import java.util.Locale
 
 
 class MainActivity : ComponentActivity() {
 
     private lateinit var analytics: FirebaseAnalytics
-    private val viewModel: PokemonViewModel by viewModel()
+    private val viewModel: PokemonViewModel by inject(PokemonViewModel::class.java)
     private lateinit var sharedPreferences: SharedPreferences
 
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
@@ -344,7 +345,7 @@ class MainActivity : ComponentActivity() {
 @Composable
 private fun GetAdUnitId(
     context: Context,
-    viewModel: PokemonViewModel = getViewModel()
+    viewModel: PokemonViewModel = rememberPokemonViewModel()
 ) {
     val remoteConfig = FirebaseRemoteConfig.getInstance()
     remoteConfig.fetchAndActivate()
@@ -422,7 +423,7 @@ private fun GetAdUnitId(
 @Composable
 fun MainScreen(
     activity: MainActivity,
-    viewModel: PokemonViewModel = getViewModel(),
+    viewModel: PokemonViewModel = rememberPokemonViewModel(),
     appPreferences: AppPreferences? = null,
     premiumManager: PremiumManager? = null
 ) {
@@ -526,7 +527,7 @@ fun MainScreen(
 fun SetInterstitialOrRewardedAdManager(
     activity: MainActivity,
     navController: NavHostController,
-    viewModel: PokemonViewModel = getViewModel(),
+    viewModel: PokemonViewModel = rememberPokemonViewModel(),
     premiumManager: PremiumManager = org.koin.androidx.compose.get()
 ) {
     val context = LocalContext.current
@@ -727,8 +728,8 @@ private fun GetTopBar(
 ) {
     val context = LocalContext.current
     val activity = context as? MainActivity
-    var searchQuery by remember { mutableStateOf("") }
     var isSearchActive by remember { mutableStateOf(false) }
+    val searchQuery by viewModel.searchNameFilter.observeAsState(String())
     val pokemonListBackup by viewModel.pokemonListBackup.observeAsState(emptyList())
     val color by viewModel.pokemonColor.observeAsState()
 
@@ -741,6 +742,18 @@ private fun GetTopBar(
 
     val requestState = viewModel.stateList.observeAsState()
     val isListLoaded = requestState.value is RequestStateList.Success
+    val showSearchField = isSearchActive || searchQuery.isNotBlank()
+    val searchFocusRequester = remember { FocusRequester() }
+
+    LaunchedEffect(isSearchActive) {
+        if (isSearchActive) {
+            try {
+                searchFocusRequester.requestFocus()
+            } catch (_: Exception) {
+                // FocusRequester may not be attached yet on first composition; ignored.
+            }
+        }
+    }
 
     isDetailScreen.takeIf { it }?.run {
         TopAppBar(
@@ -805,12 +818,11 @@ private fun GetTopBar(
         // Page List Pokemon
         TopAppBar(
             title = {
-                if (isSearchActive) {
+                if (showSearchField) {
                     TextField(
                         value = searchQuery,
                         onValueChange = {
-                            searchQuery = it
-                            viewModel.getPokemonSearch(searchQuery, context)
+                            viewModel.getPokemonSearch(it, context)
                         },
                         placeholder = {
                             Text(
@@ -821,7 +833,8 @@ private fun GetTopBar(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(bottom = 4.dp, top = 4.dp)
-                            .clip(RoundedCornerShape(40.dp)),
+                            .clip(RoundedCornerShape(40.dp))
+                            .focusRequester(searchFocusRequester),
                         singleLine = true,
                         leadingIcon = {
                             Icon(
@@ -832,8 +845,7 @@ private fun GetTopBar(
                         },
                         trailingIcon = {
                             IconButton(onClick = {
-                                searchQuery = String()
-                                viewModel.getPokemonSearch(searchQuery, context)
+                                viewModel.getPokemonSearch(String(), context)
                                 isSearchActive = false
                             }) {
                                 Icon(
@@ -882,10 +894,10 @@ private fun GetTopBar(
             },
             actions = {
                 if (pokemonListBackup.isNotEmpty()) {
-                    if (isSearchActive.not()) {
+                    if (showSearchField.not()) {
                         IconButton(onClick = {
                             activity?.trackButtonClick("Click search filter")
-                            isSearchActive = isSearchActive.not()
+                            isSearchActive = true
                         }) {
                             Icon(
                                 imageVector = Icons.Default.Search,
@@ -907,7 +919,7 @@ private fun GetTopBar(
 @Preview
 @Composable
 private fun GetTopBatPreviewList(
-    viewModel: PokemonViewModel = getViewModel()
+    viewModel: PokemonViewModel = rememberPokemonViewModel()
 ) {
     GetTopBar(
         viewModel,
@@ -918,7 +930,7 @@ private fun GetTopBatPreviewList(
 @Preview
 @Composable
 private fun GetTopBatPreviewDetail(
-    viewModel: PokemonViewModel = getViewModel()
+    viewModel: PokemonViewModel = rememberPokemonViewModel()
 ) {
     GetTopBar(
         viewModel,
@@ -974,7 +986,7 @@ private fun AppMenuPageDetail(
             IconButton(onClick = {
                 idPokemon?.let {
                     activity?.trackButtonClick("Click favorite toolbar detail: ID -> $it")
-                    viewModel.setFavorite(it)
+                    viewModel.setFavorite(it, context)
                 }
             }) {
                 Icon(
@@ -1304,7 +1316,7 @@ fun getIntentToUrl(url: String, context: Context) {
 fun MainScreenPreview() {
     ThemeDex10 {
         GetTopBar(
-            getViewModel(),
+            rememberPokemonViewModel(),
             null,
         )
     }
@@ -1315,7 +1327,7 @@ fun MainScreenPreview() {
 fun MainScreenDarkPreview() {
     ThemeDex10(darkTheme = true) {
         GetTopBar(
-            getViewModel(),
+            rememberPokemonViewModel(),
             null,
         )
     }

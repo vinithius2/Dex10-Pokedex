@@ -62,6 +62,7 @@
     <string name="try_again">再试一次</string>
     <string name="empty_list">列表为空</string>
     <string name="dont_close_app">请不要关闭应用，尽量不要睡着，好吗？</string>
+    <string name="loading_finalizing">正在完成数据…</string>
     <string name="back">返回</string>
     <string name="from">自：</string>
     <string name="to">至：</string>

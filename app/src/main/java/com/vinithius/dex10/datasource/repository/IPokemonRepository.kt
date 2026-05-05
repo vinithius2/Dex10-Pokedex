@@ -22,6 +22,7 @@ interface IPokemonRepository {
         context: Context,
         callBackLoadingFirebaseCounter: ((progress: Float) -> Unit),
         callBackLoadingFirebase: (() -> Unit),
+        callBackLoadingPostProcess: (() -> Unit),
         callBackLoading: (() -> Unit),
         callBackError: ((e: Exception) -> Unit),
     ): List<PokemonWithDetails>?
@@ -31,6 +32,7 @@ interface IPokemonRepository {
     // Detail operations
     suspend fun getPokemonWithDetailsByName(name: String): PokemonWithDetails?
     suspend fun getPokemonWithDetailsByListName(pokemonNames: List<String>): List<PokemonWithDetails>
+    suspend fun getPokemonWithDetailsByIds(pokemonIds: List<Int>): List<PokemonWithDetails>
     suspend fun getPokemonWithDetailsById(id: Int): PokemonWithDetails?
     suspend fun getPokemonColorById(id: Int): String?
 
