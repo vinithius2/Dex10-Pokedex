@@ -62,6 +62,7 @@
     <string name="try_again">Riprova</string>
     <string name="empty_list">Lista vuota</string>
     <string name="dont_close_app">Per favore non chiudere l\'app, e cerca di non addormentarti, ok?</string>
+    <string name="loading_finalizing">Finalizzazione dati…</string>
     <string name="back">Indietro</string>
     <string name="from">Da:</string>
     <string name="to">A:</string>

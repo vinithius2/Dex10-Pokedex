@@ -53,6 +53,7 @@ class PokemonRepository(
         context: Context,
         callBackLoadingFirebaseCounter: ((progress: Float) -> Unit),
         callBackLoadingFirebase: (() -> Unit),
+        callBackLoadingPostProcess: (() -> Unit),
         callBackLoading: (() -> Unit),
         callBackError: ((e: Exception) -> Unit),
     ): List<PokemonWithDetails>? {
@@ -60,6 +61,7 @@ class PokemonRepository(
             context,
             callBackLoadingFirebase,
             callBackLoadingFirebaseCounter,
+            callBackLoadingPostProcess,
             callBackError
         )
         callBackLoading.invoke()
@@ -76,11 +78,15 @@ class PokemonRepository(
         context: Context,
         callBackLoadingFirebase: (() -> Unit),
         callBackLoadingFirebaseCounter: ((progress: Float) -> Unit),
+        callBackLoadingPostProcess: (() -> Unit),
         callBackError: ((e: Exception) -> Unit),
     ) {
         try {
             // DATA_VERSION trigger: reset stored max so the Firebase sync path is forced.
-            if (needsDataRefresh(context)) {
+            // Captured up-front so we know whether this is a first install / version bump
+            // (and therefore whether the post-process loader should be shown to the user).
+            val isFirstRunOrVersionBump = needsDataRefresh(context)
+            if (isFirstRunOrVersionBump) {
                 setCountMaxPokemon(0, context)
             }
 
@@ -102,15 +108,23 @@ class PokemonRepository(
                     Log.i("Insert pokemon", "${pokemon.id} ${pokemon.name}")
                 }
             }
-            // Runs once per VALIDATION_VERSION — corrects types and habitats that
-            // Firebase may have stored incorrectly (e.g. "normal" default, "unknow" habitat).
-            validateAndCorrectPokemonData(context)
-            // Populates generation, legendary/mythical/baby, shape, growth rate, egg groups.
-            // Fast no-op when all rows are already enriched; blocking so filters are ready
-            // before the list is shown. Version is saved only on full success — failure
-            // means DATA_VERSION stays outdated and the loading screen retries next open.
-            enrichPokemonData(context)
-            setDataVersionDone(context)
+
+            // Validation + enrichment only run on first install / DATA_VERSION bump.
+            // On regular launches the data is already complete (or was best-effort filled
+            // on the first run) and we must NOT show the indeterminate loading bar again.
+            // Any partially-failed enrichment from the first run is intentionally left
+            // until the next DATA_VERSION bump to avoid blocking subsequent app starts.
+            if (isFirstRunOrVersionBump) {
+                val needsValidation = getValidationVersion(context) < VALIDATION_VERSION
+                val needsEnrichment = localDataSource.getPokemonIdsNotEnriched().isNotEmpty()
+                if (needsValidation || needsEnrichment) {
+                    callBackLoadingPostProcess.invoke()
+                }
+
+                validateAndCorrectPokemonData(context)
+                enrichPokemonData(context)
+                setDataVersionDone(context)
+            }
         } catch (e: Exception) {
             FirebaseCrashlytics.getInstance().recordException(e)
             callBackError.invoke(e)
@@ -313,6 +327,10 @@ class PokemonRepository(
         return localDataSource.getPokemonWithDetailsByListName(pokemonNames)
     }
 
+    override suspend fun getPokemonWithDetailsByIds(pokemonIds: List<Int>): List<PokemonWithDetails> {
+        return localDataSource.getPokemonWithDetailsByIds(pokemonIds)
+    }
+
     override suspend fun getPokemonWithDetailsById(id: Int): PokemonWithDetails? {
         return localDataSource.getPokemonWithDetailsById(id)
     }
@@ -450,7 +468,7 @@ class PokemonRepository(
         val database: DatabaseReference = FirebaseDatabase.getInstance().getReference("pokemons")
         try {
             suspendCancellableCoroutine { continuation ->
-                database.addValueEventListener(object : ValueEventListener {
+                val listener = object : ValueEventListener {
                     override fun onDataChange(dataSnapshot: DataSnapshot) {
                         for (pokemonSnapshot in dataSnapshot.children) {
                             val pokemonData = (pokemonSnapshot.value as HashMap<*, *>).toPokemon()
@@ -469,7 +487,11 @@ class PokemonRepository(
                         )
                         continuation.resumeWith(Result.failure(databaseError.toException()))
                     }
-                })
+                }
+                database.addValueEventListener(listener)
+                continuation.invokeOnCancellation {
+                    database.removeEventListener(listener)
+                }
             }
         } catch (e: FirebaseNetworkException) {
             FirebaseCrashlytics.getInstance().recordException(e)

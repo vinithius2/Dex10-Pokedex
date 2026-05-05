@@ -21,7 +21,8 @@ import com.vinithius.dex10.components.TypeItem
 import com.vinithius.dex10.datasource.response.MoveDetailsResponse
 import com.vinithius.dex10.datasource.response.MoveResponse
 import com.vinithius.dex10.ui.components.MoveCategoryIcon
-import com.vinithius.dex10.ui.viewmodel.PokemonViewModel
+import com.vinithius.dex10.ui.viewmodel.PokemonViewModel
+import com.vinithius.dex10.ui.viewmodel.rememberPokemonViewModel
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
@@ -34,7 +35,7 @@ fun MoveSelectionSheet(
     pokemonId: Int,
     onMoveSelected: (String) -> Unit,
     onDismiss: () -> Unit,
-    viewModel: PokemonViewModel = getViewModel()
+    viewModel: PokemonViewModel = rememberPokemonViewModel()
 ) {
     val sheetState = rememberModalBottomSheetState()
     var moves by remember { mutableStateOf<List<MoveResponse>?>(null) }

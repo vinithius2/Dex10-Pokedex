@@ -58,9 +58,8 @@ import androidx.compose.ui.unit.sp
 import com.vinithius.dex10.R
 import com.vinithius.dex10.extension.*
 import com.vinithius.dex10.ui.MainActivity
-import com.vinithius.dex10.ui.viewmodel.PokemonViewModel
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
+import com.vinithius.dex10.ui.viewmodel.PokemonViewModel
+import com.vinithius.dex10.ui.viewmodel.rememberPokemonViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.getViewModel
@@ -85,12 +84,13 @@ private fun getActivity(): MainActivity? {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun GetFilterBar(
-    viewModel: PokemonViewModel = getViewModel(),
+    viewModel: PokemonViewModel = rememberPokemonViewModel(),
     onCallBackClearFavoriteFilter: () -> Unit,
     onCallBackFilter: (filter: Map<String, SnapshotStateMap<String, Boolean>>) -> Unit = {}
 ) {
     val activity = getActivity()
-    val filterMap by viewModel.pokemonFilterList.observeAsState(mapOf())
+    val context = LocalContext.current
+    val filterMap by viewModel.filterMap.observeAsState(mapOf())
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var showBottomSheet by remember { mutableStateOf(false) }
     var labelTitle by remember { mutableStateOf(String()) }
@@ -98,6 +98,7 @@ fun GetFilterBar(
     var showViewModeSheet by remember { mutableStateOf(false) }
 
     val isPremium by viewModel.premiumManager.isPremium.collectAsState(initial = false)
+    val coroutineScope = rememberCoroutineScope()
 
     val filterList = mutableListOf<String>().apply {
         add("first")
@@ -118,13 +119,8 @@ fun GetFilterBar(
                             onCallBackClearFavoriteFilter.invoke()
                             activity?.trackButtonClick("Menu filter: Clear All")
                             loading = true
-                            filterMap.keys.forEach { key ->
-                                filterMap[key]?.let { clearMap ->
-                                    clearAllFilter(clearMap)
-                                }
-                            }
-                            onCallBackFilter.invoke(filterMap)
-                            CoroutineScope(Dispatchers.Main).launch {
+                            viewModel.clearAllFilters(context)
+                            coroutineScope.launch {
                                 delay(500)
                                 loading = false
                             }

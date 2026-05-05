@@ -1,6 +1,7 @@
 package com.vinithius.dex10.ui.viewmodel
 
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.lifecycle.MutableLiveData
 import com.vinithius.dex10.datasource.data.AppPreferences
 import com.vinithius.dex10.datasource.data.PremiumManager
@@ -85,6 +86,13 @@ class PokemonViewModelTest {
             ))
         }
         return list
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    private fun <T> getMutableLiveData(fieldName: String): MutableLiveData<T> {
+        val field = PokemonViewModel::class.java.getDeclaredField(fieldName)
+        field.isAccessible = true
+        return field.get(viewModel) as MutableLiveData<T>
     }
 
     @Test
@@ -186,5 +194,49 @@ class PokemonViewModelTest {
         
         // Value check
         assertTrue("Favorite should be true", updatedItem.pokemon.favorite)
+    }
+
+    @Test
+    fun `setFavorite_keepsBackupListWhole_whenCurrentListIsFilteredSubset`() = runTest(testDispatcher) {
+        every { premiumManager.isPremium } returns MutableStateFlow(true)
+
+        val backupList = createPokemonList(5, 0)
+        val filteredList = backupList.take(2)
+
+        getMutableLiveData<List<PokemonWithDetails>>("_pokemonList").value = filteredList
+        getMutableLiveData<List<PokemonWithDetails>>("_pokemonListBackup").value = backupList
+
+        viewModel.setFavorite(1)
+        testScheduler.advanceUntilIdle()
+
+        val updatedBackup = viewModel.pokemonListBackup.value!!
+        assertTrue("Backup list should keep the full dataset", updatedBackup.size == 5)
+        assertTrue("Backup list should still contain items outside the filtered subset", updatedBackup.any { it.pokemon.id == 5 })
+        assertTrue("Updated favorite state should also be reflected in backup", updatedBackup.first { it.pokemon.id == 1 }.pokemon.favorite)
+    }
+
+    @Test
+    fun `clearAllFilters_resets_search_favorite_and_selected_filters`() = runTest(testDispatcher) {
+        val context = mockk<android.content.Context>(relaxed = true)
+        val typeFilterKey = "type"
+        val filter = mapOf(
+            typeFilterKey to mutableStateMapOf(
+                "fire" to true,
+                "water" to false,
+            )
+        )
+
+        getMutableLiveData<Map<String, androidx.compose.runtime.snapshots.SnapshotStateMap<String, Boolean>>>("_filterMap").value = filter
+        getMutableLiveData<Map<String, androidx.compose.runtime.snapshots.SnapshotStateMap<String, Boolean>>>("_pokemonFilterList").value = filter
+        getMutableLiveData<Boolean>("_isFavoriteFilter").value = true
+        getMutableLiveData<String>("_searchNameFilter").value = "pikachu"
+
+        viewModel.clearAllFilters(context)
+        testScheduler.advanceUntilIdle()
+
+        assertFalse(viewModel.isFavoriteFilter.value ?: true)
+        assertTrue(viewModel.searchNameFilter.value.isNullOrEmpty())
+        assertTrue(viewModel.filterMap.value?.get(typeFilterKey)?.values?.none { it } == true)
+        assertTrue(viewModel.pokemonFilterList.value?.get(typeFilterKey)?.values?.none { it } == true)
     }
 }

@@ -19,6 +19,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Job
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class TeamViewModel(
@@ -52,14 +53,13 @@ class TeamViewModel(
             else teamRepository.getTeam(id)
         }
         .onEach { team ->
-            // Dispara análise em paralelo (IO) para NÃO bloquear a UI
+            // Cancels previous analysis before starting a new one
+            analysisJob?.cancel()
             if (team != null) {
-                // Launch em separado garante que o fluxo do banco continue livre
-                viewModelScope.launch(dispatcher) {
+                analysisJob = viewModelScope.launch(dispatcher) {
                     performAnalysis(team)
                 }
             } else {
-                // Limpa análise se o time for nulo
                 _teamAnalysis.value = null
                 _teamIssues.value = emptyList()
             }
@@ -86,6 +86,8 @@ class TeamViewModel(
     private val _showUpsell = MutableStateFlow(false)
     val showUpsell: StateFlow<Boolean> = _showUpsell.asStateFlow()
 
+    private var analysisJob: Job? = null
+
     // --- AÇÕES ---
 
     // Chamado pela UI ao entrar na tela
@@ -98,15 +100,7 @@ class TeamViewModel(
         try {
             val pokemonIds = team.members.map { it.pokemonId }
 
-            // Busca detalhes (protegido contra falhas individuais)
-            val membersDetails = pokemonIds.mapNotNull { id ->
-                try {
-                    pokemonRepository.getPokemonWithDetailsById(id)
-                } catch (e: Exception) {
-                    Log.e("TeamViewModel", "Failed to fetch details for $id", e)
-                    null
-                }
-            }
+            val membersDetails = pokemonRepository.getPokemonWithDetailsByIds(pokemonIds)
 
             _pokemonDetails.value = membersDetails.associateBy { it.pokemon.id }
 

@@ -37,6 +37,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -674,23 +675,66 @@ fun LoadingProgress(
 }
 
 @Composable
+fun LoadingFinalizing() {
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            LoadGifWithCoil()
+            Spacer(modifier = Modifier.height(12.dp))
+            LinearProgressIndicator(
+                color = Color.Red,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(12.dp)
+                    .padding(horizontal = 16.dp)
+                    .clip(RoundedCornerShape(10.dp))
+            )
+            Spacer(modifier = Modifier.height(12.dp))
+            Text(
+                text = stringResource(R.string.loading_finalizing),
+                style = TextStyle(
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold,
+                )
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = stringResource(R.string.dont_close_app),
+                style = TextStyle(
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Normal,
+                )
+            )
+        }
+    }
+}
+
+@Composable
 fun LoadGifWithCoil() {
     val context = LocalContext.current
-    val imageLoader = ImageLoader.Builder(context)
-        .components {
-            if (Build.VERSION.SDK_INT >= 28) {
-                add(ImageDecoderDecoder.Factory())
-            } else {
-                add(GifDecoder.Factory())
+    val imageLoader = remember(context) {
+        ImageLoader.Builder(context)
+            .components {
+                if (Build.VERSION.SDK_INT >= 28) {
+                    add(ImageDecoderDecoder.Factory())
+                } else {
+                    add(GifDecoder.Factory())
+                }
             }
-        }
-        .build()
+            .build()
+    }
 
-    val imageRequest = ImageRequest.Builder(context)
-        .data(R.drawable.jigglypuff_songs)
-        .crossfade(true)
-        .error(android.R.drawable.ic_menu_report_image)
-        .build()
+    val imageRequest = remember(context) {
+        ImageRequest.Builder(context)
+            .data(R.drawable.jigglypuff_songs)
+            .crossfade(true)
+            .error(android.R.drawable.ic_menu_report_image)
+            .build()
+    }
 
     Box(
         modifier = Modifier

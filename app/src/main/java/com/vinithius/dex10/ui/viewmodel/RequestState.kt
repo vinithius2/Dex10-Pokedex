@@ -9,6 +9,7 @@ sealed class RequestStateDetail<out T> {
 sealed class RequestStateList<out T> {
     object Loading : RequestStateList<Nothing>()
     object LoadingFirebase : RequestStateList<Nothing>()
+    object LoadingPostProcess : RequestStateList<Nothing>()
     object Success: RequestStateList<Nothing>()
     data class Error(val exception: Throwable) : RequestStateList<Nothing>()
 }

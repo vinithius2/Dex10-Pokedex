@@ -34,7 +34,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.*
 import com.vinithius.dex10.R
 import com.vinithius.dex10.extension.LoadGifWithCoil
-import com.vinithius.dex10.ui.viewmodel.PokemonViewModel
+import com.vinithius.dex10.ui.viewmodel.PokemonViewModel
+import com.vinithius.dex10.ui.viewmodel.rememberPokemonViewModel
 import org.koin.androidx.compose.getViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -42,7 +43,7 @@ import org.koin.androidx.compose.getViewModel
 fun PokemonPickerSheet(
     onDismiss: () -> Unit,
     onPokemonSelected: (Int) -> Unit,
-    viewModel: PokemonViewModel = getViewModel()
+    viewModel: PokemonViewModel = rememberPokemonViewModel()
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var searchQuery by remember { mutableStateOf("") }

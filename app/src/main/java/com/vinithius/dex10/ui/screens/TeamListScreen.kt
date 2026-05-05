@@ -55,7 +55,8 @@ import com.vinithius.dex10.extension.LoadGifWithCoil
 import com.vinithius.dex10.ui.components.AppButton
 import com.vinithius.dex10.ui.components.ButtonVariant
 import com.vinithius.dex10.ui.components.UpsellBottomSheet
-import com.vinithius.dex10.ui.viewmodel.PokemonViewModel
+import com.vinithius.dex10.ui.viewmodel.PokemonViewModel
+import com.vinithius.dex10.ui.viewmodel.rememberPokemonViewModel
 import com.vinithius.dex10.ui.viewmodel.TeamViewModel
 import org.koin.androidx.compose.getViewModel
 
@@ -63,7 +64,7 @@ import org.koin.androidx.compose.getViewModel
 fun TeamListScreen(
     navController: NavController,
     teamViewModel: TeamViewModel = getViewModel(),
-    pokemonViewModel: PokemonViewModel = getViewModel() // Needed for LoadGifWithCoil extension usually
+    pokemonViewModel: PokemonViewModel = rememberPokemonViewModel() // Needed for LoadGifWithCoil extension usually
 ) {
     val teams by teamViewModel.teams.collectAsState()
     val showUpsell by teamViewModel.showUpsell.collectAsState()
