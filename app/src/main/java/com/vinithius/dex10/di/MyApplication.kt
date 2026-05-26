@@ -41,8 +41,9 @@ val appPreferencesModule = module {
     single { AppPreferences(androidContext()) }
 }
 
+// BillingHandler is provided by the flavor-specific billingModule (google/amazon/huawei)
 val premiumModule = module {
-    single { PremiumManager(androidContext()) }
+    single { PremiumManager(androidContext(), get()) }
 }
 
 val networkModule = module {
@@ -87,4 +88,3 @@ fun retrofit(baseUrl: String): Retrofit {
         .build()
 
 }
-
