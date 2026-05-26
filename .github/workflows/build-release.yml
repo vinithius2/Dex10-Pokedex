@@ -7,8 +7,12 @@ on:
 
 jobs:
   build:
-    name: Build Release (Google)
+    name: Build ${{ matrix.flavor }} Release
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        flavor: [google, amazon, huawei]
 
     steps:
       - name: Checkout
@@ -25,8 +29,7 @@ jobs:
         run: chmod +x ./gradlew
 
       - name: Create apikey.properties
-        run: |
-          echo 'WEBHOOK_KEY="${{ secrets.WEBHOOK_KEY }}"' > apikey.properties
+        run: echo 'WEBHOOK_KEY="${{ secrets.WEBHOOK_KEY }}"' > apikey.properties
 
       - name: Create google-services.json
         env:
@@ -46,15 +49,9 @@ jobs:
 
       - name: Build Release APK
         run: |
-          ./gradlew assembleGoogleRelease \
-            -Pandroid.injected.signing.store.file=${{ github.workspace }}/release.keystore \
-            -Pandroid.injected.signing.store.password=${{ secrets.KEYSTORE_PASSWORD }} \
-            -Pandroid.injected.signing.key.alias=${{ secrets.KEY_ALIAS }} \
-            -Pandroid.injected.signing.key.password=${{ secrets.KEY_PASSWORD }}
-
-      - name: Build Release Bundle (AAB)
-        run: |
-          ./gradlew bundleGoogleRelease \
+          FLAVOR="${{ matrix.flavor }}"
+          FLAVOR_CAP="${FLAVOR^}"
+          ./gradlew assemble${FLAVOR_CAP}Release \
             -Pandroid.injected.signing.store.file=${{ github.workspace }}/release.keystore \
             -Pandroid.injected.signing.store.password=${{ secrets.KEYSTORE_PASSWORD }} \
             -Pandroid.injected.signing.key.alias=${{ secrets.KEY_ALIAS }} \
@@ -63,12 +60,23 @@ jobs:
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: dex10-v${{ steps.version.outputs.name }}-google-release.apk
-          path: app/build/outputs/apk/google/release/*.apk
+          name: dex10-v${{ steps.version.outputs.name }}-${{ matrix.flavor }}-release.apk
+          path: app/build/outputs/apk/${{ matrix.flavor }}/release/*.apk
           if-no-files-found: error
           retention-days: 30
 
+      # AAB (Bundle) é exclusivo do Google Play
+      - name: Build Release Bundle (AAB)
+        if: matrix.flavor == 'google'
+        run: |
+          ./gradlew bundleGoogleRelease \
+            -Pandroid.injected.signing.store.file=${{ github.workspace }}/release.keystore \
+            -Pandroid.injected.signing.store.password=${{ secrets.KEYSTORE_PASSWORD }} \
+            -Pandroid.injected.signing.key.alias=${{ secrets.KEY_ALIAS }} \
+            -Pandroid.injected.signing.key.password=${{ secrets.KEY_PASSWORD }}
+
       - name: Upload Bundle (AAB) artifact
+        if: matrix.flavor == 'google'
         uses: actions/upload-artifact@v4
         with:
           name: dex10-v${{ steps.version.outputs.name }}-google-release.aab

@@ -11,6 +11,7 @@ dependencyResolutionManagement {
         gradlePluginPortal()
         google()
         mavenCentral()
+        maven { url 'https://developer.huawei.com/repo/' }
     }
 }
 rootProject.name = "Dex10"
