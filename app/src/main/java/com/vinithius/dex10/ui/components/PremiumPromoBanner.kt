@@ -1,5 +1,6 @@
 package com.vinithius.dex10.ui.components
 
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
@@ -13,6 +14,11 @@ import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -46,6 +52,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shadow
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -136,10 +143,19 @@ fun PremiumPromoBannerContent(
     // Pulse is disabled in collapsed state so the crown stays still
     val effectiveCrownScale = if (isExpanded) leadingIconScale else 1f
 
+    // Adaptive horizontal padding: more padding on wider screens to avoid the banner
+    // stretching too wide and looking like a thin strip on tablets/large screens.
+    val screenWidthDp = LocalConfiguration.current.screenWidthDp
+    val horizontalPadding = when {
+        screenWidthDp >= 840 -> 96.dp   // large tablet
+        screenWidthDp >= 600 -> 48.dp   // tablet / foldable
+        else                 -> 12.dp   // phone
+    }
+
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 12.dp, vertical = 6.dp)
+            .padding(horizontal = horizontalPadding, vertical = 6.dp)
             .clip(RoundedCornerShape(18.dp))
             .background(
                 Brush.horizontalGradient(
@@ -214,30 +230,40 @@ fun PremiumPromoBannerContent(
 
             Spacer(modifier = Modifier.width(10.dp))
 
-            if (!isExpanded && showBadge) {
-                // Collapsed: badge sits beside the button in a row
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(4.dp)
-                ) {
-                    BannerDiscountBadge(discountPercent = discountPercent!!)
-                    BannerBuyButton(
-                        onClick = onUpgradeClick,
-                        height = buttonHeight
-                    )
-                }
-            } else {
-                // Expanded: badge overlays the centre of the button
-                Box {
-                    BannerBuyButton(
-                        onClick = onUpgradeClick,
-                        height = buttonHeight
-                    )
-                    if (showBadge) {
-                        BannerDiscountBadge(
-                            discountPercent = discountPercent!!,
-                            modifier = Modifier.align(Alignment.CenterEnd)
-                        )
+            AnimatedContent(
+                targetState = isExpanded,
+                transitionSpec = {
+                    if (targetState) {
+                        // Expanding: badge slides down from above into column position
+                        (fadeIn(tween(250)) + slideInVertically(tween(320)) { -it }) togetherWith
+                        (fadeOut(tween(180)) + slideOutHorizontally(tween(280)) { -it })
+                    } else {
+                        // Collapsing: badge slides in from above into row position beside button
+                        (fadeIn(tween(250)) + slideInHorizontally(tween(320)) { -it }) togetherWith
+                        (fadeOut(tween(180)) + slideOutVertically(tween(280)) { -it })
+                    }
+                },
+                label = "badge_layout"
+            ) { expanded ->
+                if (expanded) {
+                    // Expanded: badge above button, no overlap
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        if (showBadge) {
+                            BannerDiscountBadge(discountPercent = discountPercent!!)
+                            Spacer(modifier = Modifier.height(4.dp))
+                        }
+                        BannerBuyButton(onClick = onUpgradeClick, height = buttonHeight)
+                    }
+                } else {
+                    // Collapsed: badge to the left of button
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        if (showBadge) {
+                            BannerDiscountBadge(discountPercent = discountPercent!!)
+                        }
+                        BannerBuyButton(onClick = onUpgradeClick, height = buttonHeight)
                     }
                 }
             }
