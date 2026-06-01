@@ -141,6 +141,7 @@ class PremiumManager(
         _isPremium.value = isPremium
 
         // Keep FCM topics and Analytics user property in sync with premium status.
+        // This enables targeting push notifications and in-app messages by tier.
         appPreferences?.updateFcmTopics(isPremium)
         com.google.firebase.analytics.FirebaseAnalytics.getInstance(context)
             .setUserProperty("subscription_tier", if (isPremium) "premium" else "free")
@@ -167,7 +168,6 @@ class PremiumManager(
         _premiumPrice.value = null
         _premiumOriginalPrice.value = null
         _discountPercent.value = null
-        // Re-trigger price load via BillingHandler
         billingHandler.queryExistingPurchases()
         Log.d(TAG, "Debug pricing cleared")
     }

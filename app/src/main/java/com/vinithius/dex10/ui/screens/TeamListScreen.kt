@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.graphics.Brush
@@ -55,7 +56,7 @@ import com.vinithius.dex10.extension.LoadGifWithCoil
 import com.vinithius.dex10.ui.components.AppButton
 import com.vinithius.dex10.ui.components.ButtonVariant
 import com.vinithius.dex10.ui.components.UpsellBottomSheet
-import com.vinithius.dex10.ui.viewmodel.PokemonViewModel
+import com.vinithius.dex10.ui.viewmodel.PokemonViewModel
 import com.vinithius.dex10.ui.viewmodel.rememberPokemonViewModel
 import com.vinithius.dex10.ui.viewmodel.TeamViewModel
 import org.koin.androidx.compose.getViewModel
@@ -149,20 +150,24 @@ fun TeamListScreen(
             }
         }
     ) { paddingValues ->
-        Box(modifier = Modifier
-            .padding(paddingValues)
-            .fillMaxSize()) {
+        val listState = rememberLazyListState()
+        Column(
+            modifier = Modifier
+                .padding(paddingValues)
+                .fillMaxSize()
+        ) {
+            if (!isPremium) {
+                com.vinithius.dex10.ui.components.PremiumPromoBanner(
+                    onUpgradeClick = { teamViewModel.triggerUpsell() },
+                    lazyListState = listState
+                )
+            }
             LazyColumn(
+                state = listState,
                 contentPadding = PaddingValues(top = 0.dp, start = 0.dp, end = 0.dp, bottom = 16.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+                modifier = Modifier.weight(1f)
             ) {
-                if (!isPremium) {
-                    item {
-                        com.vinithius.dex10.ui.components.PremiumPromoBanner(
-                            onUpgradeClick = { teamViewModel.triggerUpsell() }
-                        )
-                    }
-                }
                 if (teams.isEmpty()) {
                     item {
                         Box(
