@@ -350,28 +350,45 @@ private fun ActionSection(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         if (premiumOriginalPrice != null && discountPercent != null) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(bottom = 8.dp)
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 16.dp)
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.06f))
+                    .border(
+                        1.dp,
+                        MaterialTheme.colorScheme.primary.copy(alpha = 0.15f),
+                        RoundedCornerShape(16.dp)
+                    )
+                    .padding(horizontal = 20.dp, vertical = 16.dp)
             ) {
-                Text(
-                    text = premiumOriginalPrice,
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
-                    textDecoration = TextDecoration.LineThrough,
-                    fontWeight = FontWeight.Bold
-                )
-                Spacer(modifier = Modifier.width(8.dp))
+                Column {
+                    Text(
+                        text = premiumOriginalPrice,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.55f),
+                        textDecoration = TextDecoration.LineThrough
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = premiumPrice ?: "---",
+                        style = MaterialTheme.typography.headlineSmall,
+                        fontWeight = FontWeight.ExtraBold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                }
                 Box(
                     modifier = Modifier
-                        .clip(RoundedCornerShape(8.dp))
-                        .background(MaterialTheme.colorScheme.tertiary)
-                        .padding(horizontal = 8.dp, vertical = 2.dp)
+                        .align(Alignment.TopEnd)
+                        .clip(RoundedCornerShape(10.dp))
+                        .background(Color(0xFFE53935))
+                        .padding(horizontal = 12.dp, vertical = 6.dp)
                 ) {
                     Text(
                         text = "-$discountPercent%",
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.onTertiary,
+                        style = MaterialTheme.typography.titleSmall,
+                        color = Color.White,
                         fontWeight = FontWeight.ExtraBold
                     )
                 }
@@ -412,6 +429,5 @@ private fun ActionSection(
         )
 
         Spacer(modifier = Modifier.height(16.dp))
-
     }
 }
