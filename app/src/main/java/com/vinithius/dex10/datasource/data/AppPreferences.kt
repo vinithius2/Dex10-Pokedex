@@ -19,7 +19,12 @@ class AppPreferences(context: Context) {
         private const val KEY_DARK_MODE = "dark_mode"
         private const val KEY_NOTIFICATIONS = "notifications_enabled"
         private const val KEY_LOW_QUALITY = "low_quality_images"
-        private const val FCM_TOPIC = "general"
+
+        // FCM topics — send to all three from Firebase Console to reach everyone,
+        // or target individually to reach only premium / only free users.
+        const val TOPIC_ALL     = "general"          // all users with notifications on
+        const val TOPIC_PREMIUM = "general_premium"  // paying users only
+        const val TOPIC_FREE    = "general_free"     // non-paying users only
 
         // Dark mode values
         const val DARK_MODE_SYSTEM = 0
@@ -52,18 +57,46 @@ class AppPreferences(context: Context) {
     private val _notificationsEnabled = MutableStateFlow(prefs.getBoolean(KEY_NOTIFICATIONS, true))
     val notificationsEnabled: StateFlow<Boolean> = _notificationsEnabled.asStateFlow()
 
+    // In-memory cache of the last known premium status, used when notifications
+    // are re-enabled so the correct topic pair is restored without needing a
+    // round-trip to PremiumManager.
+    private var cachedIsPremium: Boolean = false
+
     fun setNotificationsEnabled(value: Boolean) {
         prefs.edit().putBoolean(KEY_NOTIFICATIONS, value).apply()
         _notificationsEnabled.value = value
-        // Subscribe/unsubscribe from FCM topic
         val messaging = FirebaseMessaging.getInstance()
         if (value) {
-            messaging.subscribeToTopic(FCM_TOPIC)
-                .addOnCompleteListener { Log.d("AppPreferences", "Subscribed to $FCM_TOPIC") }
+            // Re-subscribe using the last known premium status
+            updateFcmTopics(cachedIsPremium)
         } else {
-            messaging.unsubscribeFromTopic(FCM_TOPIC)
-                .addOnCompleteListener { Log.d("AppPreferences", "Unsubscribed from $FCM_TOPIC") }
+            // Unsubscribe from every topic
+            listOf(TOPIC_ALL, TOPIC_PREMIUM, TOPIC_FREE).forEach {
+                messaging.unsubscribeFromTopic(it)
+            }
+            Log.d("AppPreferences", "FCM: unsubscribed from all topics")
         }
+    }
+
+    /**
+     * Called by PremiumManager whenever the premium status changes.
+     * Subscribes the user to the right pair of topics:
+     *   - TOPIC_ALL always (so you can reach everyone with one send)
+     *   - TOPIC_PREMIUM or TOPIC_FREE depending on [isPremium]
+     */
+    fun updateFcmTopics(isPremium: Boolean) {
+        cachedIsPremium = isPremium
+        if (!_notificationsEnabled.value) return
+        val messaging = FirebaseMessaging.getInstance()
+        messaging.subscribeToTopic(TOPIC_ALL)
+        if (isPremium) {
+            messaging.subscribeToTopic(TOPIC_PREMIUM)
+            messaging.unsubscribeFromTopic(TOPIC_FREE)
+        } else {
+            messaging.subscribeToTopic(TOPIC_FREE)
+            messaging.unsubscribeFromTopic(TOPIC_PREMIUM)
+        }
+        Log.d("AppPreferences", "FCM topics → $TOPIC_ALL + ${if (isPremium) TOPIC_PREMIUM else TOPIC_FREE}")
     }
 
     // --- Image Quality ---

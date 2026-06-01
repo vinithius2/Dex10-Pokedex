@@ -23,7 +23,8 @@ import kotlinx.coroutines.launch
  */
 class PremiumManager(
     private val context: Context,
-    injectedPrefs: android.content.SharedPreferences? = null
+    injectedPrefs: android.content.SharedPreferences? = null,
+    private val appPreferences: AppPreferences? = null,
 ) : PurchasesUpdatedListener {
 
     companion object {
@@ -358,6 +359,12 @@ class PremiumManager(
         }
         encryptedPrefs.edit().putBoolean(KEY_IS_PREMIUM, isPremium).apply()
         _isPremium.value = isPremium
+
+        // Keep FCM topics and Analytics user property in sync with premium status.
+        // This enables targeting push notifications and in-app messages by tier.
+        appPreferences?.updateFcmTopics(isPremium)
+        com.google.firebase.analytics.FirebaseAnalytics.getInstance(context)
+            .setUserProperty("subscription_tier", if (isPremium) "premium" else "free")
     }
 
     private fun formatMicrosAsCurrency(micros: Long, currencyCode: String): String {
