@@ -12,7 +12,8 @@ import kotlinx.coroutines.flow.asStateFlow
 class PremiumManager(
     private val context: Context,
     private val billingHandler: BillingHandler,
-    injectedPrefs: android.content.SharedPreferences? = null
+    injectedPrefs: android.content.SharedPreferences? = null,
+    private val appPreferences: AppPreferences? = null,
 ) : BillingListener {
 
     companion object {
@@ -138,6 +139,11 @@ class PremiumManager(
         }
         encryptedPrefs.edit().putBoolean(KEY_IS_PREMIUM, isPremium).apply()
         _isPremium.value = isPremium
+
+        // Keep FCM topics and Analytics user property in sync with premium status.
+        appPreferences?.updateFcmTopics(isPremium)
+        com.google.firebase.analytics.FirebaseAnalytics.getInstance(context)
+            .setUserProperty("subscription_tier", if (isPremium) "premium" else "free")
     }
 
     fun setDebugPremiumStatus(isPremium: Boolean) {
@@ -146,6 +152,24 @@ class PremiumManager(
         _isPremium.value = isPremium
         encryptedPrefs.edit().putBoolean(KEY_DEBUG_PREMIUM, isPremium).apply()
         Log.d(TAG, "Debug override set to: $isPremium")
+    }
+
+    fun setDebugPricing(price: String, originalPrice: String, discountPercent: Int) {
+        if (!com.vinithius.dex10.BuildConfig.DEBUG) return
+        _premiumPrice.value = price
+        _premiumOriginalPrice.value = originalPrice
+        _discountPercent.value = discountPercent
+        Log.d(TAG, "Debug pricing: $price (was $originalPrice, -$discountPercent%)")
+    }
+
+    fun clearDebugPricing() {
+        if (!com.vinithius.dex10.BuildConfig.DEBUG) return
+        _premiumPrice.value = null
+        _premiumOriginalPrice.value = null
+        _discountPercent.value = null
+        // Re-trigger price load via BillingHandler
+        billingHandler.queryExistingPurchases()
+        Log.d(TAG, "Debug pricing cleared")
     }
 
     fun clearDebugPremiumStatus() {

@@ -43,7 +43,7 @@ val appPreferencesModule = module {
 
 // BillingHandler is provided by the flavor-specific billingModule (google/amazon/huawei)
 val premiumModule = module {
-    single { PremiumManager(androidContext(), get()) }
+    single { PremiumManager(androidContext(), get(), appPreferences = get()) }
 }
 
 val networkModule = module {
