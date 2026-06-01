@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.graphics.Brush
@@ -56,6 +57,7 @@ import com.vinithius.dex10.ui.components.AppButton
 import com.vinithius.dex10.ui.components.ButtonVariant
 import com.vinithius.dex10.ui.components.UpsellBottomSheet
 import com.vinithius.dex10.ui.viewmodel.PokemonViewModel
+import com.vinithius.dex10.ui.viewmodel.rememberPokemonViewModel
 import com.vinithius.dex10.ui.viewmodel.TeamViewModel
 import org.koin.androidx.compose.getViewModel
 
@@ -63,7 +65,7 @@ import org.koin.androidx.compose.getViewModel
 fun TeamListScreen(
     navController: NavController,
     teamViewModel: TeamViewModel = getViewModel(),
-    pokemonViewModel: PokemonViewModel = getViewModel() // Needed for LoadGifWithCoil extension usually
+    pokemonViewModel: PokemonViewModel = rememberPokemonViewModel() // Needed for LoadGifWithCoil extension usually
 ) {
     val teams by teamViewModel.teams.collectAsState()
     val showUpsell by teamViewModel.showUpsell.collectAsState()
@@ -148,28 +150,47 @@ fun TeamListScreen(
             }
         }
     ) { paddingValues ->
-        Box(modifier = Modifier
-            .padding(paddingValues)
-            .fillMaxSize()) {
-            if (teams.isEmpty()) {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text(
-                        text = stringResource(R.string.no_teams_yet),
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            } else {
-                LazyColumn(
-                    contentPadding = PaddingValues(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
+        val listState = rememberLazyListState()
+        Column(
+            modifier = Modifier
+                .padding(paddingValues)
+                .fillMaxSize()
+        ) {
+            if (!isPremium) {
+                com.vinithius.dex10.ui.components.PremiumPromoBanner(
+                    onUpgradeClick = { teamViewModel.triggerUpsell() },
+                    lazyListState = listState
+                )
+            }
+            LazyColumn(
+                state = listState,
+                contentPadding = PaddingValues(top = 0.dp, start = 0.dp, end = 0.dp, bottom = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+                modifier = Modifier.weight(1f)
+            ) {
+                if (teams.isEmpty()) {
+                    item {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 64.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = stringResource(R.string.no_teams_yet),
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                } else {
                     items(items = teams, key = { it.team.id }) { team ->
                         TeamItem(
                             team = team,
                             onClick = { navController.navigate("teamDetail/${team.team.id}") },
                             onDelete = { teamToDelete = team.team },
-                            pokemonViewModel = pokemonViewModel
+                            pokemonViewModel = pokemonViewModel,
+                            modifier = Modifier.padding(horizontal = 16.dp)
                         )
                     }
                 }
@@ -184,13 +205,14 @@ fun TeamItem(
     team: TeamWithMembers,
     onClick: () -> Unit,
     onDelete: (TeamEntity) -> Unit,
-    pokemonViewModel: PokemonViewModel
+    pokemonViewModel: PokemonViewModel,
+    modifier: Modifier = Modifier
 ) {
     val dateFormat = remember { SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault()) }
     val dateString = dateFormat.format(Date(team.team.createdAt))
 
     Card(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .clickable(onClick = onClick),
         elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),

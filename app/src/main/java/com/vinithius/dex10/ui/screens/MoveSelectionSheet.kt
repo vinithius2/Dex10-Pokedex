@@ -21,10 +21,12 @@ import com.vinithius.dex10.components.TypeItem
 import com.vinithius.dex10.datasource.response.MoveDetailsResponse
 import com.vinithius.dex10.datasource.response.MoveResponse
 import com.vinithius.dex10.ui.components.MoveCategoryIcon
-import com.vinithius.dex10.ui.viewmodel.PokemonViewModel
-import kotlinx.coroutines.Dispatchers
+import com.vinithius.dex10.ui.viewmodel.PokemonViewModel
+import com.vinithius.dex10.ui.viewmodel.rememberPokemonViewModel
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import org.koin.androidx.compose.getViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -33,7 +35,7 @@ fun MoveSelectionSheet(
     pokemonId: Int,
     onMoveSelected: (String) -> Unit,
     onDismiss: () -> Unit,
-    viewModel: PokemonViewModel = getViewModel()
+    viewModel: PokemonViewModel = rememberPokemonViewModel()
 ) {
     val sheetState = rememberModalBottomSheetState()
     var moves by remember { mutableStateOf<List<MoveResponse>?>(null) }
@@ -50,23 +52,21 @@ fun MoveSelectionSheet(
         isLoading = true
         moves = viewModel.getMovesForPokemon(pokemonId)
         isLoading = false
-        
-        // Fetch details for all moves in background
-         moves?.let { moveList ->
-            scope.launch {
-                val details = mutableMapOf<String, MoveDetailsResponse>()
-                moveList.forEach { moveEntry ->
-                    val moveName = moveEntry.move.name ?: return@forEach
-                    try {
-                        // Fetch move details - will need to add this function to viewModel
-                        viewModel.getMoveDetails(moveName)?.let { detail ->
-                            details[moveName] = detail
-                        }
-                    } catch (e: Exception) {
-                        android.util.Log.e("MoveSelection", "Error fetching details for $moveName", e)
+
+        val names = moves?.mapNotNull { it.move.name } ?: return@LaunchedEffect
+        scope.launch {
+            val accumulated = mutableMapOf<String, MoveDetailsResponse>()
+            coroutineScope {
+                names.chunked(20).forEach { batch ->
+                    batch.map { moveName ->
+                        async { moveName to viewModel.getMoveDetails(moveName) }
+                    }.awaitAll().forEach { (name, detail) ->
+                        if (detail != null) accumulated[name] = detail
                     }
+                    // Update UI after each batch — cached moves appear instantly,
+                    // uncached ones fill in progressively as API responds.
+                    moveDetails = accumulated.toMap()
                 }
-                moveDetails = details
             }
         }
     }

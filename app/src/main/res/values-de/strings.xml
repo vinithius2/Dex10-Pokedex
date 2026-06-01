@@ -7,9 +7,7 @@
     <string name="pikachu">Pikachu</string>
     <string name="unknown">Unbekannt</string>
     <string name="capture_rate">Fangrate:</string>
-    <string name="shape">Form:</string>
     <string name="base_exp">Basis-EP:</string>
-    <string name="generation">Generation:</string>
     <string name="ico_mythical">Mysteriöses Icon</string>
     <string name="is_a_baby">ES IST EIN BABY!</string>
     <string name="ico_left">Linkes Icon</string>
@@ -64,6 +62,7 @@
     <string name="try_again">Nochmal versuchen</string>
     <string name="empty_list">Leere Liste</string>
     <string name="dont_close_app">Bitte schließe die App nicht und versuche nicht einzuschlafen, okay?</string>
+    <string name="loading_finalizing">Daten werden finalisiert…</string>
     <string name="back">Zurück</string>
     <string name="from">Von:</string>
     <string name="to">Bis:</string>
@@ -113,6 +112,13 @@
     <string name="ability">Fähigkeit</string>
     <string name="color">Farbe</string>
     <string name="habitat">Habitat</string>
+    <string name="generation">Region</string>
+    <string name="category">Kategorie</string>
+    <string name="shape">Form</string>
+    <string name="growth_rate">Wachstumsrate</string>
+    <string name="egg_group">Ei-Gruppe</string>
+    <string name="base_total">Basiswert</string>
+    <string name="apply_filter">Anwenden</string>
     <string name="hp">KP</string>
     <string name="attack">Angriff</string>
     <string name="defense">Verteidigung</string>
@@ -332,4 +338,11 @@
     <string name="got_it">Verstanden</string>
     <string name="my_teams">Team-Ersteller</string>
     <string name="team_details">Team-Details</string>
+    <string name="promo_banner_title">⭐ Alles freischalten — einmaliger Kauf</string>
+    <string name="promo_banner_subtitle">Keine Werbung · Unbegrenzte TCG-Karten · Alle Funktionen · Einmal zahlen, für immer nutzen</string>
+    <string name="promo_banner_cta">Einmalig kaufen</string>
+    <string name="tcg_unlock_label">Alle Karten ansehen</string>
+    <string name="feature_tcg_cards">TCG-Karten</string>
+    <string name="val_trainer_tcg_cards">Erste 3</string>
+    <string name="val_master_tcg_cards">Alle</string>
 </resources>

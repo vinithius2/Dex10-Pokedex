@@ -7,9 +7,7 @@
     <string name="pikachu">ピカチュウ</string>
     <string name="unknown">不明</string>
     <string name="capture_rate">捕捉率:</string>
-    <string name="shape">形:</string>
     <string name="base_exp">基礎経験値:</string>
-    <string name="generation">世代:</string>
     <string name="ico_mythical">幻のアイコン</string>
     <string name="is_a_baby">ベイビィポケモンです！</string>
     <string name="ico_left">左アイコン</string>
@@ -64,6 +62,7 @@
     <string name="try_again">やり直す</string>
     <string name="empty_list">リストが空です</string>
     <string name="dont_close_app">アプリを閉じないでください。寝落ちしないように気をつけて！</string>
+    <string name="loading_finalizing">データを仕上げています…</string>
     <string name="back">戻る</string>
     <string name="from">から:</string>
     <string name="to">まで:</string>
@@ -113,6 +112,13 @@
     <string name="ability">特性</string>
     <string name="color">色</string>
     <string name="habitat">生息地</string>
+    <string name="generation">地域</string>
+    <string name="category">カテゴリ</string>
+    <string name="shape">形状</string>
+    <string name="growth_rate">成長率</string>
+    <string name="egg_group">タマゴグループ</string>
+    <string name="base_total">種族値合計</string>
+    <string name="apply_filter">適用</string>
     <string name="hp">ＨＰ</string>
     <string name="attack">こうげき</string>
     <string name="defense">ぼうぎょ</string>
@@ -332,4 +338,11 @@
     <string name="got_it">わかった</string>
     <string name="my_teams">チームビルダー</string>
     <string name="team_details">チーム詳細</string>
+    <string name="promo_banner_title">⭐ すべてを解放 — 買い切り</string>
+    <string name="promo_banner_subtitle">広告なし · TCGカード無制限 · 全機能 · 一度の購入で永久利用</string>
+    <string name="promo_banner_cta">買い切り購入</string>
+    <string name="tcg_unlock_label">全てのカードを見る</string>
+    <string name="feature_tcg_cards">TCGカード</string>
+    <string name="val_trainer_tcg_cards">最初の3枚</string>
+    <string name="val_master_tcg_cards">全て</string>
 </resources>

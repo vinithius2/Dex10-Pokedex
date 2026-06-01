@@ -41,6 +41,7 @@ import androidx.compose.material.Card
 import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
@@ -92,10 +93,12 @@ import com.vinithius.dex10.admobbanners.createNativeAdViewForTablet
 import com.vinithius.dex10.components.AdRequirementDialog
 import com.vinithius.dex10.components.EmptyListStatus
 import com.vinithius.dex10.components.ErrorStatus
+import com.vinithius.dex10.components.LoadingFinalizing
 import com.vinithius.dex10.components.LoadingPokemonList
 import com.vinithius.dex10.components.LoadingProgress
 import com.vinithius.dex10.components.PokeballComponent
 import com.vinithius.dex10.components.TopAlertBanner
+import com.vinithius.dex10.ui.components.PremiumPromoBanner
 import com.vinithius.dex10.components.TypeListDataBase
 import com.vinithius.dex10.datasource.database.Ability
 import com.vinithius.dex10.datasource.database.PokemonEntity
@@ -110,6 +113,7 @@ import com.vinithius.dex10.extension.getStringStat
 import com.vinithius.dex10.extension.getWindowColumns
 import com.vinithius.dex10.ui.MainActivity
 import com.vinithius.dex10.ui.viewmodel.PokemonViewModel
+import com.vinithius.dex10.ui.viewmodel.rememberPokemonViewModel
 import com.vinithius.dex10.ui.viewmodel.RequestStateList
 import org.koin.androidx.compose.getViewModel
 import androidx.compose.foundation.lazy.itemsIndexed as listItemsIndexed
@@ -123,6 +127,7 @@ const val URL_IMAGE = "https://raw.githubusercontent.com/PokeAPI/sprites/master/
 private fun StateRequest(
     viewModel: PokemonViewModel,
     loadingFirebase: @Composable () -> Unit,
+    loadingPostProcess: @Composable () -> Unit,
     loading: @Composable () -> Unit,
     success: @Composable () -> Unit,
     error: @Composable () -> Unit,
@@ -131,6 +136,10 @@ private fun StateRequest(
     when (requestState) {
         is RequestStateList.LoadingFirebase -> {
             loadingFirebase.invoke()
+        }
+
+        is RequestStateList.LoadingPostProcess -> {
+            loadingPostProcess.invoke()
         }
 
         is RequestStateList.Loading -> {
@@ -166,7 +175,7 @@ private fun getActivity(): MainActivity? {
 fun SharedTransitionScope.PokemonListScreen(
     navController: NavController,
     animatedVisibilityScope: AnimatedVisibilityScope,
-    viewModel: PokemonViewModel = getViewModel()
+    viewModel: PokemonViewModel = rememberPokemonViewModel()
 ) {
     val activity = getActivity()
     val context = LocalContext.current
@@ -203,15 +212,22 @@ fun SharedTransitionScope.PokemonListScreen(
     val itemRangeForAdsTablet by viewModel.itemRangeForAdsTablet.observeAsState(22)
     val amountOfAds by viewModel.amountOfAds.observeAsState(12)
 
+    DisposableEffect(Unit) {
+        onDispose {
+            preloadedAds.forEach { it?.destroy() }
+            preloadedAds.clear()
+        }
+    }
+
     LaunchedEffect(adUnitId, isPremium) {
         if (isPremium) return@LaunchedEffect
         if (adUnitId.isBlank()) return@LaunchedEffect
-        repeat(amountOfAds) {
-            val loader = AdLoader.Builder(context, adUnitId)
-                .forNativeAd { ad -> preloadedAds.add(ad) }
-                .build()
-            loader.loadAd(AdRequest.Builder().build())
-        }
+        val remaining = amountOfAds - preloadedAds.size
+        if (remaining <= 0) return@LaunchedEffect
+        AdLoader.Builder(context, adUnitId)
+            .forNativeAd { ad -> preloadedAds.add(ad) }
+            .build()
+            .loadAds(AdRequest.Builder().build(), remaining)
     }
 
     if (showDialogCopyright) {
@@ -295,6 +311,9 @@ fun SharedTransitionScope.PokemonListScreen(
                 val progress by viewModel.loadingPercent.observeAsState(0f)
                 LoadingProgress(progress)
             },
+            loadingPostProcess = {
+                LoadingFinalizing()
+            },
             loading = {
                 LoadingPokemonList(effectiveColumns)
             },
@@ -307,6 +326,13 @@ fun SharedTransitionScope.PokemonListScreen(
                         getFilterBarData(it, viewModel, context)
                     }
                 )
+
+                if (!isPremium) {
+                    PremiumPromoBanner(
+                        onUpgradeClick = { viewModel.premiumManager.triggerUpsell() },
+                        lazyListState = listState
+                    )
+                }
 
                 if (pokemonItems.isNotEmpty()) {
                     var isVisible by remember { mutableStateOf(true) }
@@ -457,7 +483,7 @@ private fun SharedTransitionScope.AnimatedItem(
             },
             onClickFavorite = { pokemonFavorite ->
                 activity?.trackButtonClick("Click favorite item list: ${pokemonFavorite.pokemon.name}")
-                viewModel.setFavorite(pokemonFavorite.pokemon.id)
+                viewModel.setFavorite(pokemonFavorite.pokemon.id, context)
             },
             isPremium = isPremium,
             isGrid = isGrid
@@ -559,58 +585,17 @@ fun SharedTransitionScope.PokemonListItem(
     isPremium: Boolean,
     isGrid: Boolean = false
 ) {
-    val context = LocalContext.current
-    val sharedPreferences = context.getSharedPreferences("pokemon_prefs", Context.MODE_PRIVATE)
-    var dontShowAgain by remember { mutableStateOf(false) }
-    dontShowAgain = sharedPreferences.getBoolean("dont_show_again", false)
-    var showDialog by remember { mutableStateOf(false) }
-
-    if (showDialog) {
-        AdRequirementDialog(
-            onDismiss = { showDialog = false },
-            onConfirm = {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(8.dp)
+            .clickable {
                 clickAndGoToDetails(
                     viewModel,
                     pokemonData,
                     choiceOfTheDayStatus,
                     onClickDetail,
                 )
-            },
-            dontShowAgain = dontShowAgain,
-            onDontShowAgainChanged = {
-                with(sharedPreferences.edit()) {
-                    putBoolean("dont_show_again", it)
-                    apply()
-                }
-                dontShowAgain = it
-            },
-            onDismissButton = {
-                with(sharedPreferences.edit()) {
-                    putBoolean("dont_show_again", false)
-                    apply()
-                }
-                dontShowAgain = false
-                showDialog = false
-            },
-            dismissButtonText = stringResource(R.string.cancel),
-        )
-    }
-
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(8.dp)
-            .clickable {
-                if (choiceOfTheDayStatus && !isPremium && dontShowAgain.not()) {
-                    showDialog = true
-                } else {
-                    clickAndGoToDetails(
-                        viewModel,
-                        pokemonData,
-                        choiceOfTheDayStatus,
-                        onClickDetail,
-                    )
-                }
             },
         elevation = 5.dp,
         shape = RoundedCornerShape(16.dp)
@@ -930,7 +915,7 @@ fun StatComponent(
     val context = LocalContext.current
     Row(
         modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.Center,
+        horizontalArrangement = if (isGrid) Arrangement.Center else Arrangement.Start,
         verticalAlignment = Alignment.CenterVertically
     ) {
         pokemonData.stats.take(3).forEachIndexed { index, stat ->

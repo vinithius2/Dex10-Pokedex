@@ -7,9 +7,7 @@
     <string name="pikachu">Pikachu</string>
     <string name="unknown">Desconhecido</string>
     <string name="capture_rate">Taxa de captura:</string>
-    <string name="shape">Forma:</string>
     <string name="base_exp">Exp. Base:</string>
-    <string name="generation">Geração:</string>
     <string name="ico_mythical">Ícone mítico</string>
     <string name="is_a_baby">É UM BEBÊ!</string>
     <string name="ico_left">Ícone à esquerda</string>
@@ -64,6 +62,7 @@
     <string name="try_again">Tente novamente</string>
     <string name="empty_list">Lista vazia</string>
     <string name="dont_close_app">Por favor, não feche o app e tente não adormecer, ok?</string>
+    <string name="loading_finalizing">Finalizando dados…</string>
     <string name="back">Voltar</string>
     <string name="from">De:</string>
     <string name="to">Para:</string>
@@ -117,6 +116,13 @@
     <string name="ability">Habilidade</string>
     <string name="color">Cor</string>
     <string name="habitat">Habitat</string>
+    <string name="generation">Região</string>
+    <string name="category">Categoria</string>
+    <string name="shape">Forma</string>
+    <string name="growth_rate">Taxa de Crescimento</string>
+    <string name="egg_group">Grupo de Ovo</string>
+    <string name="base_total">Total Base</string>
+    <string name="apply_filter">Aplicar</string>
     <string name="view_mode">Modo de Visualização</string>
     <string name="view_list">Lista</string>
     <string name="view_auto">Automático</string>
@@ -344,4 +350,11 @@
     <string name="got_it">Entendi</string>
     <string name="my_teams">Criador de Times</string>
     <string name="team_details">Detalhes do Time</string>
+    <string name="promo_banner_title">⭐ Desbloqueie tudo — pagamento único</string>
+    <string name="promo_banner_subtitle">Sem anúncios · Cartas TCG ilimitadas · Todas as funções · Pague uma vez, tenha para sempre</string>
+    <string name="promo_banner_cta">Compra única</string>
+    <string name="tcg_unlock_label">Ver todas as cartas</string>
+    <string name="feature_tcg_cards">Cartas TCG</string>
+    <string name="val_trainer_tcg_cards">Primeiras 3</string>
+    <string name="val_master_tcg_cards">Todas</string>
 </resources>

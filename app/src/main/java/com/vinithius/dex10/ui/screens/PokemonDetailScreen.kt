@@ -50,6 +50,9 @@ import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -132,7 +135,8 @@ import com.vinithius.dex10.extension.getWindowColumns
 import com.vinithius.dex10.extension.translateIfSupported
 import com.vinithius.dex10.ui.MainActivity
 import com.vinithius.dex10.ui.theme.text
-import com.vinithius.dex10.ui.viewmodel.PokemonViewModel
+import com.vinithius.dex10.ui.viewmodel.PokemonViewModel
+import com.vinithius.dex10.ui.viewmodel.rememberPokemonViewModel
 import com.vinithius.dex10.ui.viewmodel.RequestStateDetail
 import ir.ehsannarmani.compose_charts.RowChart
 import ir.ehsannarmani.compose_charts.models.BarProperties
@@ -214,7 +218,7 @@ fun SharedTransitionScope.PokemonDetailScreen(
     navController: NavController?,
     pokemonId: Int,
     animatedVisibilityScope: AnimatedVisibilityScope?,
-    viewModel: PokemonViewModel = getViewModel()
+    viewModel: PokemonViewModel = rememberPokemonViewModel()
 ) {
     // Observes
     val id by viewModel.idPokemon.observeAsState()
@@ -312,7 +316,7 @@ fun SharedTransitionScope.MainCard(
     pokemonDetail: Pokemon?,
     color: String,
     painter: AsyncImagePainter? = null,
-    viewModel: PokemonViewModel = getViewModel()
+    viewModel: PokemonViewModel = rememberPokemonViewModel()
 ) {
     val context = LocalContext.current
     val isPremium by viewModel.premiumManager.isPremium.collectAsState(initial = false)
@@ -495,7 +499,12 @@ fun SharedTransitionScope.MainCard(
         }
         Spacer(modifier = Modifier.size(5.dp))
         PokemonArts(viewModel, pokemonDetail)
-        PokemonTcgSection(pokemonDetail, color.getColorByString(isSystemInDarkTheme()))
+        PokemonTcgSection(
+            pokemonDetail = pokemonDetail,
+            color = color.getColorByString(isSystemInDarkTheme()),
+            isPremium = isPremium,
+            onPremiumRequired = { viewModel.premiumManager.triggerUpsell() }
+        )
         PokemonChart(viewModel, color, pokemonDetail)
         PokemonIsABaby()
 
@@ -531,6 +540,9 @@ fun SharedTransitionScope.MainCard(
                 adUnitIdProd = adUnitIdAdAdvancedNative,
                 isTablet = false,
             )
+            com.vinithius.dex10.ui.components.PremiumPromoBanner(
+                onUpgradeClick = { viewModel.premiumManager.triggerUpsell() }
+            )
         }
 
         // Tabs
@@ -551,7 +563,7 @@ fun SharedTransitionScope.MainCardLargeScreen(
     color: String,
     painter: AsyncImagePainter? = null,
     columns: Int = 1,
-    viewModel: PokemonViewModel = getViewModel()
+    viewModel: PokemonViewModel = rememberPokemonViewModel()
 ) {
     val context = LocalContext.current
     val isPremium by viewModel.premiumManager.isPremium.collectAsState(initial = false)
@@ -748,7 +760,12 @@ fun SharedTransitionScope.MainCardLargeScreen(
             PokemonArts(viewModel, pokemonDetail)
         }
         item(span = { GridItemSpan(maxLineSpan) }) {
-            PokemonTcgSection(pokemonDetail, color.getColorByString(isSystemInDarkTheme()))
+            PokemonTcgSection(
+                pokemonDetail = pokemonDetail,
+                color = color.getColorByString(isSystemInDarkTheme()),
+                isPremium = isPremium,
+                onPremiumRequired = { viewModel.premiumManager.triggerUpsell() }
+            )
         }
         // Variations
         val varieties = pokemonDetail?.specie?.varieties?.filter { !it.is_default }
@@ -783,6 +800,11 @@ fun SharedTransitionScope.MainCardLargeScreen(
                     isTablet = true,
                 )
             }
+            item(span = { GridItemSpan(maxLineSpan) }) {
+                com.vinithius.dex10.ui.components.PremiumPromoBanner(
+                    onUpgradeClick = { viewModel.premiumManager.triggerUpsell() }
+                )
+            }
         }
         // Tabs full-width
         item(span = { GridItemSpan(maxLineSpan) }) {
@@ -796,18 +818,21 @@ fun TabWithPagerExample(
     navController: NavController?,
     pokemonDetail: Pokemon?,
     color: String,
-    viewModel: PokemonViewModel = getViewModel(),
+    viewModel: PokemonViewModel = rememberPokemonViewModel(),
 ) {
-    val tabTitles = listOf(
-        stringResource(R.string.damage),
-        stringResource(R.string.encounters),
-        stringResource(R.string.anime_info),
-        stringResource(R.string.eggs),
-        stringResource(R.string.abilities),
-        stringResource(R.string.entries),
-        stringResource(R.string.moves)
-    )
-    val pagerState = rememberPagerState(pageCount = { tabTitles.size })
+    val hasAnimeDubber = !pokemonDetail?.animeInfo?.voiceActorName.isNullOrBlank()
+    val tabItems = buildList {
+        add(TabItem(stringResource(R.string.damage), TabPage.DAMAGE))
+        add(TabItem(stringResource(R.string.encounters), TabPage.ENCOUNTERS))
+        if (hasAnimeDubber) {
+            add(TabItem(stringResource(R.string.anime_info), TabPage.ANIME))
+        }
+        add(TabItem(stringResource(R.string.eggs), TabPage.EGGS))
+        add(TabItem(stringResource(R.string.abilities), TabPage.ABILITIES))
+        add(TabItem(stringResource(R.string.entries), TabPage.ENTRIES))
+        add(TabItem(stringResource(R.string.moves), TabPage.MOVES))
+    }
+    val pagerState = rememberPagerState(pageCount = { tabItems.size })
     val coroutineScope = rememberCoroutineScope()
     Column(modifier = Modifier.fillMaxSize()) {
         LazyRow(
@@ -818,7 +843,7 @@ fun TabWithPagerExample(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             contentPadding = PaddingValues(horizontal = 16.dp)
         ) {
-            items(tabTitles.size) { index ->
+            items(tabItems.size) { index ->
                 val isSelected = pagerState.currentPage == index
                 val color = getButtonColor(isSelected, color)
 
@@ -834,7 +859,7 @@ fun TabWithPagerExample(
                                 .shimmer()
                         ) {
                             Text(
-                                text = tabTitles[index],
+                                text = tabItems[index].title,
                                 color = color.second,
                                 fontSize = 16.sp,
                                 textAlign = TextAlign.Center
@@ -855,7 +880,7 @@ fun TabWithPagerExample(
                                 .padding(horizontal = 16.dp, vertical = 8.dp)
                         ) {
                             Text(
-                                text = tabTitles[index],
+                                text = tabItems[index].title,
                                 color = color.second,
                                 fontSize = 16.sp,
                                 textAlign = TextAlign.Center
@@ -879,39 +904,39 @@ fun TabWithPagerExample(
                     .wrapContentHeight(),
                 contentAlignment = Alignment.Center
             ) {
-                when (page) {
-                    0 -> {
-                        activity?.trackButtonClick(tabTitles[0])
+                when (tabItems[page].page) {
+                    TabPage.DAMAGE -> {
+                        activity?.trackButtonClick(tabItems[page].title)
                         PokemonDamage(pokemonDetail, viewModel)
                     }
 
-                    1 -> {
-                        activity?.trackButtonClick(tabTitles[1])
+                    TabPage.ENCOUNTERS -> {
+                        activity?.trackButtonClick(tabItems[page].title)
                         PokemonEncounters(pokemonDetail, color, viewModel)
                     }
 
-                    2 -> {
-                        activity?.trackButtonClick(tabTitles[2])
+                    TabPage.ANIME -> {
+                        activity?.trackButtonClick(tabItems[page].title)
                         AnimeInfoSection(pokemonDetail, color.getColorByString(isSystemInDarkTheme()))
                     }
 
-                    3 -> {
-                        activity?.trackButtonClick(tabTitles[3])
+                    TabPage.EGGS -> {
+                        activity?.trackButtonClick(tabItems[page].title)
                         PokemonEggs(pokemonDetail, color, viewModel)
                     }
 
-                    4 -> {
-                        activity?.trackButtonClick(tabTitles[4])
+                    TabPage.ABILITIES -> {
+                        activity?.trackButtonClick(tabItems[page].title)
                         PokemonAbilities(pokemonDetail, color, viewModel)
                     }
 
-                    5 -> {
-                        activity?.trackButtonClick(tabTitles[5])
+                    TabPage.ENTRIES -> {
+                        activity?.trackButtonClick(tabItems[page].title)
                         PokemonEntries(navController, pokemonDetail, viewModel)
                     }
 
-                    6 -> {
-                        activity?.trackButtonClick(tabTitles[6])
+                    TabPage.MOVES -> {
+                        activity?.trackButtonClick(tabItems[page].title)
                         PokemonMoves(color, viewModel)
                     }
                 }
@@ -920,11 +945,37 @@ fun TabWithPagerExample(
     }
 }
 
+private data class TabItem(val title: String, val page: TabPage)
+
+private enum class TabPage {
+    DAMAGE,
+    ENCOUNTERS,
+    ANIME,
+    EGGS,
+    ABILITIES,
+    ENTRIES,
+    MOVES,
+}
+
+private const val TCG_FREE_LIMIT = 3
+
 @Composable
-fun PokemonTcgSection(pokemonDetail: Pokemon?, color: Color) {
+fun PokemonTcgSection(
+    pokemonDetail: Pokemon?,
+    color: Color,
+    isPremium: Boolean,
+    onPremiumRequired: () -> Unit,
+) {
     val cards = pokemonDetail?.tcgCards
     var selectedImageUrl by remember { mutableStateOf<String?>(null) }
     var selectedTitle by remember { mutableStateOf("") }
+
+    val visibleCards = when {
+        cards == null -> null
+        isPremium -> cards
+        else -> cards.take(TCG_FREE_LIMIT)
+    }
+    val lockedCount = if (!isPremium && cards != null) (cards.size - TCG_FREE_LIMIT).coerceAtLeast(0) else 0
 
     Column(
         modifier = Modifier
@@ -936,8 +987,7 @@ fun PokemonTcgSection(pokemonDetail: Pokemon?, color: Color) {
             color = color,
             modifier = Modifier.padding(start = 12.dp, bottom = 8.dp)
         )
-        if (cards == null) {
-            // Shimmer Loading State
+        if (visibleCards == null) {
             LazyRow(
                 contentPadding = PaddingValues(horizontal = 12.dp),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -953,21 +1003,21 @@ fun PokemonTcgSection(pokemonDetail: Pokemon?, color: Color) {
                     )
                 }
             }
-        } else if (cards.isNotEmpty()) {
+        } else if (visibleCards.isNotEmpty() || lockedCount > 0) {
             LazyRow(
                 contentPadding = PaddingValues(horizontal = 12.dp),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                items(cards.size) { index ->
-                    val card = cards[index]
+                items(visibleCards.size) { index ->
+                    val card = visibleCards[index]
                     var isVisible by remember { mutableStateOf(true) }
-                    
+
                     if (isVisible) {
                         Card(
                             modifier = Modifier
                                 .width(150.dp)
                                 .height(210.dp)
-                                .clickable { 
+                                .clickable {
                                     selectedImageUrl = card.getLargeImage()
                                     selectedTitle = card.name
                                 },
@@ -1005,6 +1055,16 @@ fun PokemonTcgSection(pokemonDetail: Pokemon?, color: Color) {
                         }
                     }
                 }
+
+                if (lockedCount > 0) {
+                    item {
+                        TcgLockedCard(
+                            lockedCount = lockedCount,
+                            color = color,
+                            onClick = onPremiumRequired
+                        )
+                    }
+                }
             }
         } else {
             Text(
@@ -1018,6 +1078,74 @@ fun PokemonTcgSection(pokemonDetail: Pokemon?, color: Color) {
 
     selectedImageUrl?.let { url ->
         ZoomableImageDialog(imageUrl = url, title = selectedTitle, onDismiss = { selectedImageUrl = null })
+    }
+}
+
+@Composable
+private fun TcgLockedCard(lockedCount: Int, color: Color, onClick: () -> Unit) {
+    Card(
+        modifier = Modifier
+            .width(150.dp)
+            .height(210.dp)
+            .clickable(onClick = onClick),
+        shape = RoundedCornerShape(8.dp),
+        elevation = CardDefaults.cardElevation(4.dp)
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(
+                            color.copy(alpha = 0.85f),
+                            color.copy(alpha = 0.55f),
+                        )
+                    )
+                ),
+            contentAlignment = Alignment.Center
+        ) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Lock,
+                    contentDescription = null,
+                    tint = Color.White,
+                    modifier = Modifier.size(36.dp)
+                )
+                Text(
+                    text = "+$lockedCount",
+                    color = Color.White,
+                    fontSize = 22.sp,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    text = stringResource(R.string.tcg_unlock_label),
+                    color = Color.White.copy(alpha = 0.9f),
+                    fontSize = 11.sp,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.padding(horizontal = 8.dp)
+                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(2.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Star,
+                        contentDescription = null,
+                        tint = Color(0xFFFFD700),
+                        modifier = Modifier.size(14.dp)
+                    )
+                    Text(
+                        text = "Premium",
+                        color = Color(0xFFFFD700),
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                }
+            }
+        }
     }
 }
 
@@ -1093,89 +1221,68 @@ fun ZoomableImageDialog(imageUrl: String, title: String, onDismiss: () -> Unit) 
 
 @Composable
 fun AnimeInfoSection(pokemonDetail: Pokemon?, color: Color) {
+    val isLoaded = pokemonDetail != null
     val animeInfo = pokemonDetail?.animeInfo
+    val hasDubber = !animeInfo?.voiceActorName.isNullOrBlank()
 
     Column(
         modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp)
-            .verticalScroll(rememberScrollState()),
+            .fillMaxWidth()
+            .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceEvenly,
-            verticalAlignment = Alignment.Top
-        ) {
-            // Character Image
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        if (isLoaded && !hasDubber) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 32.dp),
+                contentAlignment = Alignment.Center
+            ) {
                 Text(
-                    text = stringResource(R.string.character_anime),
-                    style = MaterialTheme.typography.titleMedium,
+                    text = stringResource(R.string.no_data),
+                    style = MaterialTheme.typography.bodyLarge,
                     color = color,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(bottom = 8.dp)
+                    textAlign = TextAlign.Center
                 )
-                if (animeInfo == null) {
-                    Box(
-                        modifier = Modifier
-                            .size(150.dp)
-                            .clip(RoundedCornerShape(12.dp))
-                            .shimmer()
-                            .background(Color.Gray.copy(alpha = 0.3f))
-                    )
-                } else {
-                    Card(
-                        modifier = Modifier.size(150.dp),
-                        shape = RoundedCornerShape(12.dp),
-                        elevation = CardDefaults.cardElevation(4.dp)
-                    ) {
-                        Image(
-                            painter = rememberAsyncImagePainter(animeInfo.characterImageUrl),
-                            contentDescription = "Character",
-                            modifier = Modifier.fillMaxSize(),
-                            contentScale = ContentScale.Crop
-                        )
-                    }
-                }
             }
+            return@Column
+        }
 
-            // Voice Actor Image
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text(
-                    text = stringResource(R.string.voice_actor),
-                    style = MaterialTheme.typography.titleMedium,
-                    color = color,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(bottom = 8.dp)
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Text(
+                text = stringResource(R.string.voice_actor),
+                style = MaterialTheme.typography.titleMedium,
+                color = color,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
+
+            if (animeInfo == null) {
+                Box(
+                    modifier = Modifier
+                        .size(150.dp)
+                        .clip(RoundedCornerShape(12.dp))
+                        .shimmer()
+                        .background(Color.Gray.copy(alpha = 0.3f))
                 )
-                if (animeInfo == null) {
-                    Box(
-                        modifier = Modifier
-                            .size(150.dp)
-                            .clip(RoundedCornerShape(12.dp))
-                            .shimmer()
-                            .background(Color.Gray.copy(alpha = 0.3f))
+            } else {
+                Card(
+                    modifier = Modifier.size(150.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    elevation = CardDefaults.cardElevation(4.dp)
+                ) {
+                    Image(
+                        painter = rememberAsyncImagePainter(animeInfo.voiceActorImageUrl),
+                        contentDescription = "Voice Actor",
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop
                     )
-                } else {
-                    Card(
-                        modifier = Modifier.size(150.dp),
-                        shape = RoundedCornerShape(12.dp),
-                        elevation = CardDefaults.cardElevation(4.dp)
-                    ) {
-                        Image(
-                            painter = rememberAsyncImagePainter(animeInfo.voiceActorImageUrl),
-                            contentDescription = "Voice Actor",
-                            modifier = Modifier.fillMaxSize(),
-                            contentScale = ContentScale.Crop
-                        )
-                    }
                 }
             }
         }
-        
+
         if (animeInfo == null) {
-             Box(
+            Box(
                 modifier = Modifier
                     .padding(top = 16.dp)
                     .width(200.dp)
@@ -1185,7 +1292,7 @@ fun AnimeInfoSection(pokemonDetail: Pokemon?, color: Color) {
             )
         } else {
             Text(
-                text = "${animeInfo.characterName} / ${animeInfo.voiceActorName}",
+                text = animeInfo.voiceActorName ?: stringResource(R.string.no_data),
                 style = MaterialTheme.typography.bodyLarge,
                 textAlign = TextAlign.Center,
                 modifier = Modifier.padding(top = 16.dp)
@@ -1804,7 +1911,7 @@ private fun ChartLoadingComposable() {
 
 @Composable
 private fun PokemonIsABaby(
-    viewModel: PokemonViewModel = getViewModel()
+    viewModel: PokemonViewModel = rememberPokemonViewModel()
 ) {
     val pokemonDetail by viewModel.pokemonDetail.observeAsState()
     AnimatedVisibility(
@@ -1859,7 +1966,7 @@ private fun PokemonIsABabyPreview() {
 private fun PokemonEvolution(
     navController: NavController?,
     pokemonDetail: Pokemon?,
-    viewModel: PokemonViewModel = getViewModel()
+    viewModel: PokemonViewModel = rememberPokemonViewModel()
 ) {
     val activity = getActivity()
     StateRequest(
@@ -1978,7 +2085,7 @@ private fun PokemonEvolution(
 private fun PokemonVariations(
     navController: NavController?,
     pokemonDetail: Pokemon?,
-    viewModel: PokemonViewModel = getViewModel()
+    viewModel: PokemonViewModel = rememberPokemonViewModel()
 ) {
     val activity = getActivity()
 
@@ -2132,7 +2239,7 @@ private fun GenericBox(
 @Composable
 private fun PokemonDamage(
     pokemonDetail: Pokemon?,
-    viewModel: PokemonViewModel = getViewModel()
+    viewModel: PokemonViewModel = rememberPokemonViewModel()
 ) {
     StateRequest(
         viewModel = viewModel,
@@ -2205,7 +2312,7 @@ private fun PokemonDamage(
 private fun PokemonEncounters(
     pokemonDetail: Pokemon?,
     color: String?,
-    viewModel: PokemonViewModel = getViewModel()
+    viewModel: PokemonViewModel = rememberPokemonViewModel()
 ) {
     StateRequest(
         viewModel = viewModel,
@@ -2277,7 +2384,7 @@ private fun PokemonEncounters(
 private fun PokemonEggs(
     pokemonDetail: Pokemon?,
     color: String?,
-    viewModel: PokemonViewModel = getViewModel()
+    viewModel: PokemonViewModel = rememberPokemonViewModel()
 ) {
     val context = LocalContext.current
     StateRequest(
@@ -2350,7 +2457,7 @@ private fun PokemonEggs(
 private fun PokemonAbilities(
     pokemonDetail: Pokemon?,
     color: String?,
-    viewModel: PokemonViewModel = getViewModel()
+    viewModel: PokemonViewModel = rememberPokemonViewModel()
 ) {
     val context = LocalContext.current
     StateRequest(
@@ -2455,7 +2562,7 @@ private fun PokemonAbilities(
 private fun PokemonEntries(
     navController: NavController?,
     pokemonDetail: Pokemon?,
-    viewModel: PokemonViewModel = getViewModel(),
+    viewModel: PokemonViewModel = rememberPokemonViewModel(),
 ) {
     val loading = stringResource(R.string.loading_translate)
     var encounterText by remember { mutableStateOf(loading) }

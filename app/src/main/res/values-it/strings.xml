@@ -7,9 +7,7 @@
     <string name="pikachu">Pikachu</string>
     <string name="unknown">Sconosciuto</string>
     <string name="capture_rate">Tasso di cattura:</string>
-    <string name="shape">Forma:</string>
     <string name="base_exp">Esp. Base:</string>
-    <string name="generation">Generazione:</string>
     <string name="ico_mythical">Icona mitica</string>
     <string name="is_a_baby">È UN BEBÈ!</string>
     <string name="ico_left">Icona sinistra</string>
@@ -64,6 +62,7 @@
     <string name="try_again">Riprova</string>
     <string name="empty_list">Lista vuota</string>
     <string name="dont_close_app">Per favore non chiudere l\'app, e cerca di non addormentarti, ok?</string>
+    <string name="loading_finalizing">Finalizzazione dati…</string>
     <string name="back">Indietro</string>
     <string name="from">Da:</string>
     <string name="to">A:</string>
@@ -113,6 +112,13 @@
     <string name="ability">Abilità</string>
     <string name="color">Colore</string>
     <string name="habitat">Habitat</string>
+    <string name="generation">Regione</string>
+    <string name="category">Categoria</string>
+    <string name="shape">Forma</string>
+    <string name="growth_rate">Tasso di Crescita</string>
+    <string name="egg_group">Gruppo Uovo</string>
+    <string name="base_total">Totale Base</string>
+    <string name="apply_filter">Applica</string>
     <string name="hp">PS</string>
     <string name="attack">Attacco</string>
     <string name="defense">Difesa</string>
@@ -332,4 +338,11 @@
     <string name="got_it">Ho capito</string>
     <string name="my_teams">Costruttore di Squadre</string>
     <string name="team_details">Dettagli del Team</string>
+    <string name="promo_banner_title">⭐ Sblocca tutto — acquisto unico</string>
+    <string name="promo_banner_subtitle">Senza pubblicità · Carte TCG illimitate · Tutte le funzioni · Paga una volta, tienilo per sempre</string>
+    <string name="promo_banner_cta">Acquisto unico</string>
+    <string name="tcg_unlock_label">Vedi tutte le carte</string>
+    <string name="feature_tcg_cards">Carte TCG</string>
+    <string name="val_trainer_tcg_cards">Prime 3</string>
+    <string name="val_master_tcg_cards">Tutte</string>
 </resources>

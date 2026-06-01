@@ -42,7 +42,7 @@ val appPreferencesModule = module {
 }
 
 val premiumModule = module {
-    single { PremiumManager(androidContext()) }
+    single { PremiumManager(androidContext(), appPreferences = get()) }
 }
 
 val networkModule = module {

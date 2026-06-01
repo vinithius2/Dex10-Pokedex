@@ -17,9 +17,11 @@ import com.vinithius.dex10.datasource.repository.IPokemonRepository
 import com.vinithius.dex10.datasource.response.Damage
 import com.vinithius.dex10.datasource.response.Pokemon
 import com.vinithius.dex10.extension.getIdIntoUrl
-import kotlinx.coroutines.CoroutineScope
+import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
@@ -43,7 +45,8 @@ class PokemonViewModel(
     // View Mode
     val viewMode: StateFlow<AppPreferences.ViewMode> = appPreferences.viewMode
 
-    private var detailJob: kotlinx.coroutines.Job? = null
+    private var detailJob: Job? = null
+    private var searchJob: Job? = null
 
     fun setViewMode(mode: AppPreferences.ViewMode) {
         appPreferences.setViewMode(mode)
@@ -385,9 +388,15 @@ class PokemonViewModel(
 
     /**
      * Get pokemons list with Pokémon of the Day logic.
+     * Guards against re-entry: if loading is already in progress or the list is populated, returns immediately.
      */
     fun getPokemonList(context: Context) {
-        CoroutineScope(dispatcher).launch {
+        val currentState = _stateList.value
+        if (currentState == RequestStateList.LoadingFirebase ||
+            currentState == RequestStateList.LoadingPostProcess) return
+        if (_pokemonList.value?.isNotEmpty() == true) return
+
+        viewModelScope.launch(dispatcher) {
             _isDetailFavorite.postValue(false)
             try {
                 val result = repository.getPokemonEntityList(
@@ -397,6 +406,9 @@ class PokemonViewModel(
                     },
                     callBackLoadingFirebaseCounter = { progress ->
                         _loadingPercent.postValue(progress)
+                    },
+                    callBackLoadingPostProcess = {
+                        _stateList.postValue(RequestStateList.LoadingPostProcess)
                     },
                     callBackLoading = {
                         _stateList.postValue(RequestStateList.Loading)
@@ -412,7 +424,6 @@ class PokemonViewModel(
                 _pokemonListBackup.postValue(updatedList)
                 _pokemonList.postValue(updatedList)
                 makeFilter(updatedList, context)
-
                 _stateList.postValue(RequestStateList.Success)
             } catch (e: Exception) {
                 FirebaseCrashlytics.getInstance().recordException(e)
@@ -503,25 +514,74 @@ class PokemonViewModel(
         context: Context
     ) {
         val checkboxStateMapTypes = checkboxStateMap(
-            pokemonList.flatMap { pokemon -> pokemon.types.map { it.typeName } }
+            pokemonList.flatMap { it.types.map { t -> t.typeName } }
         )
         val checkboxStateMapAbilities = checkboxStateMap(
-            pokemonList.flatMap { pokemon -> pokemon.abilities.map { it.name } }
+            pokemonList.flatMap { it.abilities.map { a -> a.name } }
         )
-        val checkboxStateMapColors = checkboxStateMap(
-            pokemonList.map { it.pokemon.color }
-        )
-        val checkboxStateMapHabitats = checkboxStateMap(
-            pokemonList.map { it.pokemon.habitat }
-        )
-        context.getString(R.string.type)
-        val filterMap = mapOf(
+        val checkboxStateMapColors = checkboxStateMap(pokemonList.map { it.pokemon.color })
+        val checkboxStateMapHabitats = checkboxStateMap(pokemonList.map { it.pokemon.habitat })
+
+        val filterMap = mutableMapOf(
             context.getString(R.string.type) to checkboxStateMapTypes,
             context.getString(R.string.ability) to checkboxStateMapAbilities,
             context.getString(R.string.color) to checkboxStateMapColors,
             context.getString(R.string.habitat) to checkboxStateMapHabitats,
         )
-        _pokemonFilterList.postValue(filterMap)
+
+        // Generation — only add if enrichment data is present
+        val generations = pokemonList.map { it.pokemon.generation }.filter { it.isNotEmpty() }
+        if (generations.isNotEmpty()) {
+            filterMap[context.getString(R.string.generation)] = checkboxStateMap(generations)
+        }
+
+        // Category (Legendary / Mythical / Baby)
+        val categories = pokemonList.flatMap { p ->
+            buildList {
+                if (p.pokemon.isLegendary) add("Legendary")
+                if (p.pokemon.isMythical) add("Mythical")
+                if (p.pokemon.isBaby) add("Baby")
+            }
+        }
+        if (categories.isNotEmpty()) {
+            filterMap[context.getString(R.string.category)] = checkboxStateMap(categories)
+        }
+
+        // Shape
+        val shapes = pokemonList.map { it.pokemon.shape }.filter { it.isNotEmpty() }
+        if (shapes.isNotEmpty()) {
+            filterMap[context.getString(R.string.shape)] = checkboxStateMap(shapes)
+        }
+
+        // Growth Rate
+        val growthRates = pokemonList.map { it.pokemon.growthRate }.filter { it.isNotEmpty() }
+        if (growthRates.isNotEmpty()) {
+            filterMap[context.getString(R.string.growth_rate)] = checkboxStateMap(growthRates)
+        }
+
+        // Egg Groups (stored as comma-separated string)
+        val eggGroups = pokemonList.flatMap { p ->
+            p.pokemon.eggGroups.split(",").map { it.trim() }.filter { it.isNotEmpty() }
+        }
+        if (eggGroups.isNotEmpty()) {
+            filterMap[context.getString(R.string.egg_group)] = checkboxStateMap(eggGroups)
+        }
+
+        // Base Total tiers — always present when stats exist, in fixed order
+        if (pokemonList.any { it.stats.isNotEmpty() }) {
+            val tiers = listOf("< 300", "300 – 450", "451 – 600", "> 600")
+            filterMap[context.getString(R.string.base_total)] =
+                mutableStateMapOf<String, Boolean>().apply { tiers.forEach { put(it, false) } }
+        }
+
+        syncFilterState(filterMap, postValue = true)
+    }
+
+    private fun baseTotalTier(total: Int): String = when {
+        total < 300  -> "< 300"
+        total < 451  -> "300 – 450"
+        total <= 600 -> "451 – 600"
+        else         -> "> 600"
     }
 
     private fun checkboxStateMap(filters: List<String>): SnapshotStateMap<String, Boolean> {
@@ -532,16 +592,46 @@ class PokemonViewModel(
         }
     }
 
+    private fun cloneFilterState(
+        filter: Map<String, SnapshotStateMap<String, Boolean>>
+    ): Map<String, SnapshotStateMap<String, Boolean>> {
+        return filter.mapValues { (_, stateMap) ->
+            mutableStateMapOf<String, Boolean>().apply {
+                stateMap.forEach { (key, value) ->
+                    put(key, value)
+                }
+            }
+        }
+    }
+
+    private fun syncFilterState(
+        filter: Map<String, SnapshotStateMap<String, Boolean>>,
+        postValue: Boolean,
+    ) {
+        val clonedFilter = cloneFilterState(filter)
+        if (postValue) {
+            _filterMap.postValue(clonedFilter)
+            _pokemonFilterList.postValue(clonedFilter)
+        } else {
+            _filterMap.value = clonedFilter
+            _pokemonFilterList.value = clonedFilter
+        }
+    }
+
     /**
      * Set favorite pokemon to database.
      */
     /**
      * Set favorite pokemon to database.
      */
-    fun setFavorite(pokemonId: Int) {
-        CoroutineScope(dispatcher).launch {
+    fun setFavorite(
+        pokemonId: Int,
+        context: Context? = null,
+    ) {
+        viewModelScope.launch(dispatcher) {
             try {
                 val currentList = _pokemonList.value ?: return@launch
+                val backupList = _pokemonListBackup.value ?: currentList
                 val targetPokemonMap = currentList.find { it.pokemon.id == pokemonId }
 
                 if (targetPokemonMap != null) {
@@ -566,18 +656,34 @@ class PokemonViewModel(
                     val newPokemonEntity = targetPokemonMap.pokemon.copy(favorite = newFavoriteStatus)
                     val newPokemonWithDetails = targetPokemonMap.copy(pokemon = newPokemonEntity)
                     
-                    val newList = currentList.toMutableList()
-                    val index = newList.indexOfFirst { it.pokemon.id == pokemonId }
-                    if (index != -1) {
-                        newList[index] = newPokemonWithDetails
+                    val newList = currentList.toMutableList().apply {
+                        val index = indexOfFirst { it.pokemon.id == pokemonId }
+                        if (index != -1) {
+                            this[index] = newPokemonWithDetails
+                        }
+                    }
+                    val newBackupList = backupList.toMutableList().apply {
+                        val index = indexOfFirst { it.pokemon.id == pokemonId }
+                        if (index != -1) {
+                            this[index] = newPokemonWithDetails
+                        }
                     }
                     
                     _isDetailFavorite.postValue(newFavoriteStatus)
                     repository.setFavorite(newPokemonEntity)
-                    
-                    // Post new list reference
-                    _pokemonList.postValue(newList)
-                    _pokemonListBackup.postValue(newList) // Update backup as well if needed
+
+                    // Update both lists synchronously on Main so observers see the new
+                    // favorite state immediately, with no race condition against any
+                    // subsequent read of _pokemonListBackup.
+                    withContext(Dispatchers.Main) {
+                        _pokemonList.value = newList
+                        _pokemonListBackup.value = newBackupList
+                    }
+                    // Do NOT call getFilterPokemon() here — toggling a favourite never
+                    // changes type / name / any filter-relevant attribute, so the item
+                    // already satisfies the active filter after the in-place update above.
+                    // The only case where removal is needed (favourites filter + un-favourite)
+                    // is handled after the animation finishes via removeItemIfNotIsFavorite().
                 }
             } catch (e: Exception) {
                 FirebaseCrashlytics.getInstance().recordException(e)
@@ -587,7 +693,7 @@ class PokemonViewModel(
     }
 
     private fun getDetailFavorite() {
-        CoroutineScope(dispatcher).launch {
+        viewModelScope.launch(dispatcher) {
             try {
                 val isFavorite = _pokemonList.value?.firstOrNull {
                     it.pokemon.id == _idPokemon.value
@@ -601,13 +707,20 @@ class PokemonViewModel(
     }
 
     /**
-     * Remove item if not a favorite from the filter favorites
+     * Called after the pokeball animation finishes when the favourites filter is
+     * active and the user just un-favourited an item.  Removes the item from the
+     * displayed list directly — no Loading state, no full re-filter round-trip.
      */
     fun removeItemIfNotIsFavorite(
         context: Context
     ) {
-        _isFavoriteFilter.takeIf { it.value ?: false }?.run {
-            getPokemonFavoriteList(true, context)
+        if (_isFavoriteFilter.value != true) return
+        viewModelScope.launch(dispatcher) {
+            val current = _pokemonList.value ?: return@launch
+            val withoutUnfavourited = current.filter { it.pokemon.favorite }
+            withContext(Dispatchers.Main) {
+                _pokemonList.value = withoutUnfavourited
+            }
         }
     }
 
@@ -618,7 +731,11 @@ class PokemonViewModel(
         context: Context,
     ) {
         _searchNameFilter.value = search
-        getFilterPokemon(context)
+        searchJob?.cancel()
+        searchJob = viewModelScope.launch(dispatcher) {
+            delay(300)
+            getFilterPokemon(context)
+        }
     }
 
     fun getPokemonFavoriteList(
@@ -633,19 +750,34 @@ class PokemonViewModel(
         filter: Map<String, SnapshotStateMap<String, Boolean>>,
         context: Context,
     ) {
-        _filterMap.value = filter
+        syncFilterState(filter, postValue = false)
+        getFilterPokemon(context)
+    }
+
+    fun clearAllFilters(context: Context) {
+        _isFavoriteFilter.value = false
+        _searchNameFilter.value = String()
+
+        val clearedFilter = cloneFilterState(_filterMap.value ?: _pokemonFilterList.value ?: emptyMap())
+        clearedFilter.values.forEach { stateMap ->
+            stateMap.keys.forEach { key ->
+                stateMap[key] = false
+            }
+        }
+
+        syncFilterState(clearedFilter, postValue = false)
         getFilterPokemon(context)
     }
 
     private fun getFilterPokemon(
         context: Context,
     ) {
-        CoroutineScope(dispatcher).launch {
+        viewModelScope.launch(dispatcher) {
             _stateList.postValue(RequestStateList.Loading)
             try {
                 val searchQuery = _searchNameFilter.value.orEmpty()
                 val isFavorite = _isFavoriteFilter.value ?: false
-                val filterMapValues = _filterMap.value ?: emptyMap()
+                val filterMapValues = _filterMap.value ?: _pokemonFilterList.value ?: emptyMap()
 
                 val filteredList = _pokemonListBackup.value?.filter { pokemonWithDetails ->
                     val matchesSearch = pokemonWithDetails.pokemon.name.contains(
@@ -658,12 +790,38 @@ class PokemonViewModel(
                         if (selectedValues.isEmpty()) {
                             true
                         } else {
-                            context.getString(R.string.ability)
                             when (key) {
-                                context.getString(R.string.type) -> pokemonWithDetails.types.any { it.typeName in selectedValues }
-                                context.getString(R.string.ability) -> pokemonWithDetails.abilities.any { it.name in selectedValues }
-                                context.getString(R.string.color) -> pokemonWithDetails.pokemon.color in selectedValues
-                                context.getString(R.string.habitat) -> pokemonWithDetails.pokemon.habitat in selectedValues
+                                context.getString(R.string.type) ->
+                                    pokemonWithDetails.types.any { it.typeName in selectedValues }
+                                context.getString(R.string.ability) ->
+                                    pokemonWithDetails.abilities.any { it.name in selectedValues }
+                                context.getString(R.string.color) ->
+                                    pokemonWithDetails.pokemon.color in selectedValues
+                                context.getString(R.string.habitat) ->
+                                    pokemonWithDetails.pokemon.habitat in selectedValues
+                                context.getString(R.string.generation) ->
+                                    pokemonWithDetails.pokemon.generation in selectedValues
+                                context.getString(R.string.category) ->
+                                    selectedValues.any { value ->
+                                        when (value) {
+                                            "Legendary" -> pokemonWithDetails.pokemon.isLegendary
+                                            "Mythical"  -> pokemonWithDetails.pokemon.isMythical
+                                            "Baby"      -> pokemonWithDetails.pokemon.isBaby
+                                            else        -> false
+                                        }
+                                    }
+                                context.getString(R.string.shape) ->
+                                    pokemonWithDetails.pokemon.shape in selectedValues
+                                context.getString(R.string.growth_rate) ->
+                                    pokemonWithDetails.pokemon.growthRate in selectedValues
+                                context.getString(R.string.egg_group) ->
+                                    pokemonWithDetails.pokemon.eggGroups
+                                        .split(",").map { it.trim() }
+                                        .any { it in selectedValues }
+                                context.getString(R.string.base_total) -> {
+                                    val total = pokemonWithDetails.stats.sumOf { it.baseStat }
+                                    baseTotalTier(total) in selectedValues
+                                }
                                 else -> true
                             }
                         }
@@ -696,7 +854,7 @@ class PokemonViewModel(
         }
 
         detailJob?.cancel()
-        detailJob = CoroutineScope(dispatcher).launch {
+        detailJob = viewModelScope.launch(dispatcher) {
             _pokemonDetail.postValue(null)
             _stateDetail.postValue(RequestStateDetail.Loading)
             // also reset extras to be safe

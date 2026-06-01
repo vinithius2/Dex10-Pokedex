@@ -5,6 +5,7 @@
 .DS_Store
 /build
 /captures
+.claude/
 .externalNativeBuild
 .cxx
 local.properties
@@ -14,4 +15,4 @@ app/release/app-release.apk
 app/release/output-metadata.json
 app/google*
 app/amazon*
-app/hauwei*
+app/hauwei*git

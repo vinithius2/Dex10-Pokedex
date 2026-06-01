@@ -2,6 +2,7 @@ package com.vinithius.dex10.ui.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -283,6 +284,11 @@ private fun ComparisonTable() {
             stringResource(R.string.val_trainer_grid_mode),
             stringResource(R.string.val_master_grid_mode)
         )
+        ComparisonRow(
+            stringResource(R.string.feature_tcg_cards),
+            stringResource(R.string.val_trainer_tcg_cards),
+            stringResource(R.string.val_master_tcg_cards)
+        )
     }
 }
 
@@ -346,29 +352,56 @@ private fun ActionSection(
     ) {
         if (premiumOriginalPrice != null && discountPercent != null) {
             Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(bottom = 8.dp)
-            ) {
-                Text(
-                    text = premiumOriginalPrice,
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
-                    textDecoration = TextDecoration.LineThrough,
-                    fontWeight = FontWeight.Bold
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Box(
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(8.dp))
-                        .background(MaterialTheme.colorScheme.tertiary)
-                        .padding(horizontal = 8.dp, vertical = 2.dp)
-                ) {
-                    Text(
-                        text = "-$discountPercent%",
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.onTertiary,
-                        fontWeight = FontWeight.ExtraBold
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 16.dp)
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.06f))
+                    .border(
+                        1.dp,
+                        MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
+                        RoundedCornerShape(16.dp)
                     )
+                    .padding(horizontal = 20.dp, vertical = 16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                // Left: final price, large and dominant
+                Text(
+                    text = premiumPrice ?: "---",
+                    style = MaterialTheme.typography.displaySmall,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.weight(1f)
+                )
+
+                // Right: original price (strikethrough) + discount badge stacked
+                Column(horizontalAlignment = Alignment.End) {
+                    Text(
+                        text = premiumOriginalPrice,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                        textDecoration = TextDecoration.LineThrough,
+                        fontWeight = FontWeight.Medium
+                    )
+                    Spacer(modifier = Modifier.height(6.dp))
+                    Box(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(20.dp))
+                            .background(
+                                brush = Brush.horizontalGradient(
+                                    listOf(Color(0xFFFF8C00), Color(0xFFFF1744))
+                                )
+                            )
+                            .padding(horizontal = 12.dp, vertical = 5.dp)
+                    ) {
+                        Text(
+                            text = "$discountPercent% Off",
+                            style = MaterialTheme.typography.labelLarge,
+                            color = Color.White,
+                            fontWeight = FontWeight.ExtraBold,
+                            letterSpacing = 0.3.sp
+                        )
+                    }
                 }
             }
         }
@@ -407,6 +440,5 @@ private fun ActionSection(
         )
 
         Spacer(modifier = Modifier.height(16.dp))
-
     }
 }
