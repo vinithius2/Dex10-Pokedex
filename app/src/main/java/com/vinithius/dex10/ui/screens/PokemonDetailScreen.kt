@@ -1112,7 +1112,6 @@ fun PokemonTcgSection(
 }
 
 @Composable
-@Composable
 private fun TcgFavoriteStar(
     isFavorite: Boolean,
     onToggle: () -> Unit,
