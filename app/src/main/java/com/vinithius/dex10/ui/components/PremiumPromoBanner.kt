@@ -48,6 +48,7 @@ import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -129,8 +130,8 @@ fun PremiumPromoBannerContent(
         animationSpec = tween(300),
         label = "crown_size_scale"
     )
-    // Badge only shows in expanded state — collapses with the subtitle
-    val showBadge = discountPercent != null && isExpanded
+    // Badge always shows when there is a discount, regardless of expanded state
+    val showBadge = discountPercent != null
     // Pulse is disabled in collapsed state so the crown stays still
     val effectiveCrownScale = if (isExpanded) leadingIconScale else 1f
 
@@ -183,6 +184,8 @@ fun PremiumPromoBannerContent(
                     color = GoldColor,
                     fontWeight = FontWeight.ExtraBold,
                     fontSize = 13.sp,
+                    maxLines = if (isExpanded) Int.MAX_VALUE else 1,
+                    overflow = TextOverflow.Ellipsis,
                     style = TextStyle(
                         shadow = Shadow(
                             color = Color.Black.copy(alpha = 0.4f),
