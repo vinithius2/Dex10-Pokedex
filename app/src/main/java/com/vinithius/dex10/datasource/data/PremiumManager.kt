@@ -23,7 +23,8 @@ import kotlinx.coroutines.launch
  */
 class PremiumManager(
     private val context: Context,
-    injectedPrefs: android.content.SharedPreferences? = null
+    injectedPrefs: android.content.SharedPreferences? = null,
+    private val appPreferences: AppPreferences? = null,
 ) : PurchasesUpdatedListener {
 
     companion object {
@@ -35,6 +36,11 @@ class PremiumManager(
         const val SKU_COFFEE = "donation_coffee_small"
         const val FREE_TEAM_LIMIT = 1
         const val FREE_FAVORITE_LIMIT = 50
+
+        // Preço cheio do produto antes de qualquer promoção configurada no Play Console.
+        // Atualizar este valor caso o preço base do produto seja alterado.
+        // Exemplo: R$49,99 → 49_990_000L  (1 unidade monetária = 1.000.000 micros)
+        private const val BASE_PRICE_AMOUNT_MICROS = 49_990_000L
     }
 
     // private val encryptedPrefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
@@ -176,14 +182,22 @@ class PremiumManager(
             if (billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
                 productDetails = productDetailsList.find { it.productId == SKU_PREMIUM }
                 val offerDetails = productDetails?.oneTimePurchaseOfferDetails
+                val currentPriceMicros = offerDetails?.priceAmountMicros ?: 0L
                 _premiumPrice.value = offerDetails?.formattedPrice
 
-                // Calculate discount
-                // Feature disabled: Google Play Billing Library 7.0 (current build) does not expose getFullPriceMicros
-                // for one-time purchases, so we cannot calculate the original price/discount percentage.
-                _discountPercent.value = null
-                _premiumOriginalPrice.value = null
-                
+                // Quando o Play Console tem promoção ativa, a API retorna o preço promocional.
+                // Comparamos com o preço base (BASE_PRICE_AMOUNT_MICROS) para detectar desconto.
+                if (currentPriceMicros in 1 until BASE_PRICE_AMOUNT_MICROS) {
+                    val currencyCode = offerDetails?.priceCurrencyCode ?: "BRL"
+                    _premiumOriginalPrice.value = formatMicrosAsCurrency(BASE_PRICE_AMOUNT_MICROS, currencyCode)
+                    val discountPct = ((BASE_PRICE_AMOUNT_MICROS - currentPriceMicros) * 100L / BASE_PRICE_AMOUNT_MICROS).toInt()
+                    _discountPercent.value = discountPct
+                    Log.d(TAG, "Discount active: ${_discountPercent.value}% off (${_premiumOriginalPrice.value} → ${_premiumPrice.value})")
+                } else {
+                    _premiumOriginalPrice.value = null
+                    _discountPercent.value = null
+                }
+
                 coffeeProductDetails = productDetailsList.find { it.productId == SKU_COFFEE }
                 _coffeePrice.value = coffeeProductDetails?.oneTimePurchaseOfferDetails?.formattedPrice
 
@@ -345,6 +359,23 @@ class PremiumManager(
         }
         encryptedPrefs.edit().putBoolean(KEY_IS_PREMIUM, isPremium).apply()
         _isPremium.value = isPremium
+
+        // Keep FCM topics and Analytics user property in sync with premium status.
+        // This enables targeting push notifications and in-app messages by tier.
+        appPreferences?.updateFcmTopics(isPremium)
+        com.google.firebase.analytics.FirebaseAnalytics.getInstance(context)
+            .setUserProperty("subscription_tier", if (isPremium) "premium" else "free")
+    }
+
+    private fun formatMicrosAsCurrency(micros: Long, currencyCode: String): String {
+        val amount = micros / 1_000_000.0
+        return try {
+            val formatter = NumberFormat.getCurrencyInstance()
+            formatter.currency = Currency.getInstance(currencyCode)
+            formatter.format(amount)
+        } catch (e: Exception) {
+            NumberFormat.getCurrencyInstance().format(amount)
+        }
     }
 
     // --- DEBUG FEATURES ---
@@ -358,6 +389,27 @@ class PremiumManager(
         _isPremium.value = isPremium
         encryptedPrefs.edit().putBoolean(KEY_DEBUG_PREMIUM, isPremium).apply()
         Log.d(TAG, "Debug override set to: $isPremium (persisted)")
+    }
+
+    fun setDebugPricing(price: String, originalPrice: String, discountPercent: Int) {
+        if (!com.vinithius.dex10.BuildConfig.DEBUG) return
+        _premiumPrice.value = price
+        _premiumOriginalPrice.value = originalPrice
+        _discountPercent.value = discountPercent
+        Log.d(TAG, "Debug pricing: $price (was $originalPrice, -$discountPercent%)")
+    }
+
+    fun clearDebugPricing() {
+        if (!com.vinithius.dex10.BuildConfig.DEBUG) return
+        // Restore real Play Store values if the billing client is ready, otherwise null
+        if (billingClient?.isReady == true) {
+            queryProductDetails()
+        } else {
+            _premiumPrice.value = null
+            _premiumOriginalPrice.value = null
+            _discountPercent.value = null
+        }
+        Log.d(TAG, "Debug pricing cleared — real values restored")
     }
 
     /**

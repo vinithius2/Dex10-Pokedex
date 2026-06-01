@@ -1,5 +1,6 @@
 package com.vinithius.dex10.ui.screens
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -16,17 +17,26 @@ import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Share
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.RadioButtonDefaults
+import androidx.compose.material3.Slider
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -40,6 +50,7 @@ import com.vinithius.dex10.datasource.data.AppPreferences
 import com.vinithius.dex10.datasource.data.PremiumManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import androidx.compose.foundation.clickable
+import kotlin.math.roundToInt
 
 @Composable
 fun SettingsScreen(
@@ -75,7 +86,7 @@ fun SettingsScreen(
 
         // Dark Mode
         val effectiveDarkMode = if (isPremium) darkMode else AppPreferences.DARK_MODE_OFF
-        
+
         SettingItemHeader(
             icon = Icons.Default.Settings,
             title = stringResource(R.string.dark_mode),
@@ -83,16 +94,16 @@ fun SettingsScreen(
         )
         DarkModeRadioGroup(
             selected = effectiveDarkMode,
-            onSelect = { 
+            onSelect = {
                 if (!isPremium && it != AppPreferences.DARK_MODE_OFF) {
                     premiumManager?.triggerUpsell()
                     com.vinithius.dex10.analytics.AnalyticsManager.logFeatureRestricted("dark_mode")
                 } else {
-                    appPreferences.setDarkMode(it) 
+                    appPreferences.setDarkMode(it)
                 }
             },
             isPremium = isPremium,
-            onShowUpsell = { 
+            onShowUpsell = {
                  premiumManager?.triggerUpsell()
                  com.vinithius.dex10.analytics.AnalyticsManager.logFeatureRestricted("dark_mode")
             }
@@ -150,14 +161,110 @@ fun SettingsScreen(
                     }
                 }
             )
-            
-             SettingClickableItem(
-                icon = Icons.Default.Share, 
+
+            SettingClickableItem(
+                icon = Icons.Default.Share,
                 title = "Reset Premium Override",
                 description = "Clear override and check real status",
                 onClick = { premiumManager?.clearDebugPremiumStatus() }
             )
-             Spacer(modifier = Modifier.height(40.dp))
+
+            HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+
+            DebugPricingSection(premiumManager = premiumManager)
+
+            Spacer(modifier = Modifier.height(40.dp))
+        }
+    }
+}
+
+@Composable
+private fun DebugPricingSection(premiumManager: PremiumManager?) {
+    var mockOriginalPrice by remember { mutableStateOf("€10.00") }
+    var mockPrice by remember { mutableStateOf("€9.00") }
+    var mockDiscount by remember { mutableFloatStateOf(10f) }
+
+    SettingItemHeader(
+        icon = Icons.Default.Settings,
+        title = "Simulate Discount",
+        description = "Preview the pricing UI with a mock promotion"
+    )
+
+    Column(modifier = Modifier.padding(horizontal = 16.dp)) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            OutlinedTextField(
+                value = mockOriginalPrice,
+                onValueChange = { mockOriginalPrice = it },
+                label = { Text("Full price") },
+                modifier = Modifier.weight(1f),
+                singleLine = true
+            )
+            OutlinedTextField(
+                value = mockPrice,
+                onValueChange = { mockPrice = it },
+                label = { Text("Sale price") },
+                modifier = Modifier.weight(1f),
+                singleLine = true
+            )
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text(
+                text = "${mockDiscount.roundToInt()}% OFF",
+                style = MaterialTheme.typography.bodySmall,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.width(64.dp)
+            )
+            Slider(
+                value = mockDiscount,
+                onValueChange = { mockDiscount = it },
+                valueRange = 1f..80f,
+                modifier = Modifier.weight(1f)
+            )
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Button(
+                onClick = {
+                    premiumManager?.setDebugPricing(
+                        price = mockPrice,
+                        originalPrice = mockOriginalPrice,
+                        discountPercent = mockDiscount.roundToInt()
+                    )
+                },
+                modifier = Modifier.weight(1f)
+            ) {
+                Text("Apply")
+            }
+            OutlinedButton(
+                onClick = { premiumManager?.clearDebugPricing() },
+                modifier = Modifier.weight(1f)
+            ) {
+                Text("Clear")
+            }
+        }
+
+        Spacer(modifier = Modifier.height(4.dp))
+
+        Button(
+            onClick = { premiumManager?.triggerUpsell() },
+            modifier = Modifier.fillMaxWidth(),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.secondary,
+                contentColor = MaterialTheme.colorScheme.onSecondary
+            )
+        ) {
+            Text("Preview Upsell Sheet")
         }
     }
 }
@@ -223,13 +330,13 @@ private fun DarkModeRadioGroup(
     Column(modifier = Modifier.padding(start = 56.dp)) {
         options.forEach { (value, label) ->
             val isLocked = !isPremium && value != AppPreferences.DARK_MODE_OFF
-            
+
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(vertical = 2.dp)
-                    .clickable { 
+                    .clickable {
                         if (isLocked) {
                             onShowUpsell()
                         } else {
@@ -239,11 +346,11 @@ private fun DarkModeRadioGroup(
             ) {
                 RadioButton(
                     selected = selected == value,
-                    onClick = { 
+                    onClick = {
                         if (isLocked) {
                              onShowUpsell()
                         } else {
-                            onSelect(value) 
+                            onSelect(value)
                         }
                     },
                     enabled = !isLocked,

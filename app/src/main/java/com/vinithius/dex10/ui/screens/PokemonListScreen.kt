@@ -112,7 +112,7 @@ import com.vinithius.dex10.extension.getParseColorByString
 import com.vinithius.dex10.extension.getStringStat
 import com.vinithius.dex10.extension.getWindowColumns
 import com.vinithius.dex10.ui.MainActivity
-import com.vinithius.dex10.ui.viewmodel.PokemonViewModel
+import com.vinithius.dex10.ui.viewmodel.PokemonViewModel
 import com.vinithius.dex10.ui.viewmodel.rememberPokemonViewModel
 import com.vinithius.dex10.ui.viewmodel.RequestStateList
 import org.koin.androidx.compose.getViewModel
@@ -329,7 +329,8 @@ fun SharedTransitionScope.PokemonListScreen(
 
                 if (!isPremium) {
                     PremiumPromoBanner(
-                        onUpgradeClick = { viewModel.premiumManager.triggerUpsell() }
+                        onUpgradeClick = { viewModel.premiumManager.triggerUpsell() },
+                        lazyListState = listState
                     )
                 }
 
