@@ -31,6 +31,7 @@ class AppPreferences(context: Context) {
         const val DARK_MODE_ON = 1
         const val DARK_MODE_OFF = 2
         private const val KEY_VIEW_MODE = "view_mode"
+        private const val KEY_TCG_FAVORITES = "tcg_favorite_cards"
     }
 
     enum class ViewMode(val value: Int) {
@@ -115,5 +116,18 @@ class AppPreferences(context: Context) {
     fun setViewMode(value: ViewMode) {
         prefs.edit().putInt(KEY_VIEW_MODE, value.value).apply()
         _viewMode.value = value
+    }
+
+    // --- TCG Card Favourites (premium only) ---
+    private val _tcgFavorites = MutableStateFlow<Set<String>>(
+        prefs.getStringSet(KEY_TCG_FAVORITES, emptySet())?.toSet() ?: emptySet()
+    )
+    val tcgFavorites: StateFlow<Set<String>> = _tcgFavorites.asStateFlow()
+
+    fun toggleTcgFavorite(cardId: String) {
+        val updated = _tcgFavorites.value.toMutableSet()
+        if (cardId in updated) updated.remove(cardId) else updated.add(cardId)
+        prefs.edit().putStringSet(KEY_TCG_FAVORITES, updated).apply()
+        _tcgFavorites.value = updated
     }
 }

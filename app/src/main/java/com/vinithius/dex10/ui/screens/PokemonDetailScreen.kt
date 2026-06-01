@@ -36,11 +36,16 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.animation.core.Animatable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.draw.scale
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
@@ -105,6 +110,8 @@ import coil.request.ImageRequest
 import com.valentinilk.shimmer.shimmer
 import com.vinithius.dex10.R
 import com.vinithius.dex10.admobbanners.AdAdvancedNative
+import com.vinithius.dex10.datasource.data.AppPreferences
+import org.koin.androidx.compose.get
 import com.vinithius.dex10.components.ErrorStatus
 import com.vinithius.dex10.components.TypeItem
 import com.vinithius.dex10.components.TypeItemShimmer
@@ -135,7 +142,7 @@ import com.vinithius.dex10.extension.getWindowColumns
 import com.vinithius.dex10.extension.translateIfSupported
 import com.vinithius.dex10.ui.MainActivity
 import com.vinithius.dex10.ui.theme.text
-import com.vinithius.dex10.ui.viewmodel.PokemonViewModel
+import com.vinithius.dex10.ui.viewmodel.PokemonViewModel
 import com.vinithius.dex10.ui.viewmodel.rememberPokemonViewModel
 import com.vinithius.dex10.ui.viewmodel.RequestStateDetail
 import ir.ehsannarmani.compose_charts.RowChart
@@ -499,10 +506,14 @@ fun SharedTransitionScope.MainCard(
         }
         Spacer(modifier = Modifier.size(5.dp))
         PokemonArts(viewModel, pokemonDetail)
+        val appPreferences: AppPreferences = get()
+        val tcgFavorites by appPreferences.tcgFavorites.collectAsState()
         PokemonTcgSection(
             pokemonDetail = pokemonDetail,
             color = color.getColorByString(isSystemInDarkTheme()),
             isPremium = isPremium,
+            tcgFavorites = tcgFavorites,
+            onToggleFavorite = { appPreferences.toggleTcgFavorite(it) },
             onPremiumRequired = { viewModel.premiumManager.triggerUpsell() }
         )
         PokemonChart(viewModel, color, pokemonDetail)
@@ -760,10 +771,14 @@ fun SharedTransitionScope.MainCardLargeScreen(
             PokemonArts(viewModel, pokemonDetail)
         }
         item(span = { GridItemSpan(maxLineSpan) }) {
+            val appPreferencesLarge: AppPreferences = get()
+            val tcgFavoritesLarge by appPreferencesLarge.tcgFavorites.collectAsState()
             PokemonTcgSection(
                 pokemonDetail = pokemonDetail,
                 color = color.getColorByString(isSystemInDarkTheme()),
                 isPremium = isPremium,
+                tcgFavorites = tcgFavoritesLarge,
+                onToggleFavorite = { appPreferencesLarge.toggleTcgFavorite(it) },
                 onPremiumRequired = { viewModel.premiumManager.triggerUpsell() }
             )
         }
@@ -964,6 +979,8 @@ fun PokemonTcgSection(
     pokemonDetail: Pokemon?,
     color: Color,
     isPremium: Boolean,
+    tcgFavorites: Set<String> = emptySet(),
+    onToggleFavorite: (String) -> Unit = {},
     onPremiumRequired: () -> Unit,
 ) {
     val cards = pokemonDetail?.tcgCards
@@ -976,6 +993,11 @@ fun PokemonTcgSection(
         else -> cards.take(TCG_FREE_LIMIT)
     }
     val lockedCount = if (!isPremium && cards != null) (cards.size - TCG_FREE_LIMIT).coerceAtLeast(0) else 0
+
+    // Favourites first, keeping relative order within each group
+    val sortedCards = remember(visibleCards, tcgFavorites) {
+        visibleCards?.sortedByDescending { it.id in tcgFavorites }
+    }
 
     Column(
         modifier = Modifier
@@ -1003,13 +1025,12 @@ fun PokemonTcgSection(
                     )
                 }
             }
-        } else if (visibleCards.isNotEmpty() || lockedCount > 0) {
+        } else if (!sortedCards.isNullOrEmpty() || lockedCount > 0) {
             LazyRow(
                 contentPadding = PaddingValues(horizontal = 12.dp),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                items(visibleCards.size) { index ->
-                    val card = visibleCards[index]
+                items(sortedCards ?: emptyList(), key = { it.id }) { card ->
                     var isVisible by remember { mutableStateOf(true) }
 
                     if (isVisible) {
@@ -1017,6 +1038,7 @@ fun PokemonTcgSection(
                             modifier = Modifier
                                 .width(150.dp)
                                 .height(210.dp)
+                                .animateItem()
                                 .clickable {
                                     selectedImageUrl = card.getLargeImage()
                                     selectedTitle = card.name
@@ -1051,6 +1073,14 @@ fun PokemonTcgSection(
                                     contentScale = ContentScale.Fit,
                                     modifier = Modifier.fillMaxSize()
                                 )
+
+                                if (isPremium) {
+                                    TcgFavoriteStar(
+                                        isFavorite = card.id in tcgFavorites,
+                                        onToggle = { onToggleFavorite(card.id) },
+                                        modifier = Modifier.align(Alignment.TopEnd)
+                                    )
+                                }
                             }
                         }
                     }
@@ -1078,6 +1108,47 @@ fun PokemonTcgSection(
 
     selectedImageUrl?.let { url ->
         ZoomableImageDialog(imageUrl = url, title = selectedTitle, onDismiss = { selectedImageUrl = null })
+    }
+}
+
+@Composable
+@Composable
+private fun TcgFavoriteStar(
+    isFavorite: Boolean,
+    onToggle: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val scale = remember { Animatable(1f) }
+
+    LaunchedEffect(isFavorite) {
+        scale.animateTo(1.5f, animationSpec = tween(110))
+        scale.animateTo(1f, animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessMedium
+        ))
+    }
+
+    Box(
+        modifier = modifier
+            .padding(5.dp)
+            .size(26.dp)
+            .clip(CircleShape)
+            .background(Color.Black.copy(alpha = 0.45f))
+            .clickable(
+                onClick = onToggle,
+                indication = null,
+                interactionSource = remember { MutableInteractionSource() }
+            ),
+        contentAlignment = Alignment.Center
+    ) {
+        Icon(
+            imageVector = Icons.Filled.Star,
+            contentDescription = null,
+            tint = if (isFavorite) Color(0xFFFFD700) else Color.White.copy(alpha = 0.45f),
+            modifier = Modifier
+                .size(15.dp)
+                .scale(scale.value)
+        )
     }
 }
 
