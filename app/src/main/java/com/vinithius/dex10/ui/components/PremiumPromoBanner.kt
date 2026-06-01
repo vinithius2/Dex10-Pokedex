@@ -213,51 +213,86 @@ fun PremiumPromoBannerContent(
 
             Spacer(modifier = Modifier.width(10.dp))
 
-            Box {
-                Button(
-                    onClick = onUpgradeClick,
-                    shape = RoundedCornerShape(24.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = GoldColor,
-                        contentColor = Color(0xFF1A0033)
-                    ),
-                    contentPadding = androidx.compose.foundation.layout.PaddingValues(
-                        horizontal = 14.dp,
-                        vertical = 5.dp
-                    ),
-                    modifier = Modifier
-                        .padding(top = if (showBadge) 9.dp else 0.dp)
-                        .height(buttonHeight)
+            if (!isExpanded && showBadge) {
+                // Collapsed: badge sits beside the button in a row
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
-                    Text(
-                        text = stringResource(R.string.promo_banner_cta),
-                        fontWeight = FontWeight.ExtraBold,
-                        fontSize = 12.sp
+                    BannerDiscountBadge(discountPercent = discountPercent!!)
+                    BannerBuyButton(
+                        onClick = onUpgradeClick,
+                        height = buttonHeight
                     )
                 }
-                if (showBadge) {
-                    Box(
-                        modifier = Modifier
-                            .align(Alignment.TopEnd)
-                            .clip(RoundedCornerShape(20.dp))
-                            .background(
-                                brush = Brush.horizontalGradient(
-                                    listOf(Color(0xFFFF8C00), Color(0xFFFF1744))
-                                )
-                            )
-                            .padding(horizontal = 5.dp, vertical = 2.dp)
-                    ) {
-                        Text(
-                            text = "$discountPercent% Off",
-                            color = Color.White,
-                            fontWeight = FontWeight.ExtraBold,
-                            fontSize = 10.sp,
-                            letterSpacing = 0.3.sp
+            } else {
+                // Expanded: badge overlays the centre of the button
+                Box {
+                    BannerBuyButton(
+                        onClick = onUpgradeClick,
+                        height = buttonHeight
+                    )
+                    if (showBadge) {
+                        BannerDiscountBadge(
+                            discountPercent = discountPercent!!,
+                            modifier = Modifier.align(Alignment.CenterEnd)
                         )
                     }
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun BannerBuyButton(
+    onClick: () -> Unit,
+    height: androidx.compose.ui.unit.Dp,
+    modifier: Modifier = Modifier,
+) {
+    Button(
+        onClick = onClick,
+        shape = RoundedCornerShape(24.dp),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = GoldColor,
+            contentColor = Color(0xFF1A0033)
+        ),
+        contentPadding = androidx.compose.foundation.layout.PaddingValues(
+            horizontal = 14.dp,
+            vertical = 5.dp
+        ),
+        modifier = modifier.height(height)
+    ) {
+        Text(
+            text = stringResource(R.string.promo_banner_cta),
+            fontWeight = FontWeight.ExtraBold,
+            fontSize = 12.sp
+        )
+    }
+}
+
+@Composable
+private fun BannerDiscountBadge(
+    discountPercent: Int,
+    modifier: Modifier = Modifier,
+) {
+    Box(
+        modifier = modifier
+            .clip(RoundedCornerShape(20.dp))
+            .background(
+                brush = Brush.horizontalGradient(
+                    listOf(Color(0xFFFF8C00), Color(0xFFFF1744))
+                )
+            )
+            .padding(horizontal = 5.dp, vertical = 3.dp)
+    ) {
+        Text(
+            text = "$discountPercent% Off",
+            color = Color.White,
+            fontWeight = FontWeight.ExtraBold,
+            fontSize = 10.sp,
+            letterSpacing = 0.3.sp
+        )
     }
 }
 
