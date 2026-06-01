@@ -671,19 +671,19 @@ class PokemonViewModel(
                     
                     _isDetailFavorite.postValue(newFavoriteStatus)
                     repository.setFavorite(newPokemonEntity)
-                    
-                    // Post new list reference
-                    _pokemonList.postValue(newList)
-                    _pokemonListBackup.postValue(newBackupList)
 
-                    val hasSelectedFilters = _filterMap.value?.values
-                        ?.any { stateMap -> stateMap.values.any { it } } == true
-                    val hasSearch = _searchNameFilter.value?.isNotBlank() == true
-                    val hasFavoriteFilter = _isFavoriteFilter.value == true
-
-                    if (context != null && (hasSelectedFilters || hasSearch || hasFavoriteFilter)) {
-                        getFilterPokemon(context)
+                    // Update both lists synchronously on Main so observers see the new
+                    // favorite state immediately, with no race condition against any
+                    // subsequent read of _pokemonListBackup.
+                    withContext(Dispatchers.Main) {
+                        _pokemonList.value = newList
+                        _pokemonListBackup.value = newBackupList
                     }
+                    // Do NOT call getFilterPokemon() here — toggling a favourite never
+                    // changes type / name / any filter-relevant attribute, so the item
+                    // already satisfies the active filter after the in-place update above.
+                    // The only case where removal is needed (favourites filter + un-favourite)
+                    // is handled after the animation finishes via removeItemIfNotIsFavorite().
                 }
             } catch (e: Exception) {
                 FirebaseCrashlytics.getInstance().recordException(e)
@@ -707,13 +707,20 @@ class PokemonViewModel(
     }
 
     /**
-     * Remove item if not a favorite from the filter favorites
+     * Called after the pokeball animation finishes when the favourites filter is
+     * active and the user just un-favourited an item.  Removes the item from the
+     * displayed list directly — no Loading state, no full re-filter round-trip.
      */
     fun removeItemIfNotIsFavorite(
         context: Context
     ) {
-        _isFavoriteFilter.takeIf { it.value ?: false }?.run {
-            getPokemonFavoriteList(true, context)
+        if (_isFavoriteFilter.value != true) return
+        viewModelScope.launch(dispatcher) {
+            val current = _pokemonList.value ?: return@launch
+            val withoutUnfavourited = current.filter { it.pokemon.favorite }
+            withContext(Dispatchers.Main) {
+                _pokemonList.value = withoutUnfavourited
+            }
         }
     }
 
