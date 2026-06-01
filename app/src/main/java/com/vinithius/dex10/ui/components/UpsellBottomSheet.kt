@@ -351,7 +351,7 @@ private fun ActionSection(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         if (premiumOriginalPrice != null && discountPercent != null) {
-            Column(
+            Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(bottom = 16.dp)
@@ -363,21 +363,27 @@ private fun ActionSection(
                         RoundedCornerShape(16.dp)
                     )
                     .padding(horizontal = 20.dp, vertical = 16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                // Top row: original price (left) + gradient badge (right)
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
+                // Left: final price, large and dominant
+                Text(
+                    text = premiumPrice ?: "---",
+                    style = MaterialTheme.typography.displaySmall,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.weight(1f)
+                )
+
+                // Right: original price (strikethrough) + discount badge stacked
+                Column(horizontalAlignment = Alignment.End) {
                     Text(
                         text = premiumOriginalPrice,
-                        style = MaterialTheme.typography.bodyLarge,
+                        style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
                         textDecoration = TextDecoration.LineThrough,
                         fontWeight = FontWeight.Medium
                     )
+                    Spacer(modifier = Modifier.height(6.dp))
                     Box(
                         modifier = Modifier
                             .clip(RoundedCornerShape(20.dp))
@@ -397,16 +403,6 @@ private fun ActionSection(
                         )
                     }
                 }
-
-                Spacer(modifier = Modifier.height(10.dp))
-
-                // Final price — large and prominent
-                Text(
-                    text = premiumPrice ?: "---",
-                    style = MaterialTheme.typography.displaySmall,
-                    fontWeight = FontWeight.ExtraBold,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
             }
         }
 
