@@ -44,6 +44,7 @@ import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.ui.draw.scale
 import androidx.compose.foundation.pager.HorizontalPager
@@ -999,6 +1000,10 @@ fun PokemonTcgSection(
         visibleCards?.sortedByDescending { it.id in tcgFavorites }
     }
 
+    // Carousel scroll state — used to reveal a newly pinned favourite at the front
+    val listState = rememberLazyListState()
+    val scope = rememberCoroutineScope()
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -1027,6 +1032,7 @@ fun PokemonTcgSection(
             }
         } else if (!sortedCards.isNullOrEmpty() || lockedCount > 0) {
             LazyRow(
+                state = listState,
                 contentPadding = PaddingValues(horizontal = 12.dp),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
@@ -1077,7 +1083,15 @@ fun PokemonTcgSection(
                                 if (isPremium) {
                                     TcgFavoriteStar(
                                         isFavorite = card.id in tcgFavorites,
-                                        onToggle = { onToggleFavorite(card.id) },
+                                        onToggle = {
+                                            val wasFavorite = card.id in tcgFavorites
+                                            onToggleFavorite(card.id)
+                                            // When pinning a new favourite, slide the carousel
+                                            // back to the front so it becomes visible.
+                                            if (!wasFavorite) {
+                                                scope.launch { listState.animateScrollToItem(0) }
+                                            }
+                                        },
                                         modifier = Modifier.align(Alignment.TopEnd)
                                     )
                                 }
