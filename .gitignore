@@ -16,3 +16,6 @@ app/release/output-metadata.json
 app/google*
 app/amazon*
 app/hauwei*git
+
+# Pokemon scanner model conversion output (published as GitHub release asset)
+ml/out/

@@ -416,4 +416,19 @@
     <string name="anime_info">Anime Info</string>
     <string name="voice_actor">Voice Actor (Seiyuu)</string>
     <string name="character_anime">Anime Appearance</string>
+
+    <!-- Pokemon Camera Scanner -->
+    <string name="scan_pokemon">Scan Pokémon</string>
+    <string name="scanner_camera_permission_message">To scan Pokémon, the app needs access to your camera.</string>
+    <string name="scanner_grant_permission">Allow camera</string>
+    <string name="scanner_model_title">Pokémon recognition</string>
+    <string name="scanner_model_message">Download the recognition model (about %1$d MB) to scan Pokémon with your camera. Everything runs on your device and this is done only once.</string>
+    <string name="scanner_download">Download model</string>
+    <string name="scanner_downloading">Downloading model… %1$d%%</string>
+    <string name="scanner_download_error">The download failed. Check your connection and try again.</string>
+    <string name="scanner_try_again">Try again</string>
+    <string name="scanner_hint">Point the camera at a Pokémon: toy, card, print or screen</string>
+    <string name="scanner_match_confidence">%1$d%% match</string>
+    <string name="scanner_open_details">View details</string>
+    <string name="scanner_dismiss">Dismiss</string>
 </resources>
