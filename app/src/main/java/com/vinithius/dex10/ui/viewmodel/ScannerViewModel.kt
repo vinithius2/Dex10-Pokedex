@@ -75,18 +75,25 @@ class ScannerViewModel(
                 candidateStreak = 1
             }
             if (candidateStreak >= STABLE_FRAMES) {
-                // Only show the result card if the user still has uses remaining.
-                // consumeScannerUseOrTriggerUpsell() also fires the upsell sheet when at 0.
-                if (premiumManager.consumeScannerUseOrTriggerUpsell()) {
-                    _stableMatch.value = top
-                    _scansRemaining.value = premiumManager.scannerUsesRemainingToday()
-                }
-                // Reset streak either way so we don't spam consume on the next frames.
+                // Show the card; the scan is only consumed when the user actually
+                // navigates to the detail screen (see consumeForNavigation).
+                _stableMatch.value = top
                 resetStability()
             }
         } else {
             resetStability()
         }
+    }
+
+    /**
+     * Called right before navigating to the detail screen (from card button or chip tap).
+     * Consumes one daily scan for free users. Returns false and fires the upsell if the
+     * daily limit has already been reached; the caller should NOT navigate in that case.
+     */
+    fun consumeForNavigation(): Boolean {
+        val allowed = premiumManager.consumeScannerUseOrTriggerUpsell()
+        _scansRemaining.value = premiumManager.scannerUsesRemainingToday()
+        return allowed
     }
 
     fun dismissMatch() {
