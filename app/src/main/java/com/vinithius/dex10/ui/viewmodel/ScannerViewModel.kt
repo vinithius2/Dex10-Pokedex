@@ -85,6 +85,8 @@ class ScannerViewModel(
         }
     }
 
+    fun triggerUpsell() = premiumManager.triggerUpsell()
+
     /**
      * Called right before navigating to the detail screen (from card button or chip tap).
      * Consumes one daily scan for free users. Returns false and fires the upsell if the
