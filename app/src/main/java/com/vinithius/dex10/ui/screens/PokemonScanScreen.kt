@@ -139,6 +139,7 @@ fun PokemonScanScreen(
                     onClick = {
                         activity?.trackButtonClick("Scanner: upsell from limit screen")
                         navController.popBackStack()
+                        viewModel.triggerUpsell()
                     }
                 )
             }
