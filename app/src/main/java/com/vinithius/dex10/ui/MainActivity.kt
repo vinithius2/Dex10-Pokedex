@@ -39,6 +39,7 @@ import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.PhotoCamera
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Share
@@ -896,6 +897,16 @@ private fun GetTopBar(
                 if (pokemonListBackup.isNotEmpty()) {
                     if (showSearchField.not()) {
                         IconButton(onClick = {
+                            activity?.trackButtonClick("Click scan pokemon")
+                            navController?.navigate("pokemonScan")
+                        }) {
+                            Icon(
+                                imageVector = Icons.Default.PhotoCamera,
+                                contentDescription = stringResource(R.string.scan_pokemon),
+                                tint = Color.White
+                            )
+                        }
+                        IconButton(onClick = {
                             activity?.trackButtonClick("Click search filter")
                             isSearchActive = true
                         }) {
@@ -1270,6 +1281,9 @@ private fun GetNavHost(
             }
             composable("teamList") {
                 com.vinithius.dex10.ui.screens.TeamListScreen(navController)
+            }
+            composable("pokemonScan") {
+                com.vinithius.dex10.ui.screens.PokemonScanScreen(navController)
             }
             composable(
                 route = "teamDetail/{teamId}",

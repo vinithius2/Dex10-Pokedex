@@ -345,4 +345,19 @@
     <string name="feature_tcg_cards">Cartas TCG</string>
     <string name="val_trainer_tcg_cards">Primeras 3</string>
     <string name="val_master_tcg_cards">Todas</string>
+
+    <!-- Pokemon Camera Scanner -->
+    <string name="scan_pokemon">Escanear Pokémon</string>
+    <string name="scanner_camera_permission_message">Para escanear Pokémon, la app necesita acceso a tu cámara.</string>
+    <string name="scanner_grant_permission">Permitir cámara</string>
+    <string name="scanner_model_title">Reconocimiento de Pokémon</string>
+    <string name="scanner_model_message">Descarga el modelo de reconocimiento (unos %1$d MB) para escanear Pokémon con la cámara. Todo se ejecuta en tu dispositivo y solo se hace una vez.</string>
+    <string name="scanner_download">Descargar modelo</string>
+    <string name="scanner_downloading">Descargando modelo… %1$d%%</string>
+    <string name="scanner_download_error">La descarga falló. Comprueba tu conexión e inténtalo de nuevo.</string>
+    <string name="scanner_try_again">Reintentar</string>
+    <string name="scanner_hint">Apunta la cámara a un Pokémon: juguete, carta, estampado o pantalla</string>
+    <string name="scanner_match_confidence">%1$d%% de coincidencia</string>
+    <string name="scanner_open_details">Ver detalles</string>
+    <string name="scanner_dismiss">Descartar</string>
 </resources>
