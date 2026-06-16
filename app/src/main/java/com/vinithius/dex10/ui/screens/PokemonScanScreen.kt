@@ -7,7 +7,8 @@ import android.graphics.Matrix
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.camera.core.CameraSelector
-import androidx.camera.core.ImageAnalysis
+import androidx.camera.core.ImageCapture
+import androidx.camera.core.ImageCaptureException
 import androidx.camera.core.ImageProxy
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
@@ -47,6 +48,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -106,7 +108,15 @@ fun PokemonScanScreen(
     val predictions by viewModel.predictions.collectAsState()
     val stableMatch by viewModel.stableMatch.collectAsState()
     val scansRemaining by viewModel.scansRemaining.collectAsState()
-    val isOutOfScans = scansRemaining != null && scansRemaining == 0
+    val isAnalyzing by viewModel.isAnalyzing.collectAsState()
+
+    // Include isAnalyzing in hasResults so the limit screen never flashes mid-capture
+    val hasResults = predictions.isNotEmpty() || stableMatch != null || isAnalyzing
+    val isOutOfScans = scansRemaining != null && scansRemaining == 0 && !hasResults
+
+    val imageCaptureRef: MutableState<ImageCapture?> = remember { mutableStateOf(null) }
+    val captureExecutor: ExecutorService = remember { Executors.newSingleThreadExecutor() }
+    DisposableEffect(Unit) { onDispose { captureExecutor.shutdown() } }
 
     Box(
         modifier = Modifier
@@ -145,19 +155,32 @@ fun PokemonScanScreen(
             }
 
             else -> {
-                CameraPreviewWithAnalyzer(onFrame = viewModel::onFrame)
+                CameraPreviewWithCapture(imageCaptureRef = imageCaptureRef)
                 ScannerOverlay(
                     predictions = predictions,
                     hasMatch = stableMatch != null,
+                    isAnalyzing = isAnalyzing,
                     scansRemaining = scansRemaining,
+                    onShutter = {
+                        imageCaptureRef.value?.takePicture(
+                            captureExecutor,
+                            object : ImageCapture.OnImageCapturedCallback() {
+                                override fun onCaptureSuccess(image: ImageProxy) {
+                                    val bitmap = image.toRotatedBitmap()
+                                    image.close()
+                                    viewModel.captureAndClassify(bitmap)
+                                }
+                                override fun onError(e: ImageCaptureException) {}
+                            }
+                        )
+                    },
                     onPredictionClick = { prediction ->
-                        if (viewModel.consumeForNavigation()) {
-                            activity?.trackButtonClick("Scanner: open detail ID: ${prediction.dexId}")
-                            pokemonViewModel.setIdPokemon(prediction.dexId)
-                            viewModel.dismissMatch()
-                            navController.navigate("pokemonDetail/${prediction.dexId}")
-                        }
-                    }
+                        activity?.trackButtonClick("Scanner: open detail ID: ${prediction.dexId}")
+                        pokemonViewModel.setIdPokemon(prediction.dexId)
+                        viewModel.dismissMatch()
+                        navController.navigate("pokemonDetail/${prediction.dexId}")
+                    },
+                    onDismissResults = { viewModel.dismissMatch() }
                 )
             }
         }
@@ -181,12 +204,10 @@ fun PokemonScanScreen(
             MatchCard(
                 match = match,
                 onOpenDetails = {
-                    if (viewModel.consumeForNavigation()) {
-                        activity?.trackButtonClick("Scanner: open detail ID: ${match.dexId}")
-                        pokemonViewModel.setIdPokemon(match.dexId)
-                        viewModel.dismissMatch()
-                        navController.navigate("pokemonDetail/${match.dexId}")
-                    }
+                    activity?.trackButtonClick("Scanner: open detail ID: ${match.dexId}")
+                    pokemonViewModel.setIdPokemon(match.dexId)
+                    viewModel.dismissMatch()
+                    navController.navigate("pokemonDetail/${match.dexId}")
                 },
                 onDismiss = { viewModel.dismissMatch() },
                 modifier = Modifier
@@ -198,9 +219,10 @@ fun PokemonScanScreen(
 }
 
 @Composable
-private fun CameraPreviewWithAnalyzer(onFrame: (Bitmap) -> Unit) {
+private fun CameraPreviewWithCapture(
+    imageCaptureRef: MutableState<ImageCapture?>,
+) {
     val lifecycleOwner = LocalLifecycleOwner.current
-    val analysisExecutor: ExecutorService = remember { Executors.newSingleThreadExecutor() }
     val providerHolder = remember { mutableStateOf<ProcessCameraProvider?>(null) }
 
     AndroidView(
@@ -216,24 +238,16 @@ private fun CameraPreviewWithAnalyzer(onFrame: (Bitmap) -> Unit) {
                 val preview = Preview.Builder().build().also {
                     it.setSurfaceProvider(previewView.surfaceProvider)
                 }
-                val analysis = ImageAnalysis.Builder()
-                    .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
+                val imageCapture = ImageCapture.Builder()
+                    .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
                     .build()
-                analysis.setAnalyzer(analysisExecutor) { imageProxy ->
-                    try {
-                        onFrame(imageProxy.toRotatedBitmap())
-                    } catch (_: Exception) {
-                        // Skip frames that fail to convert; the next one will follow shortly.
-                    } finally {
-                        imageProxy.close()
-                    }
-                }
+                imageCaptureRef.value = imageCapture
                 provider.unbindAll()
                 provider.bindToLifecycle(
                     lifecycleOwner,
                     CameraSelector.DEFAULT_BACK_CAMERA,
                     preview,
-                    analysis
+                    imageCapture
                 )
             }, ContextCompat.getMainExecutor(ctx))
             previewView
@@ -241,10 +255,7 @@ private fun CameraPreviewWithAnalyzer(onFrame: (Bitmap) -> Unit) {
     )
 
     DisposableEffect(Unit) {
-        onDispose {
-            providerHolder.value?.unbindAll()
-            analysisExecutor.shutdown()
-        }
+        onDispose { providerHolder.value?.unbindAll() }
     }
 }
 
@@ -260,8 +271,11 @@ private fun ImageProxy.toRotatedBitmap(): Bitmap {
 private fun ScannerOverlay(
     predictions: List<Prediction>,
     hasMatch: Boolean,
+    isAnalyzing: Boolean,
     scansRemaining: Int?,
+    onShutter: () -> Unit,
     onPredictionClick: (Prediction) -> Unit,
+    onDismissResults: () -> Unit,
 ) {
     Box(modifier = Modifier.fillMaxSize()) {
         // Hint + remaining badge — top center
@@ -312,20 +326,64 @@ private fun ScannerOverlay(
                 )
         )
 
-        // Prediction chips — bottom center
-        if (!hasMatch && predictions.isNotEmpty()) {
-            Row(
+        // Analyzing spinner — shown while the model is running on the captured frame
+        if (isAnalyzing) {
+            CircularProgressIndicator(
+                modifier = Modifier.align(Alignment.Center),
+                color = Color.White
+            )
+        }
+
+        // Prediction chips — shown after capture when there is no high-confidence card
+        if (!hasMatch && !isAnalyzing && predictions.isNotEmpty()) {
+            Column(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
-                    .padding(bottom = 100.dp, start = 16.dp, end = 16.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    .padding(bottom = 32.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                predictions.forEach { prediction ->
-                    PredictionChip(
-                        prediction = prediction,
-                        onClick = { onPredictionClick(prediction) }
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.padding(horizontal = 16.dp)
+                ) {
+                    predictions.forEach { prediction ->
+                        PredictionChip(
+                            prediction = prediction,
+                            onClick = { onPredictionClick(prediction) }
+                        )
+                    }
+                }
+                IconButton(
+                    onClick = onDismissResults,
+                    modifier = Modifier.background(Color.Black.copy(alpha = 0.5f), CircleShape)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Close,
+                        contentDescription = stringResource(R.string.scanner_dismiss),
+                        tint = Color.White
                     )
                 }
+            }
+        }
+
+        // Shutter button — shown when no results are visible and not currently analyzing
+        if (!hasMatch && !isAnalyzing && predictions.isEmpty()) {
+            Box(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(bottom = 40.dp)
+                    .size(72.dp)
+                    .background(Color.White, CircleShape)
+                    .clickable(onClick = onShutter),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Default.CameraAlt,
+                    contentDescription = stringResource(R.string.scan_pokemon),
+                    tint = Color.Black,
+                    modifier = Modifier.size(36.dp)
+                )
             }
         }
     }

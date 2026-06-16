@@ -2,8 +2,6 @@ package com.vinithius.dex10.ui.viewmodel
 
 import android.content.Context
 import android.graphics.Bitmap
-import android.os.SystemClock
-import androidx.annotation.WorkerThread
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.vinithius.dex10.datasource.data.PremiumManager
@@ -26,88 +24,66 @@ class ScannerViewModel(
     private val _predictions = MutableStateFlow<List<Prediction>>(emptyList())
     val predictions: StateFlow<List<Prediction>> = _predictions
 
-    /** Set once the same Pokémon stays on top with high confidence for a few frames. */
     private val _stableMatch = MutableStateFlow<Prediction?>(null)
     val stableMatch: StateFlow<Prediction?> = _stableMatch
 
-    /**
-     * Remaining scanner uses for free users today (null = unlimited / premium).
-     * Updated every time a scan is consumed or the screen is opened.
-     */
     private val _scansRemaining = MutableStateFlow(premiumManager.scannerUsesRemainingToday())
     val scansRemaining: StateFlow<Int?> = _scansRemaining
 
+    /** True while the captured photo is being run through the classifier. */
+    private val _isAnalyzing = MutableStateFlow(false)
+    val isAnalyzing: StateFlow<Boolean> = _isAnalyzing
+
     private var classifier: PokemonClassifier? = null
-    private var lastInferenceAt = 0L
-    private var candidateDexId = -1
-    private var candidateStreak = 0
 
     fun downloadModel() {
         viewModelScope.launch(Dispatchers.IO) { modelManager.download() }
     }
 
-    /** Runs inference synchronously; must be called from the camera analyzer thread. */
-    @WorkerThread
-    fun onFrame(bitmap: Bitmap) {
-        val readyState = modelState.value as? ScannerModelManager.ModelState.Ready ?: return
-        if (_stableMatch.value != null) return // paused while the result card is shown
-        val now = SystemClock.elapsedRealtime()
-        if (now - lastInferenceAt < MIN_INTERVAL_MS) return
-        lastInferenceAt = now
+    /**
+     * Consumes one daily scan, then classifies the captured bitmap.
+     * Sets [predictions] (top-3) and [stableMatch] (if top-1 confidence ≥ threshold).
+     * Must be called from any thread; switches to IO internally.
+     */
+    fun captureAndClassify(bitmap: Bitmap) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val readyState = modelState.value as? ScannerModelManager.ModelState.Ready ?: return@launch
+            _isAnalyzing.value = true
+            try {
+                val allowed = premiumManager.consumeScannerUseOrTriggerUpsell()
+                _scansRemaining.value = premiumManager.scannerUsesRemainingToday()
+                if (!allowed) return@launch
 
-        val activeClassifier = classifier
-            ?: runCatching { PokemonClassifier(appContext, readyState.file) }
-                .getOrNull()
-                ?.also { classifier = it }
-            ?: return
-        val results = runCatching { activeClassifier.classify(bitmap) }.getOrElse { return }
+                val activeClassifier = classifier
+                    ?: runCatching { PokemonClassifier(appContext, readyState.file) }
+                        .getOrNull()
+                        ?.also { classifier = it }
+                    ?: return@launch
 
-        val top = results.firstOrNull()
-        if (top == null || top.confidence < MIN_DISPLAY_CONFIDENCE) {
-            _predictions.value = emptyList()
-            resetStability()
-            return
-        }
-        _predictions.value = results
-        if (top.confidence >= STABLE_CONFIDENCE) {
-            if (top.dexId == candidateDexId) candidateStreak++ else {
-                candidateDexId = top.dexId
-                candidateStreak = 1
+                val results = runCatching { activeClassifier.classify(bitmap) }.getOrElse { return@launch }
+                val top = results.firstOrNull()
+
+                if (top == null || top.confidence < MIN_DISPLAY_CONFIDENCE) {
+                    _predictions.value = emptyList()
+                    _stableMatch.value = null
+                } else {
+                    _predictions.value = results
+                    if (top.confidence >= STABLE_CONFIDENCE) {
+                        _stableMatch.value = top
+                    }
+                }
+            } finally {
+                _isAnalyzing.value = false
             }
-            if (candidateStreak >= STABLE_FRAMES) {
-                // Show the card; the scan is only consumed when the user actually
-                // navigates to the detail screen (see consumeForNavigation).
-                _stableMatch.value = top
-                resetStability()
-            }
-        } else {
-            resetStability()
         }
     }
 
     fun triggerUpsell() = premiumManager.triggerUpsell()
 
-    /**
-     * Called right before navigating to the detail screen (from card button or chip tap).
-     * Consumes one daily scan for free users. Returns false and fires the upsell if the
-     * daily limit has already been reached; the caller should NOT navigate in that case.
-     */
-    fun consumeForNavigation(): Boolean {
-        val allowed = premiumManager.consumeScannerUseOrTriggerUpsell()
-        _scansRemaining.value = premiumManager.scannerUsesRemainingToday()
-        return allowed
-    }
-
     fun dismissMatch() {
         _stableMatch.value = null
         _predictions.value = emptyList()
-        resetStability()
         _scansRemaining.value = premiumManager.scannerUsesRemainingToday()
-    }
-
-    private fun resetStability() {
-        candidateDexId = -1
-        candidateStreak = 0
     }
 
     override fun onCleared() {
@@ -116,9 +92,7 @@ class ScannerViewModel(
     }
 
     companion object {
-        private const val MIN_INTERVAL_MS = 400L
         private const val MIN_DISPLAY_CONFIDENCE = 0.15f
         private const val STABLE_CONFIDENCE = 0.45f
-        private const val STABLE_FRAMES = 2
     }
 }
