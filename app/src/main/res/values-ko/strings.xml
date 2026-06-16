@@ -345,4 +345,25 @@
     <string name="feature_tcg_cards">TCG 카드</string>
     <string name="val_trainer_tcg_cards">처음 3장</string>
     <string name="val_master_tcg_cards">전부</string>
+
+    <!-- Pokemon Camera Scanner -->
+    <string name="scan_pokemon">포켓몬 스캔</string>
+    <string name="scanner_camera_permission_message">포켓몬을 스캔하려면 카메라 접근 권한이 필요합니다.</string>
+    <string name="scanner_grant_permission">카메라 허용</string>
+    <string name="scanner_model_title">포켓몬 인식</string>
+    <string name="scanner_model_message">카메라로 포켓몬을 스캔하려면 인식 모델(약 %1$d MB)을 다운로드하세요. 모든 처리는 기기에서 이루어지며 다운로드는 한 번만 하면 됩니다.</string>
+    <string name="scanner_download">모델 다운로드</string>
+    <string name="scanner_downloading">모델 다운로드 중… %1$d%%</string>
+    <string name="scanner_download_error">다운로드에 실패했습니다. 연결을 확인하고 다시 시도하세요.</string>
+    <string name="scanner_try_again">다시 시도</string>
+    <string name="scanner_hint">카메라를 포켓몬에 향하세요: 장난감, 카드, 프린트, 화면 등</string>
+    <string name="scanner_match_confidence">일치율 %1$d%%</string>
+    <string name="scanner_open_details">상세 보기</string>
+    <string name="scanner_dismiss">닫기</string>
+    <string name="scanner_uses_remaining">오늘 %1$d회 남음</string>
+    <string name="scanner_limit_reached">오늘의 무료 스캔 3회를 모두 사용했습니다.
+무제한 스캔을 위해 프리미엄으로 업그레이드하세요.</string>
+    <string name="feature_scanner">포켓몬 스캐너</string>
+    <string name="val_trainer_scanner">하루 3회</string>
+    <string name="val_master_scanner">무제한</string>
 </resources>

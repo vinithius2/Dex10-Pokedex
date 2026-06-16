@@ -345,4 +345,25 @@
     <string name="feature_tcg_cards">TCG कार्ड</string>
     <string name="val_trainer_tcg_cards">पहले 3</string>
     <string name="val_master_tcg_cards">सभी</string>
+
+    <!-- Pokemon Camera Scanner -->
+    <string name="scan_pokemon">पोकेमॉन स्कैन करें</string>
+    <string name="scanner_camera_permission_message">पोकेमॉन स्कैन करने के लिए ऐप को आपके कैमरे की अनुमति चाहिए।</string>
+    <string name="scanner_grant_permission">कैमरा अनुमति दें</string>
+    <string name="scanner_model_title">पोकेमॉन पहचान</string>
+    <string name="scanner_model_message">कैमरे से पोकेमॉन स्कैन करने के लिए पहचान मॉडल (लगभग %1$d MB) डाउनलोड करें। सब कुछ आपके डिवाइस पर चलता है और यह केवल एक बार करना होता है।</string>
+    <string name="scanner_download">मॉडल डाउनलोड करें</string>
+    <string name="scanner_downloading">मॉडल डाउनलोड हो रहा है… %1$d%%</string>
+    <string name="scanner_download_error">डाउनलोड विफल रहा। अपना कनेक्शन जांचें और फिर से प्रयास करें।</string>
+    <string name="scanner_try_again">फिर से प्रयास करें</string>
+    <string name="scanner_hint">कैमरे को किसी पोकेमॉन की ओर करें: खिलौना, कार्ड, प्रिंट या स्क्रीन</string>
+    <string name="scanner_match_confidence">%1$d%% मिलान</string>
+    <string name="scanner_open_details">विवरण देखें</string>
+    <string name="scanner_dismiss">हटाएं</string>
+    <string name="scanner_uses_remaining">आज %1$d शेष</string>
+    <string name="scanner_limit_reached">आपने आज के 3 मुफ्त स्कैन उपयोग कर लिए हैं।
+असीमित स्कैन के लिए प्रीमियम अपग्रेड करें।</string>
+    <string name="feature_scanner">पोकेमॉन स्कैनर</string>
+    <string name="val_trainer_scanner">3×/दिन</string>
+    <string name="val_master_scanner">असीमित</string>
 </resources>

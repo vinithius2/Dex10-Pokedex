@@ -35,14 +35,20 @@ val repositoryDataModule = module {
 val viewModelModule = module {
     single { PokemonViewModel(get(), get(), get()) }
     viewModel { com.vinithius.dex10.ui.viewmodel.TeamViewModel(get(), get(), get()) }
+    viewModel { com.vinithius.dex10.ui.viewmodel.ScannerViewModel(get(), get(), androidContext()) }
 }
 
 val appPreferencesModule = module {
     single { AppPreferences(androidContext()) }
 }
 
+val scannerModule = module {
+    single { com.vinithius.dex10.scanner.ScannerModelManager(androidContext()) }
+}
+
+// BillingHandler is provided by the flavor-specific billingModule (google/amazon/huawei)
 val premiumModule = module {
-    single { PremiumManager(androidContext(), appPreferences = get()) }
+    single { PremiumManager(androidContext(), get(), appPreferences = get()) }
 }
 
 val networkModule = module {
@@ -87,4 +93,3 @@ fun retrofit(baseUrl: String): Retrofit {
         .build()
 
 }
-

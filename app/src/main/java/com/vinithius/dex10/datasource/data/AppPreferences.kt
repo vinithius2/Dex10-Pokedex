@@ -19,6 +19,8 @@ class AppPreferences(context: Context) {
         private const val KEY_DARK_MODE = "dark_mode"
         private const val KEY_NOTIFICATIONS = "notifications_enabled"
         private const val KEY_LOW_QUALITY = "low_quality_images"
+        private const val KEY_SCANNER_COUNT = "scanner_daily_count"
+        private const val KEY_SCANNER_DATE = "scanner_daily_date"
 
         // FCM topics — send to all three from Firebase Console to reach everyone,
         // or target individually to reach only premium / only free users.
@@ -31,6 +33,7 @@ class AppPreferences(context: Context) {
         const val DARK_MODE_ON = 1
         const val DARK_MODE_OFF = 2
         private const val KEY_VIEW_MODE = "view_mode"
+        private const val KEY_TCG_FAVORITES = "tcg_favorite_cards"
     }
 
     enum class ViewMode(val value: Int) {
@@ -115,5 +118,41 @@ class AppPreferences(context: Context) {
     fun setViewMode(value: ViewMode) {
         prefs.edit().putInt(KEY_VIEW_MODE, value.value).apply()
         _viewMode.value = value
+    }
+
+    // --- Scanner Daily Usage ---
+
+    private fun todayIso(): String =
+        java.time.LocalDate.now().toString() // "2026-06-12"
+
+    /** Returns how many scanner identifications the user has used today. */
+    fun getScannerUsageToday(): Int {
+        if (prefs.getString(KEY_SCANNER_DATE, null) != todayIso()) return 0
+        return prefs.getInt(KEY_SCANNER_COUNT, 0)
+    }
+
+    /** Increments the daily scanner counter and returns the new count. */
+    fun incrementScannerUsage(): Int {
+        val today = todayIso()
+        val count = if (prefs.getString(KEY_SCANNER_DATE, null) == today) {
+            prefs.getInt(KEY_SCANNER_COUNT, 0) + 1
+        } else {
+            1
+        }
+        prefs.edit().putString(KEY_SCANNER_DATE, today).putInt(KEY_SCANNER_COUNT, count).apply()
+        return count
+    }
+
+    // --- TCG Card Favourites (premium only) ---
+    private val _tcgFavorites = MutableStateFlow<Set<String>>(
+        prefs.getStringSet(KEY_TCG_FAVORITES, emptySet())?.toSet() ?: emptySet()
+    )
+    val tcgFavorites: StateFlow<Set<String>> = _tcgFavorites.asStateFlow()
+
+    fun toggleTcgFavorite(cardId: String) {
+        val updated = _tcgFavorites.value.toMutableSet()
+        if (cardId in updated) updated.remove(cardId) else updated.add(cardId)
+        prefs.edit().putStringSet(KEY_TCG_FAVORITES, updated).apply()
+        _tcgFavorites.value = updated
     }
 }

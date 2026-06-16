@@ -345,4 +345,25 @@
     <string name="feature_tcg_cards">TCG-Karten</string>
     <string name="val_trainer_tcg_cards">Erste 3</string>
     <string name="val_master_tcg_cards">Alle</string>
+
+    <!-- Pokemon Camera Scanner -->
+    <string name="scan_pokemon">Pokémon scannen</string>
+    <string name="scanner_camera_permission_message">Um Pokémon zu scannen, benötigt die App Zugriff auf deine Kamera.</string>
+    <string name="scanner_grant_permission">Kamera erlauben</string>
+    <string name="scanner_model_title">Pokémon-Erkennung</string>
+    <string name="scanner_model_message">Lade das Erkennungsmodell (ca. %1$d MB) herunter, um Pokémon mit der Kamera zu scannen. Alles läuft auf deinem Gerät und ist nur einmal nötig.</string>
+    <string name="scanner_download">Modell herunterladen</string>
+    <string name="scanner_downloading">Modell wird heruntergeladen… %1$d%%</string>
+    <string name="scanner_download_error">Der Download ist fehlgeschlagen. Prüfe deine Verbindung und versuche es erneut.</string>
+    <string name="scanner_try_again">Erneut versuchen</string>
+    <string name="scanner_hint">Richte die Kamera auf ein Pokémon: Spielzeug, Karte, Druck oder Bildschirm</string>
+    <string name="scanner_match_confidence">%1$d%% Übereinstimmung</string>
+    <string name="scanner_open_details">Details ansehen</string>
+    <string name="scanner_dismiss">Verwerfen</string>
+    <string name="scanner_uses_remaining">Noch %1$d heute</string>
+    <string name="scanner_limit_reached">Du hast deine 3 kostenlosen Scans für heute aufgebraucht.
+Upgrade auf Premium für unbegrenzte Scans.</string>
+    <string name="feature_scanner">Pokémon-Scanner</string>
+    <string name="val_trainer_scanner">3×/Tag</string>
+    <string name="val_master_scanner">Unbegrenzt</string>
 </resources>

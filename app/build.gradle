@@ -21,8 +21,8 @@ android {
         applicationId "com.vinithius.dex10"
         minSdk 23
         targetSdk 36
-        versionCode 17
-        versionName "2.2"
+        versionCode 21
+        versionName "2.6"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         buildConfigField "String", "WEBHOOK_KEY", apikeyProperties['WEBHOOK_KEY']
@@ -49,7 +49,6 @@ android {
         }
         release {
             minifyEnabled true
-            // Enables native debug symbols for Play Console
             ndk {
                 debugSymbolLevel 'FULL'
             }
@@ -78,7 +77,11 @@ android {
 }
 
 dependencies {
-    //implementation 'androidx.camera:camera-core:1.4.2'
+    // Pokemon camera scanner: CameraX + ONNX Runtime (on-device classifier)
+    implementation "androidx.camera:camera-camera2:1.4.1"
+    implementation "androidx.camera:camera-lifecycle:1.4.1"
+    implementation "androidx.camera:camera-view:1.4.1"
+    implementation "com.microsoft.onnxruntime:onnxruntime-android:1.20.0"
 
     // Common dependencies
     def composeBom = platform('androidx.compose:compose-bom:2024.11.00')
@@ -141,8 +144,12 @@ dependencies {
     testImplementation "org.robolectric:robolectric:4.13"
     androidTestImplementation "androidx.test.ext:junit:1.1.3"
     androidTestImplementation "androidx.test.espresso:espresso-core:3.4.0"
+    testImplementation "io.mockk:mockk:1.13.12"
+    testImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3"
+    testImplementation "androidx.arch.core:core-testing:2.2.0"
+    testImplementation "androidx.test:core:1.5.0"
 
-    // Google & Firebase for google and amazon flavors
+    // Google flavor: Firebase, Play Services, Ads, Google Play Billing
     googleImplementation 'com.google.firebase:firebase-database-ktx:21.0.0'
     googleImplementation 'com.google.firebase:firebase-crashlytics-ktx:19.3.0'
     googleImplementation 'com.google.firebase:firebase-analytics-ktx:22.1.2'
@@ -152,16 +159,11 @@ dependencies {
     googleImplementation 'com.google.android.gms:play-services-ads:23.6.0'
     googleImplementation 'com.google.android.play:review:2.0.2'
     googleImplementation 'com.google.android.play:review-ktx:2.0.2'
+    googleImplementation 'com.android.billingclient:billing-ktx:7.0.0'
 
-    // Testing
-    testImplementation "io.mockk:mockk:1.13.12"
-    testImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3"
-    testImplementation "androidx.arch.core:core-testing:2.2.0"
-    testImplementation "androidx.test:core:1.5.0"
-
-    // Google Play Billing
-    implementation 'com.android.billingclient:billing-ktx:7.0.0'
-
+    // Amazon flavor: Firebase, Play Services, Ads, Amazon In-App Purchasing
+    // Download Amazon IAP SDK JAR from https://developer.amazon.com/apps-and-games/sdk
+    // and place it in libs/amazon/
     amazonImplementation 'com.google.firebase:firebase-database-ktx:21.0.0'
     amazonImplementation 'com.google.firebase:firebase-crashlytics-ktx:19.3.0'
     amazonImplementation 'com.google.firebase:firebase-analytics-ktx:22.1.2'
@@ -171,22 +173,12 @@ dependencies {
     amazonImplementation 'com.google.android.gms:play-services-ads:23.6.0'
     amazonImplementation 'com.google.android.play:review:2.0.2'
     amazonImplementation 'com.google.android.play:review-ktx:2.0.2'
+    amazonImplementation fileTree(dir: "${rootProject.projectDir}/libs/amazon", include: ['*.jar', '*.aar'])
 
-    // HMS Core for huawei flavor
+    // Huawei flavor: HMS Core, Analytics, Ads, Push, In-App Purchases
     huaweiImplementation 'com.huawei.hms:base:6.8.0.300'
     huaweiImplementation 'com.huawei.hms:ads:6.8.0.300'
     huaweiImplementation 'com.huawei.hms:analytics:6.8.0.300'
     huaweiImplementation 'com.huawei.hms:push:6.8.0.300'
-
-    //implementation("com.google.firebase:firebase-ml-modeldownloader")
-    //implementation('com.google.firebase:firebase-ml-vision:24.1.0') {
-    //    exclude group: 'com.google.android.gms', module: 'play-services-vision-common'
-    //}
-    //implementation 'com.google.firebase:firebase-ml-model-interpreter:22.0.4'
-    //implementation 'com.google.mlkit:image-labeling-custom-common:17.0.0'
-
-    //implementation 'com.google.mlkit:image-labeling:17.0.9'
-    //implementation 'com.google.mlkit:image-labeling-custom:17.0.3'
-
-
+    huaweiImplementation 'com.huawei.hms:iap:6.12.0.300'
 }

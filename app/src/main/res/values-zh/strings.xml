@@ -345,4 +345,25 @@
     <string name="feature_tcg_cards">TCG卡牌</string>
     <string name="val_trainer_tcg_cards">前3张</string>
     <string name="val_master_tcg_cards">全部</string>
+
+    <!-- Pokemon Camera Scanner -->
+    <string name="scan_pokemon">扫描宝可梦</string>
+    <string name="scanner_camera_permission_message">要扫描宝可梦，应用需要访问您的相机。</string>
+    <string name="scanner_grant_permission">允许相机</string>
+    <string name="scanner_model_title">宝可梦识别</string>
+    <string name="scanner_model_message">下载识别模型（约 %1$d MB）即可用相机扫描宝可梦。一切都在您的设备上运行，只需下载一次。</string>
+    <string name="scanner_download">下载模型</string>
+    <string name="scanner_downloading">正在下载模型… %1$d%%</string>
+    <string name="scanner_download_error">下载失败。请检查网络连接后重试。</string>
+    <string name="scanner_try_again">重试</string>
+    <string name="scanner_hint">将相机对准宝可梦：玩具、卡牌、印刷品或屏幕</string>
+    <string name="scanner_match_confidence">匹配度 %1$d%%</string>
+    <string name="scanner_open_details">查看详情</string>
+    <string name="scanner_dismiss">关闭</string>
+    <string name="scanner_uses_remaining">今日还剩 %1$d 次</string>
+    <string name="scanner_limit_reached">您已用完今日3次免费扫描。
+升级到高级版即可无限次扫描。</string>
+    <string name="feature_scanner">宝可梦扫描仪</string>
+    <string name="val_trainer_scanner">每天3次</string>
+    <string name="val_master_scanner">无限次</string>
 </resources>

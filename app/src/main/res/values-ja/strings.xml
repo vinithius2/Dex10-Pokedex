@@ -345,4 +345,25 @@
     <string name="feature_tcg_cards">TCGカード</string>
     <string name="val_trainer_tcg_cards">最初の3枚</string>
     <string name="val_master_tcg_cards">全て</string>
+
+    <!-- Pokemon Camera Scanner -->
+    <string name="scan_pokemon">ポケモンをスキャン</string>
+    <string name="scanner_camera_permission_message">ポケモンをスキャンするには、カメラへのアクセスが必要です。</string>
+    <string name="scanner_grant_permission">カメラを許可</string>
+    <string name="scanner_model_title">ポケモン認識</string>
+    <string name="scanner_model_message">カメラでポケモンをスキャンするには、認識モデル（約%1$d MB）をダウンロードしてください。すべて端末内で動作し、ダウンロードは一度だけです。</string>
+    <string name="scanner_download">モデルをダウンロード</string>
+    <string name="scanner_downloading">モデルをダウンロード中… %1$d%%</string>
+    <string name="scanner_download_error">ダウンロードに失敗しました。接続を確認してもう一度お試しください。</string>
+    <string name="scanner_try_again">再試行</string>
+    <string name="scanner_hint">カメラをポケモンに向けてください：おもちゃ、カード、プリント、画面など</string>
+    <string name="scanner_match_confidence">一致度 %1$d%%</string>
+    <string name="scanner_open_details">詳細を見る</string>
+    <string name="scanner_dismiss">閉じる</string>
+    <string name="scanner_uses_remaining">本日残り%1$d回</string>
+    <string name="scanner_limit_reached">本日の無料スキャン3回を使い切りました。
+プレミアムにアップグレードで無制限にスキャンできます。</string>
+    <string name="feature_scanner">ポケモンスキャナー</string>
+    <string name="val_trainer_scanner">1日3回</string>
+    <string name="val_master_scanner">無制限</string>
 </resources>

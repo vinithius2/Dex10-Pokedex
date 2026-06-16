@@ -13,6 +13,8 @@ private val listModules by lazy {
         networkModule,
         databaseModule,
         appPreferencesModule,
+        scannerModule,
+        billingModule,   // from flavor source set: google / amazon / huawei
         premiumModule
     )
 }
