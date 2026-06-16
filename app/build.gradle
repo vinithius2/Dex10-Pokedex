@@ -21,8 +21,8 @@ android {
         applicationId "com.vinithius.dex10"
         minSdk 24
         targetSdk 36
-        versionCode 24
-        versionName "2.9"
+        versionCode 25
+        versionName "3.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         buildConfigField "String", "WEBHOOK_KEY", apikeyProperties['WEBHOOK_KEY']
@@ -74,6 +74,17 @@ android {
         compose true
         dataBinding true
     }
+
+    // 16 KB page size support (required by Google Play for apps targeting Android 15+).
+    // The native .so libraries (ONNX Runtime, CameraX, ML Kit, graphics-path) must be:
+    //   1) ELF-aligned to 16 KB  -> provided by the dependency versions (onnxruntime-android >= 1.22.0).
+    //   2) Stored UNCOMPRESSED and 16 KB zip-aligned inside the APK/AAB -> guaranteed below.
+    // Keeping the .so uncompressed lets AGP (>= 8.5.1) zip-align them to 16 KB automatically.
+    packaging {
+        jniLibs {
+            useLegacyPackaging false
+        }
+    }
 }
 
 dependencies {
@@ -81,6 +92,8 @@ dependencies {
     implementation "androidx.camera:camera-camera2:1.4.1"
     implementation "androidx.camera:camera-lifecycle:1.4.1"
     implementation "androidx.camera:camera-view:1.4.1"
+    // Keep onnxruntime-android >= 1.22.0: version 1.20.0 shipped a 4 KB-aligned
+    // libonnxruntime4j_jni.so that fails Google Play's 16 KB page size requirement.
     implementation "com.microsoft.onnxruntime:onnxruntime-android:1.22.0"
 
     // Common dependencies
