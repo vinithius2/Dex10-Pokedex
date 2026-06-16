@@ -363,4 +363,7 @@
     <string name="scanner_uses_remaining">%1$d restantes hoy</string>
     <string name="scanner_limit_reached">Has usado los 3 scans gratuitos de hoy.
 Actualiza a Premium para scans ilimitados.</string>
+    <string name="feature_scanner">Pokémon Scanner</string>
+    <string name="val_trainer_scanner">3×/día</string>
+    <string name="val_master_scanner">Ilimitado</string>
 </resources>

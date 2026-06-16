@@ -362,4 +362,7 @@
     <string name="scanner_dismiss">Ignorer</string>
     <string name="scanner_uses_remaining">%1$d restants aujourd\'hui</string>
     <string name="scanner_limit_reached">Vous avez utilisé vos 3 scans gratuits du jour.\nPassez à Premium pour des scans illimités.</string>
+    <string name="feature_scanner">Scanner Pokémon</string>
+    <string name="val_trainer_scanner">3×/jour</string>
+    <string name="val_master_scanner">Illimité</string>
 </resources>

@@ -289,6 +289,11 @@ private fun ComparisonTable() {
             stringResource(R.string.val_trainer_tcg_cards),
             stringResource(R.string.val_master_tcg_cards)
         )
+        ComparisonRow(
+            stringResource(R.string.feature_scanner),
+            stringResource(R.string.val_trainer_scanner),
+            stringResource(R.string.val_master_scanner)
+        )
     }
 }
 

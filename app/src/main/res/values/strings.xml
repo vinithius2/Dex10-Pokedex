@@ -286,6 +286,9 @@
     <string name="feature_tcg_cards">TCG Cards</string>
     <string name="val_trainer_tcg_cards">First 3</string>
     <string name="val_master_tcg_cards">All cards</string>
+    <string name="feature_scanner">Pokémon Scanner</string>
+    <string name="val_trainer_scanner">3×/day</string>
+    <string name="val_master_scanner">Unlimited</string>
 
     <string name="cta_upgrade">Unlock Now — %1$s</string>
     <string name="footer_google_play">One-time and secure payment via Google Play.</string>

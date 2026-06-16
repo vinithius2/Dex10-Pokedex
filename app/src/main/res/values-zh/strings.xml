@@ -363,4 +363,7 @@
     <string name="scanner_uses_remaining">今日还剩 %1$d 次</string>
     <string name="scanner_limit_reached">您已用完今日3次免费扫描。
 升级到高级版即可无限次扫描。</string>
+    <string name="feature_scanner">宝可梦扫描仪</string>
+    <string name="val_trainer_scanner">每天3次</string>
+    <string name="val_master_scanner">无限次</string>
 </resources>

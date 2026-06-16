@@ -363,4 +363,7 @@
     <string name="scanner_uses_remaining">本日残り%1$d回</string>
     <string name="scanner_limit_reached">本日の無料スキャン3回を使い切りました。
 プレミアムにアップグレードで無制限にスキャンできます。</string>
+    <string name="feature_scanner">ポケモンスキャナー</string>
+    <string name="val_trainer_scanner">1日3回</string>
+    <string name="val_master_scanner">無制限</string>
 </resources>
