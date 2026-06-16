@@ -19,7 +19,7 @@ android {
     defaultConfig {
         missingDimensionStrategy "store", "google"
         applicationId "com.vinithius.dex10"
-        minSdk 23
+        minSdk 24
         targetSdk 36
         versionCode 23
         versionName "2.8"
