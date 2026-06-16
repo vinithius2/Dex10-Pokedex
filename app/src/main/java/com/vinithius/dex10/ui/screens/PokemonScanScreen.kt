@@ -150,10 +150,12 @@ fun PokemonScanScreen(
                     hasMatch = stableMatch != null,
                     scansRemaining = scansRemaining,
                     onPredictionClick = { prediction ->
-                        activity?.trackButtonClick("Scanner: open detail ID: ${prediction.dexId}")
-                        pokemonViewModel.setIdPokemon(prediction.dexId)
-                        viewModel.dismissMatch()
-                        navController.navigate("pokemonDetail/${prediction.dexId}")
+                        if (viewModel.consumeForNavigation()) {
+                            activity?.trackButtonClick("Scanner: open detail ID: ${prediction.dexId}")
+                            pokemonViewModel.setIdPokemon(prediction.dexId)
+                            viewModel.dismissMatch()
+                            navController.navigate("pokemonDetail/${prediction.dexId}")
+                        }
                     }
                 )
             }
@@ -178,10 +180,12 @@ fun PokemonScanScreen(
             MatchCard(
                 match = match,
                 onOpenDetails = {
-                    activity?.trackButtonClick("Scanner: open detail ID: ${match.dexId}")
-                    pokemonViewModel.setIdPokemon(match.dexId)
-                    viewModel.dismissMatch()
-                    navController.navigate("pokemonDetail/${match.dexId}")
+                    if (viewModel.consumeForNavigation()) {
+                        activity?.trackButtonClick("Scanner: open detail ID: ${match.dexId}")
+                        pokemonViewModel.setIdPokemon(match.dexId)
+                        viewModel.dismissMatch()
+                        navController.navigate("pokemonDetail/${match.dexId}")
+                    }
                 },
                 onDismiss = { viewModel.dismissMatch() },
                 modifier = Modifier
@@ -258,14 +262,13 @@ private fun ScannerOverlay(
     scansRemaining: Int?,
     onPredictionClick: (Prediction) -> Unit,
 ) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Spacer(modifier = Modifier.statusBarsPadding().height(48.dp))
+    Box(modifier = Modifier.fillMaxSize()) {
+        // Hint + remaining badge — top center
         Row(
+            modifier = Modifier
+                .align(Alignment.TopCenter)
+                .statusBarsPadding()
+                .padding(top = 56.dp, start = 24.dp, end = 24.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -294,10 +297,12 @@ private fun ScannerOverlay(
                 )
             }
         }
-        Spacer(modifier = Modifier.height(24.dp))
+
+        // Viewfinder frame — true center of screen
         Box(
             modifier = Modifier
-                .fillMaxWidth(0.8f)
+                .align(Alignment.Center)
+                .fillMaxWidth(0.78f)
                 .aspectRatio(1f)
                 .border(
                     width = 3.dp,
@@ -305,22 +310,45 @@ private fun ScannerOverlay(
                     shape = RoundedCornerShape(24.dp)
                 )
         )
-        Spacer(modifier = Modifier.height(16.dp))
+
+        // Prediction chips — bottom center
         if (!hasMatch && predictions.isNotEmpty()) {
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(bottom = 100.dp, start = 16.dp, end = 16.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
                 predictions.forEach { prediction ->
-                    Text(
-                        text = "${prediction.name} ${(prediction.confidence * 100).toInt()}%",
-                        color = Color.White,
-                        style = MaterialTheme.typography.labelMedium,
-                        modifier = Modifier
-                            .background(Color.Black.copy(alpha = 0.55f), RoundedCornerShape(12.dp))
-                            .clickable { onPredictionClick(prediction) }
-                            .padding(horizontal = 10.dp, vertical = 6.dp)
+                    PredictionChip(
+                        prediction = prediction,
+                        onClick = { onPredictionClick(prediction) }
                     )
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun PredictionChip(prediction: Prediction, onClick: () -> Unit) {
+    Row(
+        modifier = Modifier
+            .background(Color.Black.copy(alpha = 0.65f), RoundedCornerShape(12.dp))
+            .clickable(onClick = onClick)
+            .padding(end = 10.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        AsyncImage(
+            model = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${prediction.dexId}.png",
+            contentDescription = prediction.name,
+            modifier = Modifier.size(36.dp)
+        )
+        Text(
+            text = "${prediction.name} ${(prediction.confidence * 100).toInt()}%",
+            color = Color.White,
+            style = MaterialTheme.typography.labelMedium,
+        )
     }
 }
 
