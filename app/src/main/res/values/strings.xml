@@ -431,4 +431,6 @@
     <string name="scanner_match_confidence">%1$d%% match</string>
     <string name="scanner_open_details">View details</string>
     <string name="scanner_dismiss">Dismiss</string>
+    <string name="scanner_uses_remaining">%1$d left today</string>
+    <string name="scanner_limit_reached">You\'ve used your 3 free scans for today.\nUpgrade to Premium for unlimited scans.</string>
 </resources>

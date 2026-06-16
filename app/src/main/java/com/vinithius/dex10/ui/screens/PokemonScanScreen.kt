@@ -105,6 +105,8 @@ fun PokemonScanScreen(
     val modelState by viewModel.modelState.collectAsState()
     val predictions by viewModel.predictions.collectAsState()
     val stableMatch by viewModel.stableMatch.collectAsState()
+    val scansRemaining by viewModel.scansRemaining.collectAsState()
+    val isOutOfScans = scansRemaining != null && scansRemaining == 0
 
     Box(
         modifier = Modifier
@@ -130,11 +132,23 @@ fun PokemonScanScreen(
                 )
             }
 
+            isOutOfScans -> {
+                ScannerMessageContent(
+                    message = stringResource(R.string.scanner_limit_reached),
+                    buttonLabel = stringResource(R.string.go_premium),
+                    onClick = {
+                        activity?.trackButtonClick("Scanner: upsell from limit screen")
+                        navController.popBackStack()
+                    }
+                )
+            }
+
             else -> {
                 CameraPreviewWithAnalyzer(onFrame = viewModel::onFrame)
                 ScannerOverlay(
                     predictions = predictions,
                     hasMatch = stableMatch != null,
+                    scansRemaining = scansRemaining,
                     onPredictionClick = { prediction ->
                         activity?.trackButtonClick("Scanner: open detail ID: ${prediction.dexId}")
                         pokemonViewModel.setIdPokemon(prediction.dexId)
@@ -241,6 +255,7 @@ private fun ImageProxy.toRotatedBitmap(): Bitmap {
 private fun ScannerOverlay(
     predictions: List<Prediction>,
     hasMatch: Boolean,
+    scansRemaining: Int?,
     onPredictionClick: (Prediction) -> Unit,
 ) {
     Column(
@@ -250,15 +265,35 @@ private fun ScannerOverlay(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Spacer(modifier = Modifier.statusBarsPadding().height(48.dp))
-        Text(
-            text = stringResource(R.string.scanner_hint),
-            color = Color.White,
-            style = MaterialTheme.typography.bodyMedium,
-            textAlign = TextAlign.Center,
-            modifier = Modifier
-                .background(Color.Black.copy(alpha = 0.5f), RoundedCornerShape(16.dp))
-                .padding(horizontal = 16.dp, vertical = 8.dp)
-        )
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = stringResource(R.string.scanner_hint),
+                color = Color.White,
+                style = MaterialTheme.typography.bodyMedium,
+                textAlign = TextAlign.Center,
+                modifier = Modifier
+                    .background(Color.Black.copy(alpha = 0.5f), RoundedCornerShape(16.dp))
+                    .padding(horizontal = 16.dp, vertical = 8.dp)
+            )
+            if (scansRemaining != null) {
+                val isLow = scansRemaining <= 1
+                Text(
+                    text = stringResource(R.string.scanner_uses_remaining, scansRemaining),
+                    color = if (isLow) Color(0xFFFFB74D) else Color.White,
+                    style = MaterialTheme.typography.labelMedium,
+                    modifier = Modifier
+                        .background(
+                            color = if (isLow) Color(0xFF7B3F00).copy(alpha = 0.75f)
+                                    else Color.Black.copy(alpha = 0.55f),
+                            shape = RoundedCornerShape(12.dp)
+                        )
+                        .padding(horizontal = 10.dp, vertical = 6.dp)
+                )
+            }
+        }
         Spacer(modifier = Modifier.height(24.dp))
         Box(
             modifier = Modifier

@@ -25,6 +25,7 @@ class PremiumManager(
         const val SKU_COFFEE = "donation_coffee_small"
         const val FREE_TEAM_LIMIT = 1
         const val FREE_FAVORITE_LIMIT = 50
+        const val FREE_SCANNER_DAILY_LIMIT = 3
     }
 
     private val encryptedPrefs = if (injectedPrefs != null) {
@@ -104,6 +105,32 @@ class PremiumManager(
         if (_isPremium.value) return true
         triggerUpsell()
         return false
+    }
+
+    /**
+     * Returns how many scanner uses remain today for a free user.
+     * Always returns null for premium users (unlimited).
+     */
+    fun scannerUsesRemainingToday(): Int? {
+        if (_isPremium.value) return null
+        val used = appPreferences?.getScannerUsageToday() ?: 0
+        return (FREE_SCANNER_DAILY_LIMIT - used).coerceAtLeast(0)
+    }
+
+    /**
+     * Tries to consume one scanner use. Returns true if allowed.
+     * For free users, increments the counter and triggers the upsell when the
+     * limit is reached. Premium users always get true without any side effects.
+     */
+    fun consumeScannerUseOrTriggerUpsell(): Boolean {
+        if (_isPremium.value) return true
+        val remaining = scannerUsesRemainingToday() ?: return true
+        if (remaining <= 0) {
+            triggerUpsell()
+            return false
+        }
+        appPreferences?.incrementScannerUsage()
+        return true
     }
 
     override fun onPremiumStatusChecked(isPremium: Boolean) {

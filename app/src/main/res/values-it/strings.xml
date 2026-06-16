@@ -360,4 +360,7 @@
     <string name="scanner_match_confidence">%1$d%% di corrispondenza</string>
     <string name="scanner_open_details">Vedi dettagli</string>
     <string name="scanner_dismiss">Chiudi</string>
+    <string name="scanner_uses_remaining">%1$d rimasti oggi</string>
+    <string name="scanner_limit_reached">Hai usato i tuoi 3 scan gratuiti di oggi.
+Passa a Premium per scan illimitati.</string>
 </resources>

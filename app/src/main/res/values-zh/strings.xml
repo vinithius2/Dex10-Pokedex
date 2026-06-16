@@ -360,4 +360,7 @@
     <string name="scanner_match_confidence">匹配度 %1$d%%</string>
     <string name="scanner_open_details">查看详情</string>
     <string name="scanner_dismiss">关闭</string>
+    <string name="scanner_uses_remaining">今日还剩 %1$d 次</string>
+    <string name="scanner_limit_reached">您已用完今日3次免费扫描。
+升级到高级版即可无限次扫描。</string>
 </resources>

@@ -35,7 +35,7 @@ val repositoryDataModule = module {
 val viewModelModule = module {
     single { PokemonViewModel(get(), get(), get()) }
     viewModel { com.vinithius.dex10.ui.viewmodel.TeamViewModel(get(), get(), get()) }
-    viewModel { com.vinithius.dex10.ui.viewmodel.ScannerViewModel(get(), androidContext()) }
+    viewModel { com.vinithius.dex10.ui.viewmodel.ScannerViewModel(get(), get(), androidContext()) }
 }
 
 val appPreferencesModule = module {

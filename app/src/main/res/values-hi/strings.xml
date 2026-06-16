@@ -360,4 +360,7 @@
     <string name="scanner_match_confidence">%1$d%% मिलान</string>
     <string name="scanner_open_details">विवरण देखें</string>
     <string name="scanner_dismiss">हटाएं</string>
+    <string name="scanner_uses_remaining">आज %1$d शेष</string>
+    <string name="scanner_limit_reached">आपने आज के 3 मुफ्त स्कैन उपयोग कर लिए हैं।
+असीमित स्कैन के लिए प्रीमियम अपग्रेड करें।</string>
 </resources>

@@ -6,6 +6,7 @@ import android.os.SystemClock
 import androidx.annotation.WorkerThread
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.vinithius.dex10.datasource.data.PremiumManager
 import com.vinithius.dex10.scanner.PokemonClassifier
 import com.vinithius.dex10.scanner.PokemonClassifier.Prediction
 import com.vinithius.dex10.scanner.ScannerModelManager
@@ -16,6 +17,7 @@ import kotlinx.coroutines.launch
 
 class ScannerViewModel(
     private val modelManager: ScannerModelManager,
+    private val premiumManager: PremiumManager,
     private val appContext: Context,
 ) : ViewModel() {
 
@@ -27,6 +29,13 @@ class ScannerViewModel(
     /** Set once the same Pokémon stays on top with high confidence for a few frames. */
     private val _stableMatch = MutableStateFlow<Prediction?>(null)
     val stableMatch: StateFlow<Prediction?> = _stableMatch
+
+    /**
+     * Remaining scanner uses for free users today (null = unlimited / premium).
+     * Updated every time a scan is consumed or the screen is opened.
+     */
+    private val _scansRemaining = MutableStateFlow(premiumManager.scannerUsesRemainingToday())
+    val scansRemaining: StateFlow<Int?> = _scansRemaining
 
     private var classifier: PokemonClassifier? = null
     private var lastInferenceAt = 0L
@@ -66,7 +75,14 @@ class ScannerViewModel(
                 candidateStreak = 1
             }
             if (candidateStreak >= STABLE_FRAMES) {
-                _stableMatch.value = top
+                // Only show the result card if the user still has uses remaining.
+                // consumeScannerUseOrTriggerUpsell() also fires the upsell sheet when at 0.
+                if (premiumManager.consumeScannerUseOrTriggerUpsell()) {
+                    _stableMatch.value = top
+                    _scansRemaining.value = premiumManager.scannerUsesRemainingToday()
+                }
+                // Reset streak either way so we don't spam consume on the next frames.
+                resetStability()
             }
         } else {
             resetStability()
@@ -77,6 +93,7 @@ class ScannerViewModel(
         _stableMatch.value = null
         _predictions.value = emptyList()
         resetStability()
+        _scansRemaining.value = premiumManager.scannerUsesRemainingToday()
     }
 
     private fun resetStability() {

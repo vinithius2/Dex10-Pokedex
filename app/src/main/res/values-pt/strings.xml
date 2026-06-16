@@ -372,4 +372,7 @@
     <string name="scanner_match_confidence">%1$d%% de correspondência</string>
     <string name="scanner_open_details">Ver detalhes</string>
     <string name="scanner_dismiss">Dispensar</string>
+    <string name="scanner_uses_remaining">%1$d restantes hoje</string>
+    <string name="scanner_limit_reached">Você usou os 3 scans gratuitos de hoje.
+Assine o Premium para scans ilimitados.</string>
 </resources>

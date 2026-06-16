@@ -360,4 +360,7 @@
     <string name="scanner_match_confidence">一致度 %1$d%%</string>
     <string name="scanner_open_details">詳細を見る</string>
     <string name="scanner_dismiss">閉じる</string>
+    <string name="scanner_uses_remaining">本日残り%1$d回</string>
+    <string name="scanner_limit_reached">本日の無料スキャン3回を使い切りました。
+プレミアムにアップグレードで無制限にスキャンできます。</string>
 </resources>
