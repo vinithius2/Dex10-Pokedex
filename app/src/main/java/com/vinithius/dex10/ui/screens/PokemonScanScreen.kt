@@ -69,6 +69,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
+import androidx.compose.ui.graphics.asImageBitmap
 import com.vinithius.dex10.R
 import com.vinithius.dex10.scanner.PokemonClassifier.Prediction
 import com.vinithius.dex10.scanner.ScannerModelManager
@@ -327,8 +328,8 @@ private fun ScannerOverlay(
                 .aspectRatio(1f)
         ) {
             if (capturedFrame != null && isAnalyzing) {
-                AsyncImage(
-                    model = capturedFrame,
+                androidx.compose.foundation.Image(
+                    bitmap = capturedFrame.asImageBitmap(),
                     contentDescription = null,
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
