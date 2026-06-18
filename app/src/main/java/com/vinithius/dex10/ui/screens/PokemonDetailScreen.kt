@@ -3113,7 +3113,9 @@ private fun TtsButton(
     var textToSpeak by remember { mutableStateOf<String?>(null) }
     var ttsLocaleToUse by remember { mutableStateOf(java.util.Locale.ENGLISH) }
     var ttsReady by remember { mutableStateOf(false) }
-    val isLoading = !ttsReady || textToSpeak == null
+    // Spinner shows only while text isn't ready — not gated on ttsReady,
+    // since TTS init failure would cause infinite loading.
+    val isLoading = textToSpeak == null
     val ttsRef = remember { mutableStateOf<TextToSpeech?>(null) }
 
     DisposableEffect(Unit) {
@@ -3145,7 +3147,7 @@ private fun TtsButton(
         }
     }
 
-    LaunchedEffect(pokemonDetail) {
+    LaunchedEffect(pokemonDetail, pokemonDetail?.specie) {
         if (pokemonDetail == null) return@LaunchedEffect
         val entries = pokemonDetail.specie?.flavor_text_entries ?: return@LaunchedEffect
         val deviceLang = java.util.Locale.getDefault().language
