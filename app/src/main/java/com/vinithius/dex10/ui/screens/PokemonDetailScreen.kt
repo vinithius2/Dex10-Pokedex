@@ -394,27 +394,21 @@ fun SharedTransitionScope.MainCard(
                         pokemonId.LoadGifWithCoil(viewModel)
                     }
 
-                    // Zenith Cry Button
-                    Box(
+                    // Cry + TTS buttons stacked at top-end
+                    val openedFromScanner by viewModel.openedFromScanner.collectAsState()
+                    val appPreferences: AppPreferences = get()
+                    val ttsAutoPlay by appPreferences.ttsAutoPlay.collectAsState()
+                    Column(
                         modifier = Modifier
                             .align(Alignment.TopEnd)
-                            .padding(16.dp)
+                            .padding(top = 16.dp, end = 16.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         ZenithCryButton(
                             viewModel = viewModel,
                             color = color.getColorByString(isSystemInDarkTheme())
                         )
-                    }
-
-                    // TTS Button
-                    val openedFromScanner by viewModel.openedFromScanner.collectAsState()
-                    val appPreferences: AppPreferences = get()
-                    val ttsAutoPlay by appPreferences.ttsAutoPlay.collectAsState()
-                    Box(
-                        modifier = Modifier
-                            .align(Alignment.TopStart)
-                            .padding(16.dp)
-                    ) {
                         TtsButton(
                             pokemonDetail = pokemonDetail,
                             color = color.getColorByString(isSystemInDarkTheme()),
@@ -667,27 +661,21 @@ fun SharedTransitionScope.MainCardLargeScreen(
                             pokemonId.LoadGifWithCoil(viewModel)
                         }
 
-                        // Zenith Cry Button
-                        Box(
+                        // Cry + TTS buttons stacked at top-end
+                        val openedFromScannerLarge by viewModel.openedFromScanner.collectAsState()
+                        val appPreferencesLarge: AppPreferences = get()
+                        val ttsAutoPlayLarge by appPreferencesLarge.ttsAutoPlay.collectAsState()
+                        Column(
                             modifier = Modifier
                                 .align(Alignment.TopEnd)
-                                .padding(16.dp)
+                                .padding(top = 16.dp, end = 16.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             ZenithCryButton(
                                 viewModel = viewModel,
                                 color = color.getColorByString(isSystemInDarkTheme())
                             )
-                        }
-
-                        // TTS Button
-                        val openedFromScannerLarge by viewModel.openedFromScanner.collectAsState()
-                        val appPreferencesLarge: AppPreferences = get()
-                        val ttsAutoPlayLarge by appPreferencesLarge.ttsAutoPlay.collectAsState()
-                        Box(
-                            modifier = Modifier
-                                .align(Alignment.TopStart)
-                                .padding(16.dp)
-                        ) {
                             TtsButton(
                                 pokemonDetail = pokemonDetail,
                                 color = color.getColorByString(isSystemInDarkTheme()),
@@ -3098,7 +3086,8 @@ private fun TtsButton(
         if (triggerAutoPlay && ttsReady && !textToSpeak.isNullOrBlank()) {
             kotlinx.coroutines.delay(600)
             ttsRef.value?.let { tts ->
-                tts.language = java.util.Locale.getDefault()
+                val langResult = tts.setLanguage(java.util.Locale.getDefault())
+                if (langResult < 0) tts.setLanguage(java.util.Locale.ENGLISH)
                 tts.setSpeechRate(ttsSpeed)
                 tts.setPitch(ttsPitch)
                 tts.speak(textToSpeak, TextToSpeech.QUEUE_FLUSH, null, "tts_pokemon")
@@ -3109,19 +3098,22 @@ private fun TtsButton(
 
     IconButton(
         onClick = {
+            if (!ttsReady) return@IconButton
             val tts = ttsRef.value ?: return@IconButton
             if (isSpeaking) {
                 tts.stop()
                 isSpeaking = false
             } else {
                 val text = textToSpeak ?: return@IconButton
-                tts.language = java.util.Locale.getDefault()
+                val langResult = tts.setLanguage(java.util.Locale.getDefault())
+                if (langResult < 0) tts.setLanguage(java.util.Locale.ENGLISH)
                 tts.setSpeechRate(ttsSpeed)
                 tts.setPitch(ttsPitch)
+                isSpeaking = true
                 tts.speak(text, TextToSpeech.QUEUE_FLUSH, null, "tts_pokemon")
             }
         },
-        enabled = textToSpeak != null,
+        enabled = textToSpeak != null && ttsReady,
         modifier = Modifier
             .size(48.dp)
             .background(color.copy(alpha = 0.2f), RoundedCornerShape(12.dp))
