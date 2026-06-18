@@ -53,8 +53,11 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.gestures.detectTransformGestures
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.VolumeUp
+import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Star
@@ -133,7 +136,9 @@ import com.vinithius.dex10.extension.getDrawableHabitat
 import com.vinithius.dex10.extension.getFlavorTextForLanguage
 import com.vinithius.dex10.extension.getHtmlCompat
 import com.vinithius.dex10.extension.getIdIntoUrl
-import com.vinithius.dex10.extension.getListEvolutions
+import com.vinithius.dex10.extension.EvoDisplayEntry
+import com.vinithius.dex10.extension.EvoStage
+import com.vinithius.dex10.extension.toEvoStages
 import com.vinithius.dex10.extension.getSpriteItems
 import com.vinithius.dex10.extension.getStringEggGroup
 import com.vinithius.dex10.extension.getStringHabitat
@@ -536,7 +541,7 @@ fun SharedTransitionScope.MainCard(
         }
 
         // Evolutions
-        pokemonDetail?.evolution?.getListEvolutions()?.size?.takeIf { it > 0 }?.run {
+        pokemonDetail?.evolution?.toEvoStages()?.takeIf { it.size > 1 }?.let {
             SectionTitle(
                 title = stringResource(R.string.evolutions),
                 color = colorObj,
@@ -2102,59 +2107,61 @@ private fun PokemonEvolution(
             }
         },
         success = {
-            Column(
-                modifier = Modifier
-                    .fillMaxHeight()
-                    .padding(6.dp),
-            ) {
-                val pokemonId = pokemonDetail?.id ?: 0
-                val color = viewModel.getPokemonColor()?.getColorByString(isSystemInDarkTheme())
-                    ?: Color.Black
-                val evolutions = pokemonDetail?.evolution?.getListEvolutions()
-                evolutions?.let { evolutionsItem ->
-                    viewModel.getIdByNames(evolutionsItem)?.run {
-                        LazyRow(
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            itemsIndexed(this@run) { index, data ->
-                                Card(
-                                    modifier = if (pokemonId == data.first) {
-                                        Modifier
-                                            .padding(8.dp)
-                                            .border(
-                                                width = 1.dp,
-                                                color = color,
-                                                shape = RoundedCornerShape(8.dp)
-                                            )
-                                    } else {
-                                        Modifier.padding(8.dp)
-                                    },
-                                    shape = RoundedCornerShape(8.dp),
-                                    elevation = CardDefaults.elevatedCardElevation(4.dp),
-                                    onClick = {
-                                        if (pokemonId != data.first) {
-                                            viewModel.pokemonList.value?.find { item ->
-                                                item.pokemon.name == data.second
-                                            }?.run {
-                                                val id = this.pokemon.id
-                                                viewModel.setIdPokemon(id)
-                                                navController?.navigate("pokemonDetail/$id")
-                                            }
-                                        }
-                                        activity?.trackButtonClick("Evolution: ${data.second.capitalize()}")
-                                    }
-                                ) {
-                                    LoadGifWithCoilToEvolution(data)
-                                }
-                                val arrowVisible = evolutions.size == index + 1
-                                if (arrowVisible.not()) {
-                                    Image(
-                                        painter = painterResource(id = R.drawable.ic_baseline_arrow_forward_ios_24),
-                                        contentDescription = "Arrow right",
-                                        colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onSurface),
-                                        modifier = Modifier.size(25.dp)
+            val pokemonId = pokemonDetail?.id ?: 0
+            val color = viewModel.getPokemonColor()?.getColorByString(isSystemInDarkTheme())
+                ?: Color.Black
+            val stages = pokemonDetail?.evolution?.toEvoStages()
+            val displayStages = stages?.let { viewModel.getEvoDisplayStages(it) }
+
+            if (!displayStages.isNullOrEmpty()) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 6.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    displayStages.forEachIndexed { stageIndex, stage ->
+                        if (stageIndex > 0) {
+                            val allSameTrigger = stage.map { it.triggerText }.toSet().size <= 1
+                            val sharedTrigger = if (allSameTrigger) stage.firstOrNull()?.triggerText else null
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                modifier = Modifier.padding(vertical = 4.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.ArrowDownward,
+                                    contentDescription = null,
+                                    tint = color,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                                if (sharedTrigger != null) {
+                                    Text(
+                                        text = sharedTrigger,
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = color,
+                                        textAlign = TextAlign.Center,
+                                        modifier = Modifier.padding(top = 2.dp)
                                     )
                                 }
+                            }
+                        }
+                        val showIndividualTriggers = stageIndex > 0 &&
+                            stage.map { it.triggerText }.toSet().size > 1
+                        LazyRow(
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            contentPadding = PaddingValues(horizontal = 12.dp),
+                            verticalAlignment = Alignment.Top
+                        ) {
+                            items(stage) { entry ->
+                                EvoCard(
+                                    entry = entry,
+                                    pokemonId = pokemonId,
+                                    accentColor = color,
+                                    showTrigger = showIndividualTriggers,
+                                    navController = navController,
+                                    viewModel = viewModel,
+                                    activity = activity
+                                )
                             }
                         }
                     }
@@ -2793,6 +2800,61 @@ private fun DefaultDamageFromToShimmer() {
 @Composable
 private fun PokemonHabitatPreview(pokemonDetail: Pokemon?) {
     PokemonDamage(pokemonDetail)
+}
+
+@Composable
+private fun EvoCard(
+    entry: EvoDisplayEntry,
+    pokemonId: Int,
+    accentColor: Color,
+    showTrigger: Boolean,
+    navController: NavController?,
+    viewModel: PokemonViewModel,
+    activity: MainActivity?,
+) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier.width(90.dp)
+    ) {
+        if (showTrigger) {
+            Text(
+                text = entry.triggerText ?: "",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 4.dp)
+                    .heightIn(min = 32.dp),
+                maxLines = 3
+            )
+        }
+        Card(
+            modifier = if (pokemonId == entry.id) {
+                Modifier.border(2.dp, accentColor, RoundedCornerShape(8.dp))
+            } else Modifier,
+            shape = RoundedCornerShape(8.dp),
+            elevation = CardDefaults.elevatedCardElevation(4.dp),
+            onClick = {
+                if (pokemonId != entry.id) {
+                    viewModel.setIdPokemon(entry.id)
+                    navController?.navigate("pokemonDetail/${entry.id}")
+                }
+                activity?.trackButtonClick("Evolution: ${entry.name.capitalize()}")
+            }
+        ) {
+            LoadGifWithCoilToEvolution(entry.id to entry.name)
+        }
+        Text(
+            text = entry.name.capitalize(),
+            style = MaterialTheme.typography.labelSmall,
+            textAlign = TextAlign.Center,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 4.dp),
+            maxLines = 2
+        )
+    }
 }
 
 @Composable

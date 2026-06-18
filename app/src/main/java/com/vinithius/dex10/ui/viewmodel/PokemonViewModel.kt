@@ -966,6 +966,23 @@ class PokemonViewModel(
             ?.map { it.pokemon.id to it.pokemon.name }
     }
 
+    fun getEvoDisplayStages(
+        stages: List<com.vinithius.dex10.extension.EvoStage>
+    ): List<List<com.vinithius.dex10.extension.EvoDisplayEntry>> {
+        val backup = _pokemonListBackup.value ?: return emptyList()
+        return stages.map { stage ->
+            stage.entries.mapNotNull { entry ->
+                backup.find { it.pokemon.name == entry.name }?.let { pwd ->
+                    com.vinithius.dex10.extension.EvoDisplayEntry(
+                        id = pwd.pokemon.id,
+                        name = entry.name,
+                        triggerText = entry.triggerText
+                    )
+                }
+            }
+        }.filter { it.isNotEmpty() }
+    }
+
     suspend fun getMovesForPokemon(pokemonId: Int): List<com.vinithius.dex10.datasource.response.MoveResponse>? {
         return repository.getMovesForPokemon(pokemonId)
     }
