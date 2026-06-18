@@ -151,6 +151,7 @@
     <string name="rock">바위</string>
     <string name="steel">강철</string>
     <string name="water">물</string>
+    <string name="normal">노말</string>
     <string name="unknow">알 수 없음</string>
     <string name="loading_translate">텍스트 로딩 중…</string>
     <string name="shape_ball">공 모양</string>

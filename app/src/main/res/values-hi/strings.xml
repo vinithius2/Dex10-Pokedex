@@ -151,6 +151,7 @@
     <string name="rock">चट्टान</string>
     <string name="steel">स्टील</string>
     <string name="water">पानी</string>
+    <string name="normal">नॉर्मल</string>
     <string name="unknow">अज्ञात</string>
     <string name="loading_translate">टेक्स्ट लोड हो रहा है…</string>
     <string name="shape_ball">गेंद</string>

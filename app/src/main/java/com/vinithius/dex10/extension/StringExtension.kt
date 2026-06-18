@@ -189,6 +189,7 @@ fun String.getDrawableIco(): Int {
         "rock" to R.drawable.rock,
         "steel" to R.drawable.steel,
         "water" to R.drawable.water,
+        "normal" to R.drawable.normal,
         "unknow" to R.drawable.unknow,
     )
     return drawableMap[this.lowercase()] ?: R.drawable.unknow
@@ -213,6 +214,7 @@ fun String.getDrawableIcoColor(): Color {
         "rock" to Color(0xFF48190B),
         "steel" to Color(0xFF60756E),
         "water" to Color(0xFF1552E1),
+        "normal" to Color(0xFFA8A878),
         "unknow" to Color(0xFF75525C)
     )
     return drawableMap[this.lowercase()] ?: Color(0xFF75525C)
@@ -237,6 +239,7 @@ fun String.getStringType(context: Context): String {
         "rock" to context.getString(R.string.rock),
         "steel" to context.getString(R.string.steel),
         "water" to context.getString(R.string.water),
+        "normal" to context.getString(R.string.normal),
         "unknow" to context.getString(R.string.unknow)
     )
     return stringMap[this.lowercase()] ?: context.getString(R.string.unknow)

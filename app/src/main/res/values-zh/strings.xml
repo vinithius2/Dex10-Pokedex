@@ -151,6 +151,7 @@
     <string name="rock">岩石</string>
     <string name="steel">钢</string>
     <string name="water">水</string>
+    <string name="normal">一般</string>
     <string name="unknow">未知</string>
     <string name="loading_translate">加载文本中…</string>
     <string name="shape_ball">球形</string>

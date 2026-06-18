@@ -151,6 +151,7 @@
     <string name="rock">Gestein</string>
     <string name="steel">Stahl</string>
     <string name="water">Wasser</string>
+    <string name="normal">Normal</string>
     <string name="unknow">Unbekannt</string>
     <string name="loading_translate">Text wird geladen…</string>
     <string name="shape_ball">Kugelförmig</string>

@@ -151,6 +151,7 @@
     <string name="rock">いわ</string>
     <string name="steel">はがね</string>
     <string name="water">みず</string>
+    <string name="normal">ノーマル</string>
     <string name="unknow">不明</string>
     <string name="loading_translate">テキスト翻訳中…</string>
     <string name="shape_ball">ボール状</string>
