@@ -182,22 +182,27 @@ fun Int.LoadGifWithCoil(
     modifier: Modifier = Modifier,
     fallbackDrawableRes: Int = android.R.drawable.ic_menu_report_image
 ) {
-    val urlBase =
-        "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/showdown/"
-    val urlAnother = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/"
+    val urlShowdown = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/showdown/"
+    val urlPixel    = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/"
+    val urlOfficial = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/"
+    val urlHome     = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/home/"
 
-    // Check image quality preference
     val appPreferences: AppPreferences by inject(AppPreferences::class.java)
-    val isLowQuality by appPreferences.lowQualityImages.collectAsState()
+    val spriteType by appPreferences.spriteType.collectAsState()
 
-    val gifUrl = "$urlBase$this.gif"
-    val pngUrl = "$urlAnother$this.png"
+    val gifUrl      = "$urlShowdown$this.gif"
+    val officialUrl = "$urlOfficial$this.png"
+    val homeUrl     = "$urlHome$this.png"
+    val pixelUrl    = "$urlPixel$this.png"
 
-    // Low quality: skip GIF, go straight to PNG
-    var currentData by remember(isLowQuality) {
-        mutableStateOf<Any>(if (isLowQuality) pngUrl else gifUrl)
+    val primaryUrl = when (spriteType) {
+        AppPreferences.SpriteType.GIF              -> gifUrl
+        AppPreferences.SpriteType.OFFICIAL_ARTWORK -> officialUrl
+        AppPreferences.SpriteType.HOME             -> homeUrl
+        AppPreferences.SpriteType.PIXEL            -> pixelUrl
     }
-    var hasTriedPng by remember { mutableStateOf(false) }
+
+    var currentData by remember(spriteType) { mutableStateOf<Any>(primaryUrl) }
 
     val context = LocalContext.current
     val imageLoader = ImageLoader.Builder(context)
@@ -208,10 +213,7 @@ fun Int.LoadGifWithCoil(
         .build()
 
     fun buildRequest(data: Any): ImageRequest =
-        ImageRequest.Builder(context)
-            .data(data)
-            .crossfade(true)
-            .build()
+        ImageRequest.Builder(context).data(data).crossfade(true).build()
 
     val painter = rememberAsyncImagePainter(
         model = buildRequest(currentData),
@@ -221,28 +223,17 @@ fun Int.LoadGifWithCoil(
     LaunchedEffect(painter.state) {
         when (painter.state) {
             is AsyncImagePainter.State.Error -> {
-                when (currentData) {
-                    gifUrl -> {
-                        currentData = pngUrl
-                        hasTriedPng = true
-                    }
-
-                    pngUrl -> {
-                        currentData = fallbackDrawableRes
-                    }
+                // Fallback chain: primary → pixel → drawable icon
+                currentData = when (currentData) {
+                    primaryUrl -> if (primaryUrl != pixelUrl) pixelUrl else fallbackDrawableRes
+                    pixelUrl   -> fallbackDrawableRes
+                    else       -> fallbackDrawableRes
                 }
             }
-
             is AsyncImagePainter.State.Success -> {
-                viewModel?.updateSharedImage(
-                    this@LoadGifWithCoil.toString(),
-                    painter
-                )
+                viewModel?.updateSharedImage(this@LoadGifWithCoil.toString(), painter)
             }
-
-            else -> {
-                // Do nothing
-            }
+            else -> {}
         }
     }
 

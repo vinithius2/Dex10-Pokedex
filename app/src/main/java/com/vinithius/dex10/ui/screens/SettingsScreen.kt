@@ -49,7 +49,15 @@ import com.vinithius.dex10.R
 import com.vinithius.dex10.datasource.data.AppPreferences
 import com.vinithius.dex10.datasource.data.PremiumManager
 import kotlinx.coroutines.flow.MutableStateFlow
+import android.os.Build
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.size
+import coil.ImageLoader
+import coil.compose.rememberAsyncImagePainter
+import coil.decode.GifDecoder
+import coil.decode.ImageDecoderDecoder
+import coil.request.ImageRequest
 import kotlin.math.roundToInt
 
 @Composable
@@ -60,7 +68,7 @@ fun SettingsScreen(
 ) {
     val darkMode by appPreferences.darkMode.collectAsState()
     val notificationsEnabled by appPreferences.notificationsEnabled.collectAsState()
-    val lowQuality by appPreferences.lowQualityImages.collectAsState()
+    val spriteType by appPreferences.spriteType.collectAsState()
     val isPremium by (premiumManager?.isPremium ?: MutableStateFlow(false)).collectAsState()
 
     Column(
@@ -128,18 +136,15 @@ fun SettingsScreen(
         // --- Performance Section ---
         SectionHeader(stringResource(R.string.performance))
 
-        // Image Quality
-        SettingToggleItem(
+        // Art Type
+        SettingItemHeader(
             icon = Icons.Default.Settings,
             title = stringResource(R.string.image_quality),
-            description = if (lowQuality) {
-                stringResource(R.string.image_quality_low)
-            } else {
-                stringResource(R.string.image_quality_high)
-            },
-            subtitle = stringResource(R.string.image_quality_desc),
-            checked = lowQuality,
-            onCheckedChange = { appPreferences.setLowQualityImages(it) }
+            description = stringResource(R.string.image_quality_desc)
+        )
+        SpriteTypeSelector(
+            selected = spriteType,
+            onSelect = { appPreferences.setSpriteType(it) }
         )
 
         Spacer(modifier = Modifier.height(24.dp))
@@ -174,6 +179,88 @@ fun SettingsScreen(
             DebugPricingSection(premiumManager = premiumManager)
 
             Spacer(modifier = Modifier.height(40.dp))
+        }
+    }
+}
+
+@Composable
+private fun SpriteTypeSelector(
+    selected: AppPreferences.SpriteType,
+    onSelect: (AppPreferences.SpriteType) -> Unit,
+) {
+    val context = LocalContext.current
+    val options = listOf(
+        AppPreferences.SpriteType.GIF to Pair("Animated GIF", "Showdown sprites · recommended"),
+        AppPreferences.SpriteType.OFFICIAL_ARTWORK to Pair("Official Artwork", "High-resolution official art"),
+        AppPreferences.SpriteType.HOME to Pair("Pokémon HOME", "3D-style rendering"),
+        AppPreferences.SpriteType.PIXEL to Pair("Pixel Art", "Classic front-facing sprite"),
+    )
+
+    // URL of the preview Pokémon (Pikachu) for each type
+    fun previewUrl(type: AppPreferences.SpriteType) = when (type) {
+        AppPreferences.SpriteType.GIF ->
+            "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/showdown/25.gif"
+        AppPreferences.SpriteType.OFFICIAL_ARTWORK ->
+            "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/25.png"
+        AppPreferences.SpriteType.HOME ->
+            "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/home/25.png"
+        AppPreferences.SpriteType.PIXEL ->
+            "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/25.png"
+    }
+
+    val imageLoader = remember {
+        ImageLoader.Builder(context)
+            .components {
+                if (Build.VERSION.SDK_INT >= 28) add(ImageDecoderDecoder.Factory())
+                else add(GifDecoder.Factory())
+            }
+            .build()
+    }
+
+    Column(modifier = Modifier.padding(start = 56.dp, end = 16.dp)) {
+        options.forEach { (type, pair) ->
+            val (label, desc) = pair
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { onSelect(type) }
+                    .padding(vertical = 6.dp)
+            ) {
+                RadioButton(
+                    selected = selected == type,
+                    onClick = { onSelect(type) },
+                    colors = RadioButtonDefaults.colors(
+                        selectedColor = MaterialTheme.colorScheme.primary
+                    )
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(label, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium)
+                    Text(desc, style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+                // Pikachu preview for each art type
+                val painter = rememberAsyncImagePainter(
+                    model = ImageRequest.Builder(context)
+                        .data(previewUrl(type))
+                        .crossfade(true)
+                        .build(),
+                    imageLoader = imageLoader
+                )
+                Box(
+                    modifier = Modifier
+                        .size(52.dp)
+                        .padding(start = 8.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    androidx.compose.foundation.Image(
+                        painter = painter,
+                        contentDescription = label,
+                        modifier = Modifier.size(48.dp)
+                    )
+                }
+            }
         }
     }
 }

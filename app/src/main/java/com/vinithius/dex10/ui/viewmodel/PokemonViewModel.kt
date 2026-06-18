@@ -775,15 +775,17 @@ class PokemonViewModel(
         viewModelScope.launch(dispatcher) {
             _stateList.postValue(RequestStateList.Loading)
             try {
-                val searchQuery = _searchNameFilter.value.orEmpty()
+                val searchQuery = _searchNameFilter.value
+                    .orEmpty()
+                    .trim()
+                    .replace(Regex("\\s+"), " ")
                 val isFavorite = _isFavoriteFilter.value ?: false
                 val filterMapValues = _filterMap.value ?: _pokemonFilterList.value ?: emptyMap()
 
                 val filteredList = _pokemonListBackup.value?.filter { pokemonWithDetails ->
-                    val matchesSearch = pokemonWithDetails.pokemon.name.contains(
-                        searchQuery,
-                        ignoreCase = true
-                    )
+                    val matchesSearch = searchQuery.isEmpty() ||
+                        pokemonWithDetails.pokemon.name.contains(searchQuery, ignoreCase = true) ||
+                        pokemonWithDetails.pokemon.id.toString() == searchQuery
                     val matchesFavorites = isFavorite.not() || pokemonWithDetails.pokemon.favorite
                     val matchesFilters = filterMapValues.all { (key, stateMap) ->
                         val selectedValues = stateMap.filterValues { it }.keys
