@@ -32,28 +32,45 @@ class PokemonClassifier(context: Context, modelFile: File) {
         Gson().fromJson(InputStreamReader(stream, Charsets.UTF_8), Array<String>::class.java).toList()
     }
 
+    // Guards the native session against a use-after-close race: classify() runs on a
+    // background thread while the user may navigate away, triggering close() from
+    // onCleared(). Closing an OrtSession mid-run aborts the process natively (SIGABRT),
+    // which no Kotlin try/catch can intercept — so close() and run() are serialized and
+    // classify() bails out once the session is closed.
+    private val sessionLock = Any()
+    @Volatile private var closed = false
+
     fun classify(bitmap: Bitmap, topK: Int = 3): List<Prediction> {
         val input = preprocess(bitmap)
-        OnnxTensor.createTensor(
-            environment,
-            input,
-            longArrayOf(1, 3, INPUT_SIZE.toLong(), INPUT_SIZE.toLong())
-        ).use { tensor ->
-            session.run(mapOf(session.inputNames.first() to tensor)).use { output ->
-                @Suppress("UNCHECKED_CAST")
-                val logits = (output[0].value as Array<FloatArray>)[0]
-                return topPredictions(logits, topK)
+        synchronized(sessionLock) {
+            if (closed) return emptyList()
+            OnnxTensor.createTensor(
+                environment,
+                input,
+                longArrayOf(1, 3, INPUT_SIZE.toLong(), INPUT_SIZE.toLong())
+            ).use { tensor ->
+                session.run(mapOf(session.inputNames.first() to tensor)).use { output ->
+                    @Suppress("UNCHECKED_CAST")
+                    val logits = (output[0].value as Array<FloatArray>)[0]
+                    return topPredictions(logits, topK)
+                }
             }
         }
     }
 
     /** Center-crop to a square, scale to 224x224 and normalize to [-1, 1] (NCHW). */
     private fun preprocess(source: Bitmap): FloatBuffer {
-        val squareSize = minOf(source.width, source.height)
+        // getPixels() throws on HARDWARE-config bitmaps; force a readable software copy.
+        val readable = if (source.config == Bitmap.Config.ARGB_8888) {
+            source
+        } else {
+            source.copy(Bitmap.Config.ARGB_8888, false)
+        }
+        val squareSize = minOf(readable.width, readable.height)
         val cropped = Bitmap.createBitmap(
-            source,
-            (source.width - squareSize) / 2,
-            (source.height - squareSize) / 2,
+            readable,
+            (readable.width - squareSize) / 2,
+            (readable.height - squareSize) / 2,
             squareSize,
             squareSize
         )
@@ -91,7 +108,11 @@ class PokemonClassifier(context: Context, modelFile: File) {
     }
 
     fun close() {
-        session.close()
+        synchronized(sessionLock) {
+            if (closed) return
+            closed = true
+            session.close()
+        }
     }
 
     companion object {

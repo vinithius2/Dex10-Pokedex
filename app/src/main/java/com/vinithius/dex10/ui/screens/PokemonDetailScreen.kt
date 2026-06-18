@@ -140,6 +140,7 @@ import com.vinithius.dex10.extension.converterIntToDouble
 import com.vinithius.dex10.extension.getColorByString
 import com.vinithius.dex10.extension.getDrawableHabitat
 import com.vinithius.dex10.extension.getFlavorTextForLanguage
+import com.vinithius.dex10.extension.getSingleFlavorTextForLanguage
 import com.vinithius.dex10.extension.getHtmlCompat
 import com.vinithius.dex10.extension.getIdIntoUrl
 import com.vinithius.dex10.extension.EvoDisplayEntry
@@ -3118,20 +3119,57 @@ private fun TtsButton(
     val isLoading = textToSpeak == null
     val ttsRef = remember { mutableStateOf<TextToSpeech?>(null) }
 
+    // Speaks [text] in [locale], applying live speed/pitch. Centralized so click and
+    // auto-play behave identically. setLanguage() MUST run on a ready engine, so this is
+    // only ever called after onInit(SUCCESS). The speak() result is checked — a long input
+    // (> getMaxSpeechInputLength) or a missing voice returns ERROR and plays nothing.
+    fun speakNow(tts: TextToSpeech, text: String, locale: java.util.Locale) {
+        val langResult = tts.setLanguage(locale)
+        if (langResult == TextToSpeech.LANG_MISSING_DATA ||
+            langResult == TextToSpeech.LANG_NOT_SUPPORTED
+        ) {
+            tts.setLanguage(java.util.Locale.ENGLISH)
+        }
+        tts.setSpeechRate(ttsSpeed.coerceIn(0.5f, 2.0f))
+        tts.setPitch(ttsPitch.coerceIn(0.5f, 2.0f))
+        val safeText = text.take(TextToSpeech.getMaxSpeechInputLength() - 1)
+        val result = tts.speak(safeText, TextToSpeech.QUEUE_FLUSH, ttsSpeakParams(), "tts_pokemon")
+        if (result == TextToSpeech.ERROR) {
+            android.util.Log.w("TtsButton", "speak() returned ERROR (len=${safeText.length})")
+            isSpeaking = false
+        } else {
+            isSpeaking = true
+        }
+    }
+
     DisposableEffect(Unit) {
-        val tts = TextToSpeech(context) { status ->
+        var engine: TextToSpeech? = null
+        engine = TextToSpeech(context) { status ->
             Handler(Looper.getMainLooper()).post {
-                if (status == TextToSpeech.SUCCESS) ttsReady = true
+                if (status == TextToSpeech.SUCCESS) {
+                    val tts = engine ?: return@post
+                    // Configure the engine only AFTER init succeeds — calls made before
+                    // onInit are silently ignored by the framework.
+                    runCatching { tts.setAudioAttributes(speechAudioAttributes()) }
+                    val lr = tts.setLanguage(java.util.Locale.getDefault())
+                    if (lr == TextToSpeech.LANG_MISSING_DATA || lr == TextToSpeech.LANG_NOT_SUPPORTED) {
+                        tts.setLanguage(java.util.Locale.ENGLISH)
+                    }
+                    ttsReady = true
+                } else {
+                    android.util.Log.w("TtsButton", "TTS init failed: status=$status")
+                }
             }
         }
-        // Route TTS through the media stream so it follows the (usually audible)
-        // media volume instead of a muted/low secondary stream on some OEM ROMs.
-        runCatching { tts.setAudioAttributes(speechAudioAttributes()) }
-        tts.setOnUtteranceProgressListener(object : UtteranceProgressListener() {
+        engine.setOnUtteranceProgressListener(object : UtteranceProgressListener() {
             override fun onStart(u: String?) {
                 Handler(Looper.getMainLooper()).post { isSpeaking = true }
             }
             override fun onDone(u: String?) {
+                Handler(Looper.getMainLooper()).post { isSpeaking = false }
+            }
+            override fun onError(u: String?, errorCode: Int) {
+                android.util.Log.w("TtsButton", "utterance error code=$errorCode")
                 Handler(Looper.getMainLooper()).post { isSpeaking = false }
             }
             @Suppress("OVERRIDE_DEPRECATION")
@@ -3139,10 +3177,10 @@ private fun TtsButton(
                 Handler(Looper.getMainLooper()).post { isSpeaking = false }
             }
         })
-        ttsRef.value = tts
+        ttsRef.value = engine
         onDispose {
-            tts.stop()
-            tts.shutdown()
+            engine.stop()
+            engine.shutdown()
             ttsRef.value = null
         }
     }
@@ -3151,10 +3189,11 @@ private fun TtsButton(
         if (pokemonDetail == null) return@LaunchedEffect
         val entries = pokemonDetail.specie?.flavor_text_entries ?: return@LaunchedEffect
         val deviceLang = java.util.Locale.getDefault().language
-        val englishText = entries.getFlavorTextForLanguage("en") ?: return@LaunchedEffect
+        // Single short entry — the joined bullet list overflows TTS max length and goes silent.
+        val englishText = entries.getSingleFlavorTextForLanguage("en") ?: return@LaunchedEffect
 
         // 1. PokéAPI native text (instant, no MLKit): en, pt, es, fr, de, it, ja, ko, zh-Hans…
-        val localizedText = entries.getFlavorTextForLanguage(deviceLang)
+        val localizedText = entries.getSingleFlavorTextForLanguage(deviceLang)
         if (localizedText != null) {
             ttsLocaleToUse = java.util.Locale.getDefault()
             textToSpeak = localizedText
@@ -3181,13 +3220,9 @@ private fun TtsButton(
     LaunchedEffect(triggerAutoPlay, ttsReady, textToSpeak) {
         if (triggerAutoPlay && ttsReady && !textToSpeak.isNullOrBlank()) {
             kotlinx.coroutines.delay(600)
-            ttsRef.value?.let { tts ->
-                val langResult = tts.setLanguage(ttsLocaleToUse)
-                if (langResult < 0) tts.setLanguage(java.util.Locale.ENGLISH)
-                tts.setSpeechRate(ttsSpeed)
-                tts.setPitch(ttsPitch)
-                tts.speak(textToSpeak, TextToSpeech.QUEUE_FLUSH, ttsSpeakParams(), "tts_pokemon")
-            }
+            val tts = ttsRef.value
+            val text = textToSpeak
+            if (tts != null && text != null) speakNow(tts, text, ttsLocaleToUse)
             onAutoPlayConsumed()
         }
     }
@@ -3196,17 +3231,16 @@ private fun TtsButton(
         onClick = {
             if (isLoading) return@IconButton
             val tts = ttsRef.value ?: return@IconButton
+            if (!ttsReady) {
+                android.util.Log.w("TtsButton", "tapped before engine ready")
+                return@IconButton
+            }
             if (isSpeaking) {
                 tts.stop()
                 isSpeaking = false
             } else {
                 val text = textToSpeak ?: return@IconButton
-                val langResult = tts.setLanguage(ttsLocaleToUse)
-                if (langResult < 0) tts.setLanguage(java.util.Locale.ENGLISH)
-                tts.setSpeechRate(ttsSpeed)
-                tts.setPitch(ttsPitch)
-                isSpeaking = true
-                tts.speak(text, TextToSpeech.QUEUE_FLUSH, ttsSpeakParams(), "tts_pokemon")
+                speakNow(tts, text, ttsLocaleToUse)
             }
         },
         modifier = Modifier

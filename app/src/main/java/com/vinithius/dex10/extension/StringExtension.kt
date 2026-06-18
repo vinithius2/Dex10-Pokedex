@@ -87,6 +87,26 @@ fun List<FlavorText>?.getFlavorTextForLanguage(languageCode: String): String? {
         }
 }
 
+/**
+ * Returns a SINGLE clean flavor-text entry suitable for Text-to-Speech.
+ *
+ * [getFlavorTextForLanguage] joins every distinct entry with bullets, which for popular
+ * Pokémon easily exceeds [android.speech.tts.TextToSpeech.getMaxSpeechInputLength] (~4000
+ * chars). When the text is longer than that limit, `speak()` returns ERROR and plays nothing.
+ * For a "Pokédex voice" we only need one entry anyway.
+ */
+fun List<FlavorText>?.getSingleFlavorTextForLanguage(languageCode: String): String? {
+    val raw = this
+        ?.firstOrNull { it.language.name == languageCode }
+        ?.flavor_text
+        ?: return null
+    return raw
+        .replace(Regex("[\\r\\n\\f\\u000c]+"), " ")
+        .replace(Regex("\\s+"), " ")
+        .trim()
+        .takeIf { it.isNotBlank() }
+}
+
 fun String.getStringEggGroup(context: Context): String {
     val eggGroupMap = mapOf(
         "monster" to context.getString(R.string.egg_group_monster),
