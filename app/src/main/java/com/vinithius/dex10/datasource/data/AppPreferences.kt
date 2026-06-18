@@ -34,6 +34,14 @@ class AppPreferences(context: Context) {
         const val DARK_MODE_OFF = 2
         private const val KEY_VIEW_MODE = "view_mode"
         private const val KEY_TCG_FAVORITES = "tcg_favorite_cards"
+        private const val KEY_SPRITE_TYPE = "sprite_type"
+    }
+
+    enum class SpriteType(val key: Int) {
+        GIF(0), OFFICIAL_ARTWORK(1), HOME(2), PIXEL(3);
+        companion object {
+            fun fromInt(v: Int) = values().firstOrNull { it.key == v } ?: GIF
+        }
     }
 
     enum class ViewMode(val value: Int) {
@@ -109,6 +117,17 @@ class AppPreferences(context: Context) {
     fun setLowQualityImages(value: Boolean) {
         prefs.edit().putBoolean(KEY_LOW_QUALITY, value).apply()
         _lowQualityImages.value = value
+    }
+
+    // --- Sprite Type ---
+    private val _spriteType = MutableStateFlow(
+        SpriteType.fromInt(prefs.getInt(KEY_SPRITE_TYPE, SpriteType.GIF.key))
+    )
+    val spriteType: StateFlow<SpriteType> = _spriteType.asStateFlow()
+
+    fun setSpriteType(value: SpriteType) {
+        prefs.edit().putInt(KEY_SPRITE_TYPE, value.key).apply()
+        _spriteType.value = value
     }
 
     // --- View Mode ---
