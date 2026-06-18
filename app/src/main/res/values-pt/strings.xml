@@ -178,8 +178,6 @@
     <string name="tts_speak">Ler entrada da Pokédex</string>
     <string name="tts_stop">Parar leitura</string>
     <string name="tts_error">Não foi possível ler a entrada. Verifique a voz de conversão de texto em voz do aparelho.</string>
-    <string name="tts_initializing">A voz está iniciando, tente novamente…</string>
-    <string name="tts_no_voice">Nenhuma voz de conversão de texto em voz instalada. Abrindo as configurações de voz…</string>
     <string name="loading_translate">Carregando texto…</string>
     <string name="shape_ball">Esfera</string>
     <string name="shape_squiggle">Ondulado</string>
