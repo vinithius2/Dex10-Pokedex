@@ -34,6 +34,10 @@ class ScannerViewModel(
     private val _isAnalyzing = MutableStateFlow(false)
     val isAnalyzing: StateFlow<Boolean> = _isAnalyzing
 
+    /** The bitmap currently being analyzed; shown frozen inside the viewfinder. */
+    private val _capturedFrame = MutableStateFlow<Bitmap?>(null)
+    val capturedFrame: StateFlow<Bitmap?> = _capturedFrame
+
     private var classifier: PokemonClassifier? = null
 
     fun downloadModel() {
@@ -48,6 +52,7 @@ class ScannerViewModel(
     fun captureAndClassify(bitmap: Bitmap) {
         viewModelScope.launch(Dispatchers.IO) {
             val readyState = modelState.value as? ScannerModelManager.ModelState.Ready ?: return@launch
+            _capturedFrame.value = bitmap  // freeze inside viewfinder immediately
             _isAnalyzing.value = true
             try {
                 val allowed = premiumManager.consumeScannerUseOrTriggerUpsell()
@@ -74,6 +79,7 @@ class ScannerViewModel(
                 }
             } finally {
                 _isAnalyzing.value = false
+                _capturedFrame.value = null  // unfreeze viewfinder
             }
         }
     }
@@ -83,6 +89,7 @@ class ScannerViewModel(
     fun dismissMatch() {
         _stableMatch.value = null
         _predictions.value = emptyList()
+        _capturedFrame.value = null
         _scansRemaining.value = premiumManager.scannerUsesRemainingToday()
     }
 
