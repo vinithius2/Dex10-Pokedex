@@ -4,6 +4,8 @@ import android.Manifest
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.Matrix
+import android.util.Rational
+import android.view.Surface
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.camera.core.CameraSelector
@@ -11,6 +13,8 @@ import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageCaptureException
 import androidx.camera.core.ImageProxy
 import androidx.camera.core.Preview
+import androidx.camera.core.UseCaseGroup
+import androidx.camera.core.ViewPort
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.compose.foundation.background
@@ -80,9 +84,13 @@ import com.vinithius.dex10.ui.viewmodel.rememberPokemonViewModel
 import org.koin.androidx.compose.getViewModel
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
+import kotlin.math.roundToInt
 
 private const val ARTWORK_URL =
     "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/"
+
+/** Side of the square viewfinder as a fraction of the preview width. */
+private const val VIEWFINDER_FRACTION = 0.78f
 
 @Composable
 fun PokemonScanScreen(
@@ -171,7 +179,7 @@ fun PokemonScanScreen(
                             captureExecutor,
                             object : ImageCapture.OnImageCapturedCallback() {
                                 override fun onCaptureSuccess(image: ImageProxy) {
-                                    val bitmap = image.toRotatedBitmap()
+                                    val bitmap = image.toViewfinderBitmap(VIEWFINDER_FRACTION)
                                     image.close()
                                     viewModel.captureAndClassify(bitmap)
                                 }
@@ -249,12 +257,30 @@ private fun CameraPreviewWithCapture(
                     .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
                     .build()
                 imageCaptureRef.value = imageCapture
+
+                // Share a single ViewPort between Preview and ImageCapture so the
+                // captured frame has the EXACT same field of view (FILL_CENTER) the
+                // user sees on screen. Without this, ImageCapture returns the full
+                // sensor frame (different aspect ratio), making the white-square crop
+                // land on a different region than what was framed.
+                val rotation = previewView.display?.rotation ?: Surface.ROTATION_0
+                val metrics = ctx.resources.displayMetrics
+                val vpWidth = if (previewView.width > 0) previewView.width else metrics.widthPixels
+                val vpHeight = if (previewView.height > 0) previewView.height else metrics.heightPixels
+                val viewPort = ViewPort.Builder(Rational(vpWidth, vpHeight), rotation)
+                    .setScaleType(ViewPort.FILL_CENTER)
+                    .build()
+                val useCaseGroup = UseCaseGroup.Builder()
+                    .addUseCase(preview)
+                    .addUseCase(imageCapture)
+                    .setViewPort(viewPort)
+                    .build()
+
                 provider.unbindAll()
                 provider.bindToLifecycle(
                     lifecycleOwner,
                     CameraSelector.DEFAULT_BACK_CAMERA,
-                    preview,
-                    imageCapture
+                    useCaseGroup
                 )
             }, ContextCompat.getMainExecutor(ctx))
             previewView
@@ -266,12 +292,48 @@ private fun CameraPreviewWithCapture(
     }
 }
 
-private fun ImageProxy.toRotatedBitmap(): Bitmap {
-    val bitmap = toBitmap()
+/**
+ * Produces the bitmap that matches *exactly* what the white viewfinder frames.
+ *
+ * 1. Crops the captured image to [ImageProxy.cropRect] — the region actually shown
+ *    by the preview (defined by the shared [ViewPort], FILL_CENTER).
+ * 2. Rotates it to the display orientation.
+ * 3. Center-crops the square whose side is [fraction] of the width, matching the
+ *    `fillMaxWidth(VIEWFINDER_FRACTION).aspectRatio(1f)` viewfinder box.
+ *
+ * The same square is what gets frozen on screen and fed to the classifier, so the
+ * framing never "jumps" between live preview and capture.
+ */
+private fun ImageProxy.toViewfinderBitmap(fraction: Float): Bitmap {
+    val full = toBitmap()
+
+    // 1) Crop to the visible preview region (the shared ViewPort).
+    val rect = cropRect
+    val base = if (
+        rect.left >= 0 && rect.top >= 0 &&
+        rect.width() in 1..full.width && rect.height() in 1..full.height &&
+        (rect.width() != full.width || rect.height() != full.height)
+    ) {
+        Bitmap.createBitmap(full, rect.left, rect.top, rect.width(), rect.height())
+    } else {
+        full
+    }
+
+    // 2) Rotate to the display orientation.
     val rotationDegrees = imageInfo.rotationDegrees
-    if (rotationDegrees == 0) return bitmap
-    val matrix = Matrix().apply { postRotate(rotationDegrees.toFloat()) }
-    return Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
+    val upright = if (rotationDegrees == 0) {
+        base
+    } else {
+        val matrix = Matrix().apply { postRotate(rotationDegrees.toFloat()) }
+        Bitmap.createBitmap(base, 0, 0, base.width, base.height, matrix, true)
+    }
+
+    // 3) Center-crop the square viewfinder.
+    val side = (fraction * upright.width).roundToInt()
+        .coerceIn(1, minOf(upright.width, upright.height))
+    val left = ((upright.width - side) / 2).coerceAtLeast(0)
+    val top = ((upright.height - side) / 2).coerceAtLeast(0)
+    return Bitmap.createBitmap(upright, left, top, side, side)
 }
 
 @Composable
@@ -326,7 +388,7 @@ private fun ScannerOverlay(
         Box(
             modifier = Modifier
                 .align(Alignment.Center)
-                .fillMaxWidth(0.78f)
+                .fillMaxWidth(VIEWFINDER_FRACTION)
                 .aspectRatio(1f)
         ) {
             if (capturedFrame != null && isAnalyzing) {

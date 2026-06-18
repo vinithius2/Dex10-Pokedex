@@ -11,5 +11,6 @@ data class MoveDetailEntity(
     val pp: Int?,
     val typeName: String?,
     val damageClass: String?,
-    val priority: Int
+    val priority: Int,
+    val shortEffect: String? = null,
 )

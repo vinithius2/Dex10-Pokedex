@@ -521,27 +521,93 @@ class PokemonRepository(
                 pp = cached.pp,
                 type = com.vinithius.dex10.datasource.response.Default(name = cached.typeName, url = null),
                 damage_class = com.vinithius.dex10.datasource.response.Default(name = cached.damageClass, url = null),
-                priority = cached.priority
+                priority = cached.priority,
+                shortEffect = cached.shortEffect
             )
         }
         return try {
-            remoteDataSource.getMoveDetail(moveName)?.also { r ->
-                localDataSource.upsertMoveDetail(
-                    com.vinithius.dex10.datasource.database.MoveDetailEntity(
-                        name = r.name,
-                        power = r.power,
-                        accuracy = r.accuracy,
-                        pp = r.pp,
-                        typeName = r.type.name,
-                        damageClass = r.damage_class.name,
-                        priority = r.priority
-                    )
+            val r = remoteDataSource.getMoveDetail(moveName)
+            val shortEffect = r.resolveShortEffect()
+            localDataSource.upsertMoveDetail(
+                com.vinithius.dex10.datasource.database.MoveDetailEntity(
+                    name = r.name,
+                    power = r.power,
+                    accuracy = r.accuracy,
+                    pp = r.pp,
+                    typeName = r.type.name,
+                    damageClass = r.damage_class.name,
+                    priority = r.priority,
+                    shortEffect = shortEffect
                 )
-            }
+            )
+            r.copy(shortEffect = shortEffect)
         } catch (e: Exception) {
             Log.e("PokemonRepository", "Error fetching move details for $moveName", e)
             null
         }
+    }
+
+    /**
+     * Picks a concise, readable effect string from the PokeAPI move payload:
+     * prefers the English `short_effect`, falling back to an English flavor text.
+     * Cleans up newlines/form-feeds and the `$effect_chance` placeholder.
+     */
+    private fun com.vinithius.dex10.datasource.response.MoveDetailsResponse.resolveShortEffect(): String? {
+        val short = effect_entries
+            ?.firstOrNull { it.language?.name == "en" }
+            ?.short_effect
+            ?.takeIf { it.isNotBlank() }
+        if (short != null) {
+            return short
+                .replace("\$effect_chance%", "")
+                .replace("\$effect_chance", "")
+                .replace('\n', ' ')
+                .replace('\u000C', ' ')
+                .replace(Regex("\\s+"), " ")
+                .trim()
+        }
+        val flavor = flavor_text_entries
+            ?.firstOrNull { it.language?.name == "en" }
+            ?.flavor_text
+            ?.takeIf { it.isNotBlank() }
+        return flavor
+            ?.replace('\n', ' ')
+            ?.replace('\u000C', ' ')
+            ?.replace(Regex("\\s+"), " ")
+            ?.trim()
+    }
+
+    private val abilityDescriptionCache = mutableMapOf<String, String?>()
+
+    override suspend fun getAbilityDescription(abilityName: String): String? {
+        val key = abilityName.trim().lowercase().replace(" ", "-")
+        if (key.isBlank()) return null
+        abilityDescriptionCache[key]?.let { return it }
+        if (abilityDescriptionCache.containsKey(key)) return null
+        return try {
+            val response = remoteDataSource.getAbilityDetail(key)
+            val text = response.resolveDescription()
+            abilityDescriptionCache[key] = text
+            text
+        } catch (e: Exception) {
+            Log.e("PokemonRepository", "Error fetching ability description for $abilityName", e)
+            abilityDescriptionCache[key] = null
+            null
+        }
+    }
+
+    /** English short_effect → effect → flavor text, cleaned for inline display. */
+    private fun com.vinithius.dex10.datasource.response.AbilityDetailResponse.resolveDescription(): String? {
+        val entry = effect_entries?.firstOrNull { it.language?.name == "en" }
+        val text = entry?.short_effect?.takeIf { it.isNotBlank() }
+            ?: entry?.effect?.takeIf { it.isNotBlank() }
+            ?: flavor_text_entries?.firstOrNull { it.language?.name == "en" }
+                ?.flavor_text?.takeIf { it.isNotBlank() }
+        return text
+            ?.replace('\n', ' ')
+            ?.replace('\u000C', ' ')
+            ?.replace(Regex("\\s+"), " ")
+            ?.trim()
     }
 
     override suspend fun getTcgCards(name: String): List<com.vinithius.dex10.datasource.response.TcgCard>? {

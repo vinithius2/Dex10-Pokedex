@@ -384,4 +384,33 @@
     <string name="feature_scanner">ポケモンスキャナー</string>
     <string name="val_trainer_scanner">1日3回</string>
     <string name="val_master_scanner">無制限</string>
+    <!-- Added: missing translations -->
+    <string name="all_images">すべての画像</string>
+    <string name="anime_info">アニメ情報</string>
+    <string name="breeding">タマゴ・育成</string>
+    <string name="buy_me_a_coffee">コーヒーをおごる ☕</string>
+    <string name="character_anime">アニメでの登場</string>
+    <string name="cta_donate">コーヒーをおごる — %1$s</string>
+    <string name="donation_description">Dex10があなたを笑顔にしたり、冒険の役に立ったことがあれば、ここは感謝を返すための特別なコーナーです。この行為は100%任意で、バーチャルなハグのようなもの。アプリを愛情を込めて作り続けるための、私への大きな励みになります。「ありがとう」を伝え、私のやる気を高める一番やさしい方法です！</string>
+    <string name="donation_title">開発者にコーヒーをおごる</string>
+    <string name="evolutions">進化</string>
+    <string name="feature_grid_mode">グリッド表示</string>
+    <string name="gender_genderless">性別なし</string>
+    <string name="hatch_steps_fmt">%1$d サイクル · 約%2$d 歩</string>
+    <string name="item_clause_warning">アイテム条項：持ち物の重複が見つかりました</string>
+    <string name="move_power_label">PWR</string>
+    <string name="move_pp_label">PP</string>
+    <string name="no_pokemon_of_type">このタイプのポケモンは見つかりませんでした。</string>
+    <string name="pokemon_of_type_fmt">%1$s タイプのポケモン</string>
+    <string name="species_clause_warning">種族条項：ポケモンの重複が見つかりました</string>
+    <string name="status">変化</string>
+    <string name="tcg_cards">TCGカード</string>
+    <string name="team_invalid_title">チーム検証の問題</string>
+    <string name="val_master_grid_mode">グリッドとリスト</string>
+    <string name="val_trainer_grid_mode">リストのみ</string>
+    <string name="variations_and_forms">バリエーションとフォルム</string>
+    <string name="view_auto">自動</string>
+    <string name="view_list">リスト</string>
+    <string name="view_mode">表示モード</string>
+    <string name="voice_actor">声優</string>
 </resources>

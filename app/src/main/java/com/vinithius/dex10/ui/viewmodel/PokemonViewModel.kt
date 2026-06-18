@@ -1009,6 +1009,17 @@ class PokemonViewModel(
         }
     }
 
+    suspend fun getAbilityDescription(abilityName: String): String? {
+        return withContext(dispatcher) {
+            try {
+                repository.getAbilityDescription(abilityName)
+            } catch (e: Exception) {
+                Log.e("PokemonViewModel", "Error fetching ability description for $abilityName", e)
+                null
+            }
+        }
+    }
+
     fun clearPokemonDetail() {
         _pokemonDetail.postValue(null)
         _stateDetail.postValue(RequestStateDetail.Loading)

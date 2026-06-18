@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -58,7 +59,8 @@ import androidx.compose.ui.unit.sp
 import com.vinithius.dex10.R
 import com.vinithius.dex10.extension.*
 import com.vinithius.dex10.ui.MainActivity
-import com.vinithius.dex10.ui.viewmodel.PokemonViewModel
+import com.vinithius.dex10.ui.viewmodel.PokemonViewModel
+
 import com.vinithius.dex10.ui.viewmodel.rememberPokemonViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -162,8 +164,9 @@ fun GetFilterBar(
     if (showBottomSheet) {
         ModalBottomSheet(
             onDismissRequest = {
+                // Dismiss only closes the sheet — the filter is applied solely via
+                // the "Apply" button inside the sheet.
                 showBottomSheet = false
-                onCallBackFilter.invoke(filterMap)
             },
             sheetState = sheetState,
             shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp),
@@ -181,13 +184,15 @@ fun GetFilterBar(
             }
         ) {
             ContentBottomSheet(
-                labelTitle,
-                filterMap[labelTitle]!!,
-                sheetState
-            ) {
-                showBottomSheet = it
-                onCallBackFilter.invoke(filterMap)
-            }
+                labelTitle = labelTitle,
+                filterMap = filterMap[labelTitle]!!,
+                sheetState = sheetState,
+                onClose = { showBottomSheet = false },
+                onApply = {
+                    showBottomSheet = false
+                    onCallBackFilter.invoke(filterMap)
+                }
+            )
         }
     }
 
@@ -325,115 +330,116 @@ fun ContentBottomSheet(
     labelTitle: String,
     filterMap: SnapshotStateMap<String, Boolean>,
     sheetState: SheetState,
-    onClickListener: (value: Boolean) -> Unit
+    onClose: () -> Unit,
+    onApply: () -> Unit
 ) {
     val coroutineScope = rememberCoroutineScope()
     val activity = getActivity()
-    Box(
+    Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp)
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 80.dp),
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = labelTitle.capitalize(),
-                    style = MaterialTheme.typography.bodyLarge,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier
-                        .weight(1f)
-                        .padding(start = 8.dp)
-                )
-                IconButton(
-                    onClick = {
-                        activity?.trackButtonClick("Close bottom sheet")
-                        coroutineScope.launch { sheetState.hide() }.invokeOnCompletion {
-                            if (sheetState.isVisible.not()) {
-                                onClickListener.invoke(false)
-                            }
+            Text(
+                text = labelTitle.capitalize(),
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(start = 8.dp)
+            )
+            IconButton(
+                onClick = {
+                    activity?.trackButtonClick("Close bottom sheet")
+                    coroutineScope.launch { sheetState.hide() }.invokeOnCompletion {
+                        if (sheetState.isVisible.not()) {
+                            onClose.invoke()
                         }
                     }
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.KeyboardArrowDown,
-                        contentDescription = stringResource(R.string.close),
-                        tint = MaterialTheme.colorScheme.onSecondary
-                    )
                 }
-            }
-            Spacer(modifier = Modifier.height(16.dp))
-            LazyVerticalGrid(
-                columns = GridCells.Fixed(2),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                modifier = Modifier.padding(8.dp)
             ) {
-                items(filterMap.keys.toList()) { filter ->
-                    when (labelTitle) {
-                        stringResource(R.string.type) -> {
-                            TypeFilterItem(
-                                typeName = filter,
-                                isSelected = filterMap[filter] == true,
-                                onClick = { isChecked ->
-                                    activity?.trackButtonClick("$filter : $isChecked")
-                                    filterMap[filter] = isChecked
-                                }
-                            )
-                        }
-                        stringResource(R.string.habitat) -> {
-                            HabitatFilterItem(
-                                habitatName = filter,
-                                isSelected = filterMap[filter] == true,
-                                onClick = { isChecked ->
-                                    activity?.trackButtonClick("$filter : $isChecked")
-                                    filterMap[filter] = isChecked
-                                }
-                            )
-                        }
-                        stringResource(R.string.color) -> {
-                            ColorFilterItem(
-                                colorName = filter,
-                                isSelected = filterMap[filter] == true,
-                                onClick = { isChecked ->
-                                    activity?.trackButtonClick("$filter : $isChecked")
-                                    filterMap[filter] = isChecked
-                                }
-                            )
-                        }
-                        else -> {
-                            DefaultFilterItem(
-                                label = filter,
-                                isSelected = filterMap[filter] == true,
-                                onClick = { isChecked ->
-                                    activity?.trackButtonClick("$filter : $isChecked")
-                                    filterMap[filter] = isChecked
-                                }
-                            )
-                        }
+                Icon(
+                    imageVector = Icons.Default.KeyboardArrowDown,
+                    contentDescription = stringResource(R.string.close),
+                    tint = MaterialTheme.colorScheme.onSecondary
+                )
+            }
+        }
+        Spacer(modifier = Modifier.height(16.dp))
+        // The grid takes the remaining space and scrolls; the action buttons live
+        // below it (no longer overlapping), so the last items are always reachable.
+        LazyVerticalGrid(
+            columns = GridCells.Fixed(2),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            contentPadding = PaddingValues(bottom = 8.dp),
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxWidth()
+                .padding(8.dp)
+        ) {
+            items(filterMap.keys.toList()) { filter ->
+                when (labelTitle) {
+                    stringResource(R.string.type) -> {
+                        TypeFilterItem(
+                            typeName = filter,
+                            isSelected = filterMap[filter] == true,
+                            onClick = { isChecked ->
+                                activity?.trackButtonClick("$filter : $isChecked")
+                                filterMap[filter] = isChecked
+                            }
+                        )
+                    }
+                    stringResource(R.string.habitat) -> {
+                        HabitatFilterItem(
+                            habitatName = filter,
+                            isSelected = filterMap[filter] == true,
+                            onClick = { isChecked ->
+                                activity?.trackButtonClick("$filter : $isChecked")
+                                filterMap[filter] = isChecked
+                            }
+                        )
+                    }
+                    stringResource(R.string.color) -> {
+                        ColorFilterItem(
+                            colorName = filter,
+                            isSelected = filterMap[filter] == true,
+                            onClick = { isChecked ->
+                                activity?.trackButtonClick("$filter : $isChecked")
+                                filterMap[filter] = isChecked
+                            }
+                        )
+                    }
+                    else -> {
+                        DefaultFilterItem(
+                            label = filter,
+                            isSelected = filterMap[filter] == true,
+                            onClick = { isChecked ->
+                                activity?.trackButtonClick("$filter : $isChecked")
+                                filterMap[filter] = isChecked
+                            }
+                        )
                     }
                 }
             }
         }
-        // Buttons fixed bellow
+        Spacer(modifier = Modifier.height(8.dp))
+        // Action buttons pinned below the scrollable grid.
         Column(
             modifier = Modifier
-                .align(Alignment.BottomCenter)
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 8.dp),
+                .padding(horizontal = 8.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             Button(
                 onClick = {
                     activity?.trackButtonClick("Bottom sheet: Apply filter")
                     coroutineScope.launch { sheetState.hide() }.invokeOnCompletion {
-                        if (!sheetState.isVisible) onClickListener.invoke(false)
+                        if (!sheetState.isVisible) onApply.invoke()
                     }
                 },
                 modifier = Modifier.fillMaxWidth()

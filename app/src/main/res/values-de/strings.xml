@@ -384,4 +384,33 @@ Upgrade auf Premium für unbegrenzte Scans.</string>
     <string name="feature_scanner">Pokémon-Scanner</string>
     <string name="val_trainer_scanner">3×/Tag</string>
     <string name="val_master_scanner">Unbegrenzt</string>
+    <!-- Added: missing translations -->
+    <string name="all_images">Alle Bilder</string>
+    <string name="anime_info">Anime-Infos</string>
+    <string name="breeding">Zucht</string>
+    <string name="buy_me_a_coffee">Spendier mir einen Kaffee ☕</string>
+    <string name="character_anime">Anime-Auftritt</string>
+    <string name="cta_donate">Kaffee spendieren — %1$s</string>
+    <string name="donation_description">Wenn Dex10 dir jemals ein Lächeln geschenkt oder dir auf deiner Reise geholfen hat, ist dies eine besondere Ecke, um etwas zurückzugeben. Diese Geste ist zu 100% freiwillig und ist wie eine virtuelle Umarmung, die mir den extra Motivationsschub gibt, die App mit viel Liebe weiter zu pflegen. Es ist die netteste Art, \"danke\" zu sagen und meine Laune hochzuhalten!</string>
+    <string name="donation_title">Spendier dem Entwickler einen Kaffee</string>
+    <string name="evolutions">Entwicklungen</string>
+    <string name="feature_grid_mode">Rasteransicht</string>
+    <string name="gender_genderless">Geschlechtslos</string>
+    <string name="hatch_steps_fmt">%1$d Zyklen · ~%2$d Schritte</string>
+    <string name="item_clause_warning">Item-Klausel: Doppelte getragene Items erkannt</string>
+    <string name="move_power_label">PWR</string>
+    <string name="move_pp_label">PP</string>
+    <string name="no_pokemon_of_type">Keine Pokémon für diesen Typ gefunden.</string>
+    <string name="pokemon_of_type_fmt">Pokémon vom Typ %1$s</string>
+    <string name="species_clause_warning">Spezies-Klausel: Doppeltes Pokémon erkannt</string>
+    <string name="status">Status</string>
+    <string name="tcg_cards">TCG-Karten</string>
+    <string name="team_invalid_title">Probleme bei der Team-Validierung</string>
+    <string name="val_master_grid_mode">Raster und Liste</string>
+    <string name="val_trainer_grid_mode">Nur Liste</string>
+    <string name="variations_and_forms">Variationen und Formen</string>
+    <string name="view_auto">Automatisch</string>
+    <string name="view_list">Liste</string>
+    <string name="view_mode">Anzeigemodus</string>
+    <string name="voice_actor">Synchronsprecher (Seiyuu)</string>
 </resources>

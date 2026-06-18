@@ -384,4 +384,33 @@
     <string name="feature_scanner">宝可梦扫描仪</string>
     <string name="val_trainer_scanner">每天3次</string>
     <string name="val_master_scanner">无限次</string>
+    <!-- Added: missing translations -->
+    <string name="all_images">所有图片</string>
+    <string name="anime_info">动画信息</string>
+    <string name="breeding">繁殖</string>
+    <string name="buy_me_a_coffee">请我喝杯咖啡 ☕</string>
+    <string name="character_anime">动画登场</string>
+    <string name="cta_donate">请喝咖啡 — %1$s</string>
+    <string name="donation_description">如果 Dex10 曾经让你会心一笑，或在你的旅程中帮助过你，这里是一个特别的角落，让你可以回馈。这个举动是100%自愿的，就像一个虚拟的拥抱，给我额外的动力，让我用心继续维护这款应用。这是说一声“谢谢”并让我保持好心情的最贴心方式！</string>
+    <string name="donation_title">请开发者喝杯咖啡</string>
+    <string name="evolutions">进化</string>
+    <string name="feature_grid_mode">网格视图</string>
+    <string name="gender_genderless">无性别</string>
+    <string name="hatch_steps_fmt">%1$d 周期 · 约%2$d 步</string>
+    <string name="item_clause_warning">道具条款：检测到重复的携带道具</string>
+    <string name="move_power_label">PWR</string>
+    <string name="move_pp_label">PP</string>
+    <string name="no_pokemon_of_type">未找到该属性的宝可梦。</string>
+    <string name="pokemon_of_type_fmt">%1$s 属性的宝可梦</string>
+    <string name="species_clause_warning">种族条款：检测到重复的宝可梦</string>
+    <string name="status">变化</string>
+    <string name="tcg_cards">集换式卡牌</string>
+    <string name="team_invalid_title">队伍验证问题</string>
+    <string name="val_master_grid_mode">网格和列表</string>
+    <string name="val_trainer_grid_mode">仅列表</string>
+    <string name="variations_and_forms">变种与形态</string>
+    <string name="view_auto">自动</string>
+    <string name="view_list">列表</string>
+    <string name="view_mode">视图模式</string>
+    <string name="voice_actor">配音演员（声优）</string>
 </resources>

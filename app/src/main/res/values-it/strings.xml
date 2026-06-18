@@ -384,4 +384,33 @@ Passa a Premium per scan illimitati.</string>
     <string name="feature_scanner">Scanner Pokémon</string>
     <string name="val_trainer_scanner">3×/giorno</string>
     <string name="val_master_scanner">Illimitato</string>
+    <!-- Added: missing translations -->
+    <string name="all_images">Tutte le immagini</string>
+    <string name="anime_info">Info anime</string>
+    <string name="breeding">Riproduzione</string>
+    <string name="buy_me_a_coffee">Offrimi un caffè ☕</string>
+    <string name="character_anime">Apparizione nell\'anime</string>
+    <string name="cta_donate">Offri un caffè — %1$s</string>
+    <string name="donation_description">Se Dex10 ti ha mai strappato un sorriso o ti ha aiutato nella tua avventura, questo è un angolo speciale per ricambiare. Questo gesto è 100% volontario ed è come un abbraccio virtuale, che mi dà quella carica di motivazione in più per continuare a curare l\'app con tutto il cuore. È il modo più gentile per dire \"grazie\" e tenere alto il morale!</string>
+    <string name="donation_title">Offri un caffè allo sviluppatore</string>
+    <string name="evolutions">Evoluzioni</string>
+    <string name="feature_grid_mode">Vista a griglia</string>
+    <string name="gender_genderless">Senza genere</string>
+    <string name="hatch_steps_fmt">%1$d cicli · ~%2$d passi</string>
+    <string name="item_clause_warning">Clausola Strumento: strumenti tenuti duplicati rilevati</string>
+    <string name="move_power_label">PWR</string>
+    <string name="move_pp_label">PP</string>
+    <string name="no_pokemon_of_type">Nessun Pokémon trovato per questo tipo.</string>
+    <string name="pokemon_of_type_fmt">Pokémon di tipo %1$s</string>
+    <string name="species_clause_warning">Clausola Specie: Pokémon duplicato rilevato</string>
+    <string name="status">Stato</string>
+    <string name="tcg_cards">Carte TCG</string>
+    <string name="team_invalid_title">Problemi di validazione della squadra</string>
+    <string name="val_master_grid_mode">Griglia ed elenco</string>
+    <string name="val_trainer_grid_mode">Solo elenco</string>
+    <string name="variations_and_forms">Variazioni e forme</string>
+    <string name="view_auto">Automatico</string>
+    <string name="view_list">Elenco</string>
+    <string name="view_mode">Modalità di visualizzazione</string>
+    <string name="voice_actor">Doppiatore (Seiyuu)</string>
 </resources>

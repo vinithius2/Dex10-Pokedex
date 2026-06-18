@@ -2,6 +2,7 @@ package com.vinithius.dex10.components
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -32,7 +33,8 @@ import com.vinithius.dex10.datasource.response.Type as TypeResponse
 
 @Composable
 fun TypeListResponse(
-    types: List<TypeResponse>
+    types: List<TypeResponse>,
+    onTypeClick: ((String) -> Unit)? = null
 ) {
     if (types.isNotEmpty()) {
         LazyRow(
@@ -43,7 +45,7 @@ fun TypeListResponse(
                 items = types,
                 key = { data -> data.type.name!! }
             ) { type ->
-                TypeItem(type.type.name ?: String())
+                TypeItem(type.type.name ?: String(), onClick = onTypeClick)
             }
         }
     } else {
@@ -87,7 +89,7 @@ fun TypeListDataBase(
 }
 
 @Composable
-fun TypeItem(typeName: String) {
+fun TypeItem(typeName: String, onClick: ((String) -> Unit)? = null) {
     val context = LocalContext.current
     Box(
         modifier = Modifier
@@ -100,6 +102,9 @@ fun TypeItem(typeName: String) {
                 shape = RoundedCornerShape(16.dp),
                 clip = false
             )
+            .let { base ->
+                if (onClick != null) base.clickable { onClick(typeName) } else base
+            }
             .padding(horizontal = 5.dp, vertical = 5.dp)
     ) {
         Row(

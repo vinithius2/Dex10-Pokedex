@@ -383,4 +383,33 @@
     <string name="feature_scanner">Scanner Pokémon</string>
     <string name="val_trainer_scanner">3×/jour</string>
     <string name="val_master_scanner">Illimité</string>
+    <!-- Added: missing translations -->
+    <string name="all_images">Toutes les images</string>
+    <string name="anime_info">Infos anime</string>
+    <string name="breeding">Reproduction</string>
+    <string name="buy_me_a_coffee">Offrez-moi un café ☕</string>
+    <string name="character_anime">Apparition dans l\'anime</string>
+    <string name="cta_donate">Offrir un café — %1$s</string>
+    <string name="donation_description">Si Dex10 vous a déjà fait sourire ou vous a aidé dans votre aventure, voici un petit coin spécial pour rendre la pareille. Ce geste est 100% volontaire et fait office de câlin virtuel, me donnant ce surplus de motivation pour continuer à entretenir l\'app avec tout mon cœur. C\'est la plus belle façon de dire « merci » et de garder le moral !</string>
+    <string name="donation_title">Offrir un café au développeur</string>
+    <string name="evolutions">Évolutions</string>
+    <string name="feature_grid_mode">Vue grille</string>
+    <string name="gender_genderless">Asexué</string>
+    <string name="hatch_steps_fmt">%1$d cycles · ~%2$d pas</string>
+    <string name="item_clause_warning">Clause d\'objet : objets tenus en double détectés</string>
+    <string name="move_power_label">PWR</string>
+    <string name="move_pp_label">PP</string>
+    <string name="no_pokemon_of_type">Aucun Pokémon trouvé pour ce type.</string>
+    <string name="pokemon_of_type_fmt">Pokémon de type %1$s</string>
+    <string name="species_clause_warning">Clause d\'espèce : Pokémon en double détecté</string>
+    <string name="status">Statut</string>
+    <string name="tcg_cards">Cartes JCC</string>
+    <string name="team_invalid_title">Problèmes de validation de l\'équipe</string>
+    <string name="val_master_grid_mode">Grille et liste</string>
+    <string name="val_trainer_grid_mode">Liste uniquement</string>
+    <string name="variations_and_forms">Variations et formes</string>
+    <string name="view_auto">Automatique</string>
+    <string name="view_list">Liste</string>
+    <string name="view_mode">Mode d\'affichage</string>
+    <string name="voice_actor">Doubleur (Seiyuu)</string>
 </resources>

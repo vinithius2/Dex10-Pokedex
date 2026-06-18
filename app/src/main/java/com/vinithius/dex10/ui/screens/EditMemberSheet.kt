@@ -16,6 +16,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.*
 import com.vinithius.dex10.R
 import com.vinithius.dex10.ui.components.AppButton
@@ -47,7 +48,9 @@ fun EditMemberSheet(
     var move3 by remember { mutableStateOf(member.move3 ?: "") }
     var move4 by remember { mutableStateOf(member.move4 ?: "") }
     var showInfoDialog by remember { mutableStateOf(false) }
-    
+    // Effect descriptions for the moves already chosen in the slots (keyed by display name).
+    val moveEffects = remember { mutableStateMapOf<String, String>() }
+
     // IV/EV/Nature state
     var ivs by remember { mutableStateOf(IVs.fromJson(member.ivs)) }
     var evs by remember { mutableStateOf(EVs.fromJson(member.evs)) }
@@ -109,6 +112,33 @@ fun EditMemberSheet(
             // Ability Selection
             val abilities = pokemonDetails?.abilities?.map { it.name } ?: emptyList()
             var abilityExpanded by remember { mutableStateOf(false) }
+            val pokemonViewModel: com.vinithius.dex10.ui.viewmodel.PokemonViewModel =
+                com.vinithius.dex10.ui.viewmodel.rememberPokemonViewModel()
+            // Fetch ability effect descriptions (cached) so the user understands
+            // what each ability does while building the team.
+            val abilityDescriptions = remember { mutableStateMapOf<String, String>() }
+            LaunchedEffect(abilities) {
+                abilities.forEach { name ->
+                    if (!abilityDescriptions.containsKey(name)) {
+                        pokemonViewModel.getAbilityDescription(name)?.let { desc ->
+                            abilityDescriptions[name] = desc
+                        }
+                    }
+                }
+            }
+            // Fetch effect text for the moves already chosen in the slots, so the
+            // user can see what each selected move does without reopening the picker.
+            LaunchedEffect(move1, move2, move3, move4) {
+                listOf(move1, move2, move3, move4).forEach { mv ->
+                    val display = mv.trim()
+                    if (display.isNotEmpty() && !moveEffects.containsKey(display)) {
+                        val apiName = display.lowercase().replace(" ", "-")
+                        pokemonViewModel.getMoveDetails(apiName)?.shortEffect?.let { eff ->
+                            moveEffects[display] = eff
+                        }
+                    }
+                }
+            }
             ExposedDropdownMenuBox(
                 expanded = abilityExpanded,
                 onExpandedChange = { abilityExpanded = !abilityExpanded }
@@ -119,6 +149,15 @@ fun EditMemberSheet(
                     label = { Text(stringResource(R.string.ability_label)) },
                     readOnly = abilities.isNotEmpty(),
                     trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = abilityExpanded) },
+                    supportingText = {
+                        abilityDescriptions[ability]?.let { desc ->
+                            Text(
+                                text = desc,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    },
                     modifier = Modifier.menuAnchor().fillMaxWidth()
                 )
                 if (abilities.isNotEmpty()) {
@@ -128,7 +167,21 @@ fun EditMemberSheet(
                     ) {
                         abilities.forEach { selection ->
                             DropdownMenuItem(
-                                text = { Text(selection) },
+                                text = {
+                                    Column {
+                                        Text(
+                                            selection.replace("-", " ").replaceFirstChar { it.uppercase() },
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                        abilityDescriptions[selection]?.let { desc ->
+                                            Text(
+                                                text = desc,
+                                                style = MaterialTheme.typography.bodySmall,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                            )
+                                        }
+                                    }
+                                },
                                 onClick = {
                                     ability = selection
                                     abilityExpanded = false
@@ -245,27 +298,40 @@ fun EditMemberSheet(
             )
 
             moveFields.forEachIndexed { index, (moveValue, label, slot) ->
-                androidx.compose.foundation.layout.Box(modifier = Modifier.fillMaxWidth().padding(top = if (index > 0) 8.dp else 0.dp)) {
-                    OutlinedTextField(
-                        value = moveValue ?: "",
-                        onValueChange = { },
-                        label = { Text(label) },
-                        placeholder = { Text(stringResource(R.string.tap_to_select)) },
-                        modifier = Modifier.fillMaxWidth(),
-                        readOnly = true,
-                        enabled = false, // Disable to prevent focus, we handle click on Box
-                        colors = OutlinedTextFieldDefaults.colors(
-                            disabledTextColor = MaterialTheme.colorScheme.onSurface,
-                            disabledBorderColor = MaterialTheme.colorScheme.outline,
-                            disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                            disabledPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant
+                Column(modifier = Modifier.fillMaxWidth().padding(top = if (index > 0) 8.dp else 0.dp)) {
+                    androidx.compose.foundation.layout.Box(modifier = Modifier.fillMaxWidth()) {
+                        OutlinedTextField(
+                            value = moveValue ?: "",
+                            onValueChange = { },
+                            label = { Text(label) },
+                            placeholder = { Text(stringResource(R.string.tap_to_select)) },
+                            modifier = Modifier.fillMaxWidth(),
+                            readOnly = true,
+                            enabled = false, // Disable to prevent focus, we handle click on Box
+                            colors = OutlinedTextFieldDefaults.colors(
+                                disabledTextColor = MaterialTheme.colorScheme.onSurface,
+                                disabledBorderColor = MaterialTheme.colorScheme.outline,
+                                disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                disabledPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
                         )
-                    )
-                    androidx.compose.foundation.layout.Box(
-                        modifier = Modifier
-                            .matchParentSize()
-                            .clickable { activeMoveSlot = slot }
-                    )
+                        androidx.compose.foundation.layout.Box(
+                            modifier = Modifier
+                                .matchParentSize()
+                                .clickable { activeMoveSlot = slot }
+                        )
+                    }
+                    val effect = moveValue.takeIf { it.isNotBlank() }?.let { moveEffects[it] }
+                    if (!effect.isNullOrBlank()) {
+                        Text(
+                            text = effect,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.padding(start = 4.dp, top = 2.dp)
+                        )
+                    }
                 }
             }
             

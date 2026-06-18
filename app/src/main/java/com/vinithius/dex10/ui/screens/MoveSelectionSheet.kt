@@ -21,7 +21,8 @@ import com.vinithius.dex10.components.TypeItem
 import com.vinithius.dex10.datasource.response.MoveDetailsResponse
 import com.vinithius.dex10.datasource.response.MoveResponse
 import com.vinithius.dex10.ui.components.MoveCategoryIcon
-import com.vinithius.dex10.ui.viewmodel.PokemonViewModel
+import com.vinithius.dex10.ui.viewmodel.PokemonViewModel
+
 import com.vinithius.dex10.ui.viewmodel.rememberPokemonViewModel
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -241,6 +242,18 @@ fun ProfessionalMoveItem(
                         text = moveName.replace("-", " ").replaceFirstChar { it.uppercase() },
                         style = MaterialTheme.typography.bodyLarge,
                         fontWeight = FontWeight.Bold
+                    )
+                }
+                // Move effect explanation — addresses user feedback about missing
+                // descriptions of moves when building a team.
+                moveDetail?.shortEffect?.takeIf { it.isNotBlank() }?.let { effect ->
+                    Text(
+                        text = effect,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 2,
+                        overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                        modifier = Modifier.padding(top = 2.dp, end = 8.dp)
                     )
                 }
             }

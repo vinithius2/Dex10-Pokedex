@@ -384,4 +384,33 @@
     <string name="feature_scanner">पोकेमॉन स्कैनर</string>
     <string name="val_trainer_scanner">3×/दिन</string>
     <string name="val_master_scanner">असीमित</string>
+    <!-- Added: missing translations -->
+    <string name="all_images">सभी छवियाँ</string>
+    <string name="anime_info">एनीमे जानकारी</string>
+    <string name="breeding">प्रजनन</string>
+    <string name="buy_me_a_coffee">मुझे एक कॉफ़ी पिलाएँ ☕</string>
+    <string name="character_anime">एनीमे में उपस्थिति</string>
+    <string name="cta_donate">कॉफ़ी खरीदें — %1$s</string>
+    <string name="donation_description">अगर Dex10 ने कभी आपके चेहरे पर मुस्कान लाई है या आपकी यात्रा में मदद की है, तो यह वापस देने के लिए एक खास कोना है। यह इशारा 100% स्वैच्छिक है और एक वर्चुअल गले जैसा है, जो मुझे ऐप की पूरे प्यार से देखभाल करते रहने की अतिरिक्त प्रेरणा देता है। यह \"धन्यवाद\" कहने और मेरा हौसला बढ़ाने का सबसे प्यारा तरीका है!</string>
+    <string name="donation_title">डेवलपर को कॉफ़ी पिलाएँ</string>
+    <string name="evolutions">विकास</string>
+    <string name="feature_grid_mode">ग्रिड दृश्य</string>
+    <string name="gender_genderless">लिंगरहित</string>
+    <string name="hatch_steps_fmt">%1$d चक्र · ~%2$d कदम</string>
+    <string name="item_clause_warning">आइटम क्लॉज़: डुप्लिकेट धारण किए गए आइटम मिले</string>
+    <string name="move_power_label">PWR</string>
+    <string name="move_pp_label">PP</string>
+    <string name="no_pokemon_of_type">इस प्रकार का कोई पोकेमॉन नहीं मिला।</string>
+    <string name="pokemon_of_type_fmt">%1$s प्रकार के पोकेमॉन</string>
+    <string name="species_clause_warning">प्रजाति क्लॉज़: डुप्लिकेट पोकेमॉन मिला</string>
+    <string name="status">स्थिति</string>
+    <string name="tcg_cards">TCG कार्ड</string>
+    <string name="team_invalid_title">टीम सत्यापन समस्याएँ</string>
+    <string name="val_master_grid_mode">ग्रिड और सूची</string>
+    <string name="val_trainer_grid_mode">केवल सूची</string>
+    <string name="variations_and_forms">विविधताएँ और रूप</string>
+    <string name="view_auto">स्वचालित</string>
+    <string name="view_list">सूची</string>
+    <string name="view_mode">दृश्य मोड</string>
+    <string name="voice_actor">आवाज़ अभिनेता (सेइयू)</string>
 </resources>

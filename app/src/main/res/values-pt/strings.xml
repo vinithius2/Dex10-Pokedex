@@ -396,4 +396,21 @@ Assine o Premium para scans ilimitados.</string>
     <string name="feature_scanner">Pokémon Scanner</string>
     <string name="val_trainer_scanner">3×/dia</string>
     <string name="val_master_scanner">Ilimitado</string>
+    <!-- Added: missing translations -->
+    <string name="anime_info">Informações do Anime</string>
+    <string name="breeding">Reprodução</string>
+    <string name="character_anime">Aparição no Anime</string>
+    <string name="gender_genderless">Sem gênero</string>
+    <string name="hatch_steps_fmt">%1$d ciclos · ~%2$d passos</string>
+    <string name="item_clause_warning">Cláusula de Item: itens equipados duplicados detectados</string>
+    <string name="move_power_label">PWR</string>
+    <string name="move_pp_label">PP</string>
+    <string name="no_pokemon_of_type">Nenhum Pokémon encontrado para este tipo.</string>
+    <string name="pokemon_of_type_fmt">Pokémon de %1$s</string>
+    <string name="search_dots">Buscar…</string>
+    <string name="species_clause_warning">Cláusula de Espécie: Pokémon duplicado detectado</string>
+    <string name="status">Status</string>
+    <string name="tcg_cards">Cartas TCG</string>
+    <string name="team_invalid_title">Problemas na Validação da Equipe</string>
+    <string name="voice_actor">Dublador (Seiyuu)</string>
 </resources>
