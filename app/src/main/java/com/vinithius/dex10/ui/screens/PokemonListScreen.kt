@@ -965,15 +965,20 @@ fun SharedTransitionScope.LoadGifWithCoil(
         }
         .build()
 
-    // Check image quality preference
     val appPreferences: AppPreferences by inject(AppPreferences::class.java)
-    val isLowQuality by appPreferences.lowQualityImages.collectAsState()
+    val spriteType by appPreferences.spriteType.collectAsState()
 
-    // When low quality, always use static PNG instead of potentially animated path
-    val imageUrl = if (isLowQuality) {
-        "$URL_IMAGE${pokemonData.pokemon.id}.png"
-    } else {
-        pokemonData.pokemon.imagePath ?: "$URL_IMAGE${pokemonData.pokemon.id}.png"
+    val pokemonId = pokemonData.pokemon.id
+    val imageUrl = when (spriteType) {
+        AppPreferences.SpriteType.GIF ->
+            pokemonData.pokemon.imagePath
+                ?: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/showdown/$pokemonId.gif"
+        AppPreferences.SpriteType.OFFICIAL_ARTWORK ->
+            "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/$pokemonId.png"
+        AppPreferences.SpriteType.HOME ->
+            "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/home/$pokemonId.png"
+        AppPreferences.SpriteType.PIXEL ->
+            "$URL_IMAGE$pokemonId.png"
     }
 
     val imageRequest = ImageRequest.Builder(context)

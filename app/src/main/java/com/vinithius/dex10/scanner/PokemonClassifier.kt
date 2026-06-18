@@ -8,6 +8,8 @@ import android.graphics.Bitmap
 import com.google.gson.Gson
 import java.io.File
 import java.io.InputStreamReader
+import java.nio.ByteBuffer
+import java.nio.ByteOrder
 import java.nio.FloatBuffer
 import kotlin.math.exp
 
@@ -59,7 +61,11 @@ class PokemonClassifier(context: Context, modelFile: File) {
         val pixels = IntArray(INPUT_SIZE * INPUT_SIZE)
         scaled.getPixels(pixels, 0, INPUT_SIZE, 0, 0, INPUT_SIZE, INPUT_SIZE)
         val area = INPUT_SIZE * INPUT_SIZE
-        val buffer = FloatBuffer.allocate(3 * area)
+        // Direct off-heap buffer required: ONNX Runtime native code on arm64 dereferences
+        // the raw pointer. A heap FloatBuffer (allocate) causes SIGABRT in convertToTensorInfo.
+        val buffer = ByteBuffer.allocateDirect(3 * area * Float.SIZE_BYTES)
+            .order(ByteOrder.nativeOrder())
+            .asFloatBuffer()
         for (i in 0 until area) {
             val pixel = pixels[i]
             buffer.put(i, ((pixel shr 16 and 0xFF) / 127.5f) - 1f)

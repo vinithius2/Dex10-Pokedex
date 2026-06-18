@@ -151,7 +151,25 @@
     <string name="rock">바위</string>
     <string name="steel">강철</string>
     <string name="water">물</string>
+    <string name="normal">노말</string>
     <string name="unknow">알 수 없음</string>
+    <!-- SPRITE TYPE SELECTOR -->
+    <string name="sprite_type_official_artwork">공식 아트워크</string>
+    <string name="sprite_type_official_artwork_desc">고해상도 공식 아트</string>
+    <string name="sprite_type_gif">애니메이션 GIF</string>
+    <string name="sprite_type_gif_desc">쇼다운 스프라이트</string>
+    <string name="sprite_type_home">Pokémon HOME</string>
+    <string name="sprite_type_home_desc">3D 스타일 렌더링</string>
+    <string name="sprite_type_pixel">픽셀 아트</string>
+    <string name="sprite_type_pixel_desc">클래식 정면 스프라이트</string>
+    <!-- TTS / VOICE -->
+    <string name="tts_section_title">음성</string>
+    <string name="tts_speed">음성 속도</string>
+    <string name="tts_pitch">음정</string>
+    <string name="tts_auto_play">스캐너에서 자동 재생</string>
+    <string name="tts_auto_play_desc">스캔에서 열 때 포켓도감 항목 읽기</string>
+    <string name="tts_speak">포켓도감 항목 읽기</string>
+    <string name="tts_stop">읽기 중지</string>
     <string name="loading_translate">텍스트 로딩 중…</string>
     <string name="shape_ball">공 모양</string>
     <string name="shape_squiggle">꾸불꾸불한 모양</string>
@@ -366,4 +384,33 @@
     <string name="feature_scanner">포켓몬 스캐너</string>
     <string name="val_trainer_scanner">하루 3회</string>
     <string name="val_master_scanner">무제한</string>
+    <!-- Added: missing translations -->
+    <string name="all_images">모든 이미지</string>
+    <string name="anime_info">애니메이션 정보</string>
+    <string name="breeding">교배</string>
+    <string name="buy_me_a_coffee">커피 한 잔 사주기 ☕</string>
+    <string name="character_anime">애니메이션 출연</string>
+    <string name="cta_donate">커피 사주기 — %1$s</string>
+    <string name="donation_description">Dex10가 당신에게 미소를 주었거나 여정에 도움이 되었다면, 이곳은 보답할 수 있는 특별한 공간입니다. 이 행동은 100% 자발적이며, 가상의 포옹과 같아서 제가 앱을 애정으로 계속 가꿔 나갈 수 있는 큰 동기가 됩니다. \"고마워요\"라고 전하고 제 기운을 북돋아 주는 가장 따뜻한 방법이에요!</string>
+    <string name="donation_title">개발자에게 커피 사주기</string>
+    <string name="evolutions">진화</string>
+    <string name="feature_grid_mode">그리드 보기</string>
+    <string name="gender_genderless">성별 없음</string>
+    <string name="hatch_steps_fmt">%1$d 사이클 · 약%2$d 걸음</string>
+    <string name="item_clause_warning">아이템 조항: 중복된 지닌 도구가 감지됨</string>
+    <string name="move_power_label">PWR</string>
+    <string name="move_pp_label">PP</string>
+    <string name="no_pokemon_of_type">이 타입의 포켓몬을 찾을 수 없습니다.</string>
+    <string name="pokemon_of_type_fmt">%1$s 타입 포켓몬</string>
+    <string name="species_clause_warning">종족 조항: 중복된 포켓몬이 감지됨</string>
+    <string name="status">변화</string>
+    <string name="tcg_cards">TCG 카드</string>
+    <string name="team_invalid_title">팀 검증 문제</string>
+    <string name="val_master_grid_mode">그리드 및 목록</string>
+    <string name="val_trainer_grid_mode">목록만</string>
+    <string name="variations_and_forms">변형 및 폼</string>
+    <string name="view_auto">자동</string>
+    <string name="view_list">목록</string>
+    <string name="view_mode">보기 모드</string>
+    <string name="voice_actor">성우</string>
 </resources>

@@ -33,6 +33,13 @@
     <string name="kg_lbs" translatable="false">"%1$s kg (%2$s lbs)"</string>
     <string name="m_inch" translatable="false">"%1$s m (%2$s″)"</string>
     <string name="kg_lbs_loading" translatable="false">"… kg (… lbs)"</string>
+    <string name="encounter_level_fmt" translatable="false">Lv. %1$d–%2$d</string>
+    <string name="encounter_level_single_fmt" translatable="false">Lv. %1$d</string>
+    <!-- Breeding / Eggs -->
+    <string name="breeding">Breeding</string>
+    <string name="hatch_steps_fmt">%1$d cycles · ~%2$d steps</string>
+    <string name="gender_genderless">Genderless</string>
+    <string name="gender_ratio_fmt" translatable="false">♂ %1$d%% · ♀ %2$d%%</string>
     <string name="m_inch_loading" translatable="false">"… m (…″)"</string>
     <string name="toast_baby">This is a baby pokemon!</string>
     <string name="toast_mythical">This is a Mythical pokemon!</string>
@@ -171,7 +178,25 @@
     <string name="rock">Rock</string>
     <string name="steel">Steel</string>
     <string name="water">Water</string>
+    <string name="normal">Normal</string>
     <string name="unknow">Unknown</string>
+    <!-- SPRITE TYPE SELECTOR -->
+    <string name="sprite_type_official_artwork">Official Artwork</string>
+    <string name="sprite_type_official_artwork_desc">High-resolution official art</string>
+    <string name="sprite_type_gif">Animated GIF</string>
+    <string name="sprite_type_gif_desc">Showdown sprites</string>
+    <string name="sprite_type_home">Pokémon HOME</string>
+    <string name="sprite_type_home_desc">3D-style rendering</string>
+    <string name="sprite_type_pixel">Pixel Art</string>
+    <string name="sprite_type_pixel_desc">Classic front-facing sprite</string>
+    <!-- TTS / VOICE -->
+    <string name="tts_section_title">Voice</string>
+    <string name="tts_speed">Speech speed</string>
+    <string name="tts_pitch">Pitch</string>
+    <string name="tts_auto_play">Auto-play from scanner</string>
+    <string name="tts_auto_play_desc">Read Pokédex entry when opening from a scan</string>
+    <string name="tts_speak">Read Pokédex entry</string>
+    <string name="tts_stop">Stop reading</string>
     <!-- TRANSLATER STATUS -->
     <string name="loading_translate">Loading text…</string>
     <!-- SHAPES -->
@@ -381,6 +406,11 @@
     <string name="other">Other</string>
     <string name="no_moves_found">No moves found</string>
     <string name="search_hint">Try changing the filter or search term.</string>
+    <string name="status">Status</string>
+    <string name="move_power_label">PWR</string>
+    <string name="move_pp_label">PP</string>
+    <string name="pokemon_of_type_fmt">%1$s Pokémon</string>
+    <string name="no_pokemon_of_type">No Pokémon found for this type.</string>
 
     <!-- Edit Member Sheet -->
     <string name="edit_pokemon_details">Edit Pokemon Details</string>

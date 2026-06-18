@@ -21,6 +21,9 @@ class AppPreferences(context: Context) {
         private const val KEY_LOW_QUALITY = "low_quality_images"
         private const val KEY_SCANNER_COUNT = "scanner_daily_count"
         private const val KEY_SCANNER_DATE = "scanner_daily_date"
+        private const val KEY_TTS_SPEED = "tts_speed"
+        private const val KEY_TTS_PITCH = "tts_pitch"
+        private const val KEY_TTS_AUTO_PLAY = "tts_auto_play"
 
         // FCM topics — send to all three from Firebase Console to reach everyone,
         // or target individually to reach only premium / only free users.
@@ -38,9 +41,9 @@ class AppPreferences(context: Context) {
     }
 
     enum class SpriteType(val key: Int) {
-        GIF(0), OFFICIAL_ARTWORK(1), HOME(2), PIXEL(3);
+        OFFICIAL_ARTWORK(1), GIF(0), HOME(2), PIXEL(3);
         companion object {
-            fun fromInt(v: Int) = values().firstOrNull { it.key == v } ?: GIF
+            fun fromInt(v: Int) = values().firstOrNull { it.key == v } ?: OFFICIAL_ARTWORK
         }
     }
 
@@ -121,7 +124,7 @@ class AppPreferences(context: Context) {
 
     // --- Sprite Type ---
     private val _spriteType = MutableStateFlow(
-        SpriteType.fromInt(prefs.getInt(KEY_SPRITE_TYPE, SpriteType.GIF.key))
+        SpriteType.fromInt(prefs.getInt(KEY_SPRITE_TYPE, SpriteType.OFFICIAL_ARTWORK.key))
     )
     val spriteType: StateFlow<SpriteType> = _spriteType.asStateFlow()
 
@@ -137,6 +140,31 @@ class AppPreferences(context: Context) {
     fun setViewMode(value: ViewMode) {
         prefs.edit().putInt(KEY_VIEW_MODE, value.value).apply()
         _viewMode.value = value
+    }
+
+    // --- TTS / Voice ---
+    private val _ttsSpeed = MutableStateFlow(prefs.getFloat(KEY_TTS_SPEED, 1.0f))
+    val ttsSpeed: StateFlow<Float> = _ttsSpeed.asStateFlow()
+
+    fun setTtsSpeed(value: Float) {
+        prefs.edit().putFloat(KEY_TTS_SPEED, value).apply()
+        _ttsSpeed.value = value
+    }
+
+    private val _ttsPitch = MutableStateFlow(prefs.getFloat(KEY_TTS_PITCH, 1.0f))
+    val ttsPitch: StateFlow<Float> = _ttsPitch.asStateFlow()
+
+    fun setTtsPitch(value: Float) {
+        prefs.edit().putFloat(KEY_TTS_PITCH, value).apply()
+        _ttsPitch.value = value
+    }
+
+    private val _ttsAutoPlay = MutableStateFlow(prefs.getBoolean(KEY_TTS_AUTO_PLAY, false))
+    val ttsAutoPlay: StateFlow<Boolean> = _ttsAutoPlay.asStateFlow()
+
+    fun setTtsAutoPlay(value: Boolean) {
+        prefs.edit().putBoolean(KEY_TTS_AUTO_PLAY, value).apply()
+        _ttsAutoPlay.value = value
     }
 
     // --- Scanner Daily Usage ---

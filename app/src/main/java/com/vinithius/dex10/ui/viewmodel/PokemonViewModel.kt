@@ -31,7 +31,9 @@ import java.util.Locale
 
 import com.vinithius.dex10.datasource.data.PremiumManager
 import com.vinithius.dex10.datasource.data.AppPreferences
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 
 import kotlinx.coroutines.CoroutineDispatcher
 
@@ -382,6 +384,13 @@ class PokemonViewModel(
 
     fun setIdPokemon(value: Int) {
         _idPokemon.postValue(value)
+    }
+
+    private val _openedFromScanner = MutableStateFlow(false)
+    val openedFromScanner: StateFlow<Boolean> = _openedFromScanner.asStateFlow()
+
+    fun setOpenedFromScanner(value: Boolean) {
+        _openedFromScanner.value = value
     }
 
 
@@ -995,6 +1004,17 @@ class PokemonViewModel(
                 repository.getMoveDetails(moveName)
             } catch (e: Exception) {
                 Log.e("PokemonViewModel", "Error fetching move details for $moveName", e)
+                null
+            }
+        }
+    }
+
+    suspend fun getAbilityDescription(abilityName: String): String? {
+        return withContext(dispatcher) {
+            try {
+                repository.getAbilityDescription(abilityName)
+            } catch (e: Exception) {
+                Log.e("PokemonViewModel", "Error fetching ability description for $abilityName", e)
                 null
             }
         }

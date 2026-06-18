@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Lock
@@ -147,6 +148,71 @@ fun SettingsScreen(
             onSelect = { appPreferences.setSpriteType(it) }
         )
 
+        HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+
+        // --- Voice / TTS Section ---
+        val ttsSpeed by appPreferences.ttsSpeed.collectAsState()
+        val ttsPitch by appPreferences.ttsPitch.collectAsState()
+        val ttsAutoPlay by appPreferences.ttsAutoPlay.collectAsState()
+
+        SectionHeader(stringResource(R.string.tts_section_title))
+
+        SettingToggleItem(
+            icon = Icons.AutoMirrored.Filled.VolumeUp,
+            title = stringResource(R.string.tts_auto_play),
+            description = stringResource(R.string.tts_auto_play_desc),
+            checked = ttsAutoPlay,
+            onCheckedChange = { appPreferences.setTtsAutoPlay(it) }
+        )
+
+        Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    text = stringResource(R.string.tts_speed),
+                    style = MaterialTheme.typography.bodyMedium
+                )
+                Text(
+                    text = "%.1f×".format(ttsSpeed),
+                    style = MaterialTheme.typography.bodySmall,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+            Slider(
+                value = ttsSpeed,
+                onValueChange = { appPreferences.setTtsSpeed(it) },
+                valueRange = 0.5f..2.0f,
+                steps = 5,
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    text = stringResource(R.string.tts_pitch),
+                    style = MaterialTheme.typography.bodyMedium
+                )
+                Text(
+                    text = "%.1f×".format(ttsPitch),
+                    style = MaterialTheme.typography.bodySmall,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+            Slider(
+                value = ttsPitch,
+                onValueChange = { appPreferences.setTtsPitch(it) },
+                valueRange = 0.5f..2.0f,
+                steps = 5,
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
+
         Spacer(modifier = Modifier.height(24.dp))
 
         // --- Developer Options (Debug Only) ---
@@ -190,10 +256,22 @@ private fun SpriteTypeSelector(
 ) {
     val context = LocalContext.current
     val options = listOf(
-        AppPreferences.SpriteType.GIF to Pair("Animated GIF", "Showdown sprites · recommended"),
-        AppPreferences.SpriteType.OFFICIAL_ARTWORK to Pair("Official Artwork", "High-resolution official art"),
-        AppPreferences.SpriteType.HOME to Pair("Pokémon HOME", "3D-style rendering"),
-        AppPreferences.SpriteType.PIXEL to Pair("Pixel Art", "Classic front-facing sprite"),
+        AppPreferences.SpriteType.OFFICIAL_ARTWORK to Pair(
+            stringResource(R.string.sprite_type_official_artwork),
+            stringResource(R.string.sprite_type_official_artwork_desc)
+        ),
+        AppPreferences.SpriteType.GIF to Pair(
+            stringResource(R.string.sprite_type_gif),
+            stringResource(R.string.sprite_type_gif_desc)
+        ),
+        AppPreferences.SpriteType.HOME to Pair(
+            stringResource(R.string.sprite_type_home),
+            stringResource(R.string.sprite_type_home_desc)
+        ),
+        AppPreferences.SpriteType.PIXEL to Pair(
+            stringResource(R.string.sprite_type_pixel),
+            stringResource(R.string.sprite_type_pixel_desc)
+        ),
     )
 
     // URL of the preview Pokémon (Pikachu) for each type

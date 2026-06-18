@@ -158,7 +158,25 @@
     <string name="rock">Pedra</string>
     <string name="steel">Aço</string>
     <string name="water">Água</string>
+    <string name="normal">Normal</string>
     <string name="unknow">Desconhecido</string>
+    <!-- SPRITE TYPE SELECTOR -->
+    <string name="sprite_type_official_artwork">Arte Oficial</string>
+    <string name="sprite_type_official_artwork_desc">Arte oficial em alta resolução</string>
+    <string name="sprite_type_gif">GIF Animado</string>
+    <string name="sprite_type_gif_desc">Sprites do Showdown</string>
+    <string name="sprite_type_home">Pokémon HOME</string>
+    <string name="sprite_type_home_desc">Renderização estilo 3D</string>
+    <string name="sprite_type_pixel">Pixel Art</string>
+    <string name="sprite_type_pixel_desc">Sprite clássico frontal</string>
+    <!-- TTS / VOICE -->
+    <string name="tts_section_title">Voz</string>
+    <string name="tts_speed">Velocidade da voz</string>
+    <string name="tts_pitch">Tom</string>
+    <string name="tts_auto_play">Reprodução automática do scanner</string>
+    <string name="tts_auto_play_desc">Ler entrada da Pokédex ao abrir pelo scanner</string>
+    <string name="tts_speak">Ler entrada da Pokédex</string>
+    <string name="tts_stop">Parar leitura</string>
     <string name="loading_translate">Carregando texto…</string>
     <string name="shape_ball">Esfera</string>
     <string name="shape_squiggle">Ondulado</string>
@@ -378,4 +396,21 @@ Assine o Premium para scans ilimitados.</string>
     <string name="feature_scanner">Pokémon Scanner</string>
     <string name="val_trainer_scanner">3×/dia</string>
     <string name="val_master_scanner">Ilimitado</string>
+    <!-- Added: missing translations -->
+    <string name="anime_info">Informações do Anime</string>
+    <string name="breeding">Reprodução</string>
+    <string name="character_anime">Aparição no Anime</string>
+    <string name="gender_genderless">Sem gênero</string>
+    <string name="hatch_steps_fmt">%1$d ciclos · ~%2$d passos</string>
+    <string name="item_clause_warning">Cláusula de Item: itens equipados duplicados detectados</string>
+    <string name="move_power_label">PWR</string>
+    <string name="move_pp_label">PP</string>
+    <string name="no_pokemon_of_type">Nenhum Pokémon encontrado para este tipo.</string>
+    <string name="pokemon_of_type_fmt">Pokémon de %1$s</string>
+    <string name="search_dots">Buscar…</string>
+    <string name="species_clause_warning">Cláusula de Espécie: Pokémon duplicado detectado</string>
+    <string name="status">Status</string>
+    <string name="tcg_cards">Cartas TCG</string>
+    <string name="team_invalid_title">Problemas na Validação da Equipe</string>
+    <string name="voice_actor">Dublador (Seiyuu)</string>
 </resources>

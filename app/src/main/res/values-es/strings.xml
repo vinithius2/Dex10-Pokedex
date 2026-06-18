@@ -151,7 +151,25 @@
     <string name="rock">Roca</string>
     <string name="steel">Acero</string>
     <string name="water">Agua</string>
+    <string name="normal">Normal</string>
     <string name="unknow">Desconocido</string>
+    <!-- SPRITE TYPE SELECTOR -->
+    <string name="sprite_type_official_artwork">Arte oficial</string>
+    <string name="sprite_type_official_artwork_desc">Arte oficial en alta resolución</string>
+    <string name="sprite_type_gif">GIF animado</string>
+    <string name="sprite_type_gif_desc">Sprites de Showdown</string>
+    <string name="sprite_type_home">Pokémon HOME</string>
+    <string name="sprite_type_home_desc">Renderizado estilo 3D</string>
+    <string name="sprite_type_pixel">Pixel Art</string>
+    <string name="sprite_type_pixel_desc">Sprite clásico frontal</string>
+    <!-- TTS / VOICE -->
+    <string name="tts_section_title">Voz</string>
+    <string name="tts_speed">Velocidad de voz</string>
+    <string name="tts_pitch">Tono</string>
+    <string name="tts_auto_play">Reproducción automática desde escáner</string>
+    <string name="tts_auto_play_desc">Leer entrada Pokédex al abrir desde escaneo</string>
+    <string name="tts_speak">Leer entrada Pokédex</string>
+    <string name="tts_stop">Detener lectura</string>
     <string name="loading_translate">Cargando texto…</string>
     <string name="shape_ball">Esfera</string>
     <string name="shape_squiggle">Ondulado</string>
@@ -366,4 +384,33 @@ Actualiza a Premium para scans ilimitados.</string>
     <string name="feature_scanner">Pokémon Scanner</string>
     <string name="val_trainer_scanner">3×/día</string>
     <string name="val_master_scanner">Ilimitado</string>
+    <!-- Added: missing translations -->
+    <string name="all_images">Todas las imágenes</string>
+    <string name="anime_info">Información del anime</string>
+    <string name="breeding">Crianza</string>
+    <string name="buy_me_a_coffee">Invítame un café ☕</string>
+    <string name="character_anime">Aparición en el anime</string>
+    <string name="cta_donate">Comprar café — %1$s</string>
+    <string name="donation_description">Si Dex10 alguna vez te ha sacado una sonrisa o te ha ayudado en tu aventura, este es un rincón especial para devolver el gesto. Esta acción es 100% voluntaria y funciona como un abrazo virtual, dándome ese impulso extra de motivación para seguir cuidando la app con todo mi cariño. ¡Es la forma más amable de decir \"gracias\" y mantener mi ánimo alto!</string>
+    <string name="donation_title">Invita un café al desarrollador</string>
+    <string name="evolutions">Evoluciones</string>
+    <string name="feature_grid_mode">Vista de cuadrícula</string>
+    <string name="gender_genderless">Sin género</string>
+    <string name="hatch_steps_fmt">%1$d ciclos · ~%2$d pasos</string>
+    <string name="item_clause_warning">Cláusula de objeto: objetos equipados duplicados detectados</string>
+    <string name="move_power_label">PWR</string>
+    <string name="move_pp_label">PP</string>
+    <string name="no_pokemon_of_type">No se encontraron Pokémon de este tipo.</string>
+    <string name="pokemon_of_type_fmt">Pokémon de tipo %1$s</string>
+    <string name="species_clause_warning">Cláusula de especie: Pokémon duplicado detectado</string>
+    <string name="status">Estado</string>
+    <string name="tcg_cards">Cartas TCG</string>
+    <string name="team_invalid_title">Problemas de validación del equipo</string>
+    <string name="val_master_grid_mode">Cuadrícula y lista</string>
+    <string name="val_trainer_grid_mode">Solo lista</string>
+    <string name="variations_and_forms">Variaciones y formas</string>
+    <string name="view_auto">Automático</string>
+    <string name="view_list">Lista</string>
+    <string name="view_mode">Modo de vista</string>
+    <string name="voice_actor">Actor de voz (Seiyuu)</string>
 </resources>

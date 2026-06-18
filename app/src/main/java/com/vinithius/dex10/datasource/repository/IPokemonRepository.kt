@@ -51,6 +51,9 @@ interface IPokemonRepository {
     suspend fun getMovesForPokemon(pokemonId: Int): List<com.vinithius.dex10.datasource.response.MoveResponse>?
     suspend fun getMoveDetails(moveName: String): com.vinithius.dex10.datasource.response.MoveDetailsResponse?
 
+    // Abilities
+    suspend fun getAbilityDescription(abilityName: String): String?
+
     // TCG
     suspend fun getTcgCards(name: String): List<com.vinithius.dex10.datasource.response.TcgCard>?
 

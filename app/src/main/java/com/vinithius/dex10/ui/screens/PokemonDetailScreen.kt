@@ -1,8 +1,11 @@
-package com.vinithius.dex10.ui.screens
+﻿package com.vinithius.dex10.ui.screens
 
 import android.annotation.SuppressLint
 import android.content.Context
 import android.media.MediaPlayer
+import android.media.AudioAttributes
+import android.media.AudioFocusRequest
+import android.media.AudioManager
 import android.os.Build
 import android.text.Spanned
 import androidx.compose.animation.AnimatedVisibility
@@ -24,6 +27,7 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -65,6 +69,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -122,6 +127,7 @@ import com.vinithius.dex10.components.TypeItemShimmer
 import com.vinithius.dex10.components.TypeListResponse
 import com.vinithius.dex10.datasource.mapper.fromDefaultToListType
 import com.vinithius.dex10.datasource.response.Pokemon
+import com.vinithius.dex10.datasource.response.MoveDetailsResponse
 import com.vinithius.dex10.datasource.response.Type
 import com.vinithius.dex10.datasource.response.TcgCard
 import com.vinithius.dex10.datasource.response.JikanAnimeInfo
@@ -146,6 +152,21 @@ import com.vinithius.dex10.extension.getStringShape
 import com.vinithius.dex10.extension.getStringStat
 import com.vinithius.dex10.extension.getWindowColumns
 import com.vinithius.dex10.extension.translateIfSupported
+import com.vinithius.dex10.extension.formatLocationName
+import com.vinithius.dex10.extension.formatVersionName
+import com.vinithius.dex10.extension.getVersionColor
+import com.vinithius.dex10.datasource.response.Location
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
+import kotlin.math.roundToInt
+import android.speech.tts.TextToSpeech
+import android.speech.tts.UtteranceProgressListener
+import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
+import androidx.compose.material.icons.automirrored.filled.MenuBook
+import androidx.compose.material.icons.filled.StopCircle
+import androidx.compose.runtime.DisposableEffect
 import com.vinithius.dex10.ui.MainActivity
 import com.vinithius.dex10.ui.theme.text
 import com.vinithius.dex10.ui.viewmodel.PokemonViewModel
@@ -157,6 +178,9 @@ import ir.ehsannarmani.compose_charts.models.Bars
 import ir.ehsannarmani.compose_charts.models.LabelHelperProperties
 import ir.ehsannarmani.compose_charts.models.LabelProperties
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import org.koin.androidx.compose.getViewModel
 
 @Composable
@@ -352,7 +376,7 @@ fun SharedTransitionScope.MainCard(
                 modifier = Modifier.fillMaxSize(),
                 verticalArrangement = Arrangement.SpaceBetween
             ) {
-                // Top: Habitat and Pokémon Image
+                // Top: Habitat and PokÃ©mon Image
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -381,15 +405,27 @@ fun SharedTransitionScope.MainCard(
                         pokemonId.LoadGifWithCoil(viewModel)
                     }
 
-                    // Zenith Cry Button
-                    Box(
+                    // Cry + TTS buttons stacked at top-end
+                    val openedFromScanner by viewModel.openedFromScanner.collectAsState()
+                    val appPreferences: AppPreferences = get()
+                    val ttsAutoPlay by appPreferences.ttsAutoPlay.collectAsState()
+                    Column(
                         modifier = Modifier
                             .align(Alignment.TopEnd)
-                            .padding(16.dp)
+                            .padding(top = 16.dp, end = 16.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         ZenithCryButton(
                             viewModel = viewModel,
                             color = color.getColorByString(isSystemInDarkTheme())
+                        )
+                        TtsButton(
+                            pokemonDetail = pokemonDetail,
+                            color = color.getColorByString(isSystemInDarkTheme()),
+                            appPreferences = appPreferences,
+                            triggerAutoPlay = openedFromScanner && ttsAutoPlay,
+                            onAutoPlayConsumed = { viewModel.setOpenedFromScanner(false) }
                         )
                     }
 
@@ -607,7 +643,7 @@ fun SharedTransitionScope.MainCardLargeScreen(
                     modifier = Modifier.fillMaxSize(),
                     verticalArrangement = Arrangement.SpaceBetween
                 ) {
-                    // Top: Habitat and Pokémon Image
+                    // Top: Habitat and PokÃ©mon Image
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -636,15 +672,27 @@ fun SharedTransitionScope.MainCardLargeScreen(
                             pokemonId.LoadGifWithCoil(viewModel)
                         }
 
-                        // Zenith Cry Button
-                        Box(
+                        // Cry + TTS buttons stacked at top-end
+                        val openedFromScannerLarge by viewModel.openedFromScanner.collectAsState()
+                        val appPreferencesLarge: AppPreferences = get()
+                        val ttsAutoPlayLarge by appPreferencesLarge.ttsAutoPlay.collectAsState()
+                        Column(
                             modifier = Modifier
                                 .align(Alignment.TopEnd)
-                                .padding(16.dp)
+                                .padding(top = 16.dp, end = 16.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             ZenithCryButton(
                                 viewModel = viewModel,
                                 color = color.getColorByString(isSystemInDarkTheme())
+                            )
+                            TtsButton(
+                                pokemonDetail = pokemonDetail,
+                                color = color.getColorByString(isSystemInDarkTheme()),
+                                appPreferences = appPreferencesLarge,
+                                triggerAutoPlay = openedFromScannerLarge && ttsAutoPlayLarge,
+                                onAutoPlayConsumed = { viewModel.setOpenedFromScanner(false) }
                             )
                         }
 
@@ -928,7 +976,7 @@ fun TabWithPagerExample(
                 when (tabItems[page].page) {
                     TabPage.DAMAGE -> {
                         activity?.trackButtonClick(tabItems[page].title)
-                        PokemonDamage(pokemonDetail, viewModel)
+                        PokemonDamage(pokemonDetail, navController, viewModel)
                     }
 
                     TabPage.ENCOUNTERS -> {
@@ -1005,7 +1053,7 @@ fun PokemonTcgSection(
         visibleCards?.sortedByDescending { it.id in tcgFavorites }
     }
 
-    // Carousel scroll state — used to reveal a newly pinned favourite at the front
+    // Carousel scroll state â€” used to reveal a newly pinned favourite at the front
     val listState = rememberLazyListState()
     val scope = rememberCoroutineScope()
 
@@ -1046,10 +1094,14 @@ fun PokemonTcgSection(
 
                     if (isVisible) {
                         Card(
+                            // NOTE: do NOT add Modifier.animateItem() here.
+                            // Re-sorting on favourite toggle + a scroll triggers a lookahead
+                            // placement pass that races the LazyRow scroll and crashes with
+                            // "Placement happened before lookahead". Without animateItem there is
+                            // no lookahead pass, so the re-order is instant and crash-free.
                             modifier = Modifier
                                 .width(150.dp)
                                 .height(210.dp)
-                                .animateItem()
                                 .clickable {
                                     selectedImageUrl = card.getLargeImage()
                                     selectedTitle = card.name
@@ -1091,10 +1143,19 @@ fun PokemonTcgSection(
                                         onToggle = {
                                             val wasFavorite = card.id in tcgFavorites
                                             onToggleFavorite(card.id)
-                                            // When pinning a new favourite, slide the carousel
-                                            // back to the front so it becomes visible.
+                                            // When pinning a new favourite, reveal it at the
+                                            // front. Use the non-animated scrollToItem: an
+                                            // animated scroll calls forceRemeasure every frame
+                                            // and can crash with
+                                            // "Placement happened before lookahead".
                                             if (!wasFavorite) {
-                                                scope.launch { listState.animateScrollToItem(0) }
+                                                scope.launch {
+                                                    try {
+                                                        listState.scrollToItem(0)
+                                                    } catch (_: Exception) {
+                                                        // Layout not ready yet; safe to ignore.
+                                                    }
+                                                }
                                             }
                                         },
                                         modifier = Modifier.align(Alignment.TopEnd)
@@ -1882,7 +1943,7 @@ private fun ChartSuccessComposable(
     pokemonDetail: Pokemon?,
     color: String?
 ) {
-    // 1) Early return para não desenhar o chart até teres cor
+    // 1) Early return para nÃ£o desenhar o chart atÃ© teres cor
     if (pokemonDetail == null || color == null) {
         Box(
             modifier = Modifier.fillMaxSize(),
@@ -2108,7 +2169,8 @@ private fun PokemonEvolution(
         },
         success = {
             val pokemonId = pokemonDetail?.id ?: 0
-            val color = viewModel.getPokemonColor()?.getColorByString(isSystemInDarkTheme())
+            val color = viewModel.getPokemonColor()
+                ?.getColorByString(isSystemInDarkTheme())
                 ?: Color.Black
             val stages = pokemonDetail?.evolution?.toEvoStages()
             val displayStages = stages?.let { viewModel.getEvoDisplayStages(it) }
@@ -2330,8 +2392,10 @@ private fun GenericBox(
 @Composable
 private fun PokemonDamage(
     pokemonDetail: Pokemon?,
+    navController: NavController? = null,
     viewModel: PokemonViewModel = rememberPokemonViewModel()
 ) {
+    var selectedType by remember { mutableStateOf<String?>(null) }
     StateRequest(
         viewModel = viewModel,
         loading = {
@@ -2366,18 +2430,21 @@ private fun PokemonDamage(
                             DefaultDamageFromTo(
                                 stringResource(R.string.no_damage),
                                 damageItem.damage_relations.no_damage_to.fromDefaultToListType(),
-                                damageItem.damage_relations.no_damage_from.fromDefaultToListType()
+                                damageItem.damage_relations.no_damage_from.fromDefaultToListType(),
+                                onTypeClick = { selectedType = it }
                             )
                             DefaultDamageFromTo(
                                 stringResource(R.string.effective_damage),
                                 damageItem.damage_relations.effective_damage_to?.fromDefaultToListType()
                                     ?: listOf(),
-                                damageItem.damage_relations.effective_damage_from.fromDefaultToListType()
+                                damageItem.damage_relations.effective_damage_from.fromDefaultToListType(),
+                                onTypeClick = { selectedType = it }
                             )
                             DefaultDamageFromTo(
                                 stringResource(R.string.ineffective_damage),
                                 damageItem.damage_relations.ineffective_damage_to.fromDefaultToListType(),
-                                damageItem.damage_relations.ineffective_damage_from.fromDefaultToListType()
+                                damageItem.damage_relations.ineffective_damage_from.fromDefaultToListType(),
+                                onTypeClick = { selectedType = it }
                             )
                         }
                         Spacer(modifier = Modifier.size(6.dp))
@@ -2397,6 +2464,81 @@ private fun PokemonDamage(
         },
         error = { /* Do nothing yet */ }
     )
+
+    selectedType?.let { type ->
+        TypePokemonSheet(
+            typeName = type,
+            onDismiss = { selectedType = null },
+            onPokemonSelected = { id ->
+                viewModel.setIdPokemon(id)
+                navController?.navigate("pokemonDetail/$id")
+                selectedType = null
+            },
+            viewModel = viewModel
+        )
+    }
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun EncounterLocationCard(location: Location, accentColor: Color) {
+    data class EncSig(val method: String, val minLevel: Int, val maxLevel: Int, val chance: Int)
+
+    val grouped = buildMap<EncSig, MutableList<String>> {
+        location.version_details?.forEach { vd ->
+            val vName = vd.version.name ?: return@forEach
+            vd.encounter_details.forEach { ed ->
+                val sig = EncSig(ed.method.name ?: "", ed.min_level, ed.max_level, ed.chance)
+                getOrPut(sig) { mutableListOf() }.add(vName)
+            }
+        }
+    }
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(8.dp))
+            .background(accentColor.copy(alpha = 0.12f))
+            .padding(horizontal = 12.dp, vertical = 10.dp)
+    ) {
+        Text(
+            text = location.location_area.name?.formatLocationName() ?: "?",
+            style = MaterialTheme.typography.bodyMedium,
+            fontWeight = FontWeight.Bold,
+            color = accentColor
+        )
+        if (grouped.isNotEmpty()) {
+            Spacer(modifier = Modifier.height(6.dp))
+            grouped.forEach { (sig, versions) ->
+                FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    versions.distinct().forEach { vName ->
+                        Text(
+                            text = vName.formatVersionName(),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = Color.White,
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(4.dp))
+                                .background(vName.getVersionColor())
+                                .padding(horizontal = 6.dp, vertical = 2.dp)
+                        )
+                    }
+                }
+                val levelText = if (sig.minLevel == sig.maxLevel)
+                    stringResource(R.string.encounter_level_single_fmt, sig.minLevel)
+                else
+                    stringResource(R.string.encounter_level_fmt, sig.minLevel, sig.maxLevel)
+                Text(
+                    text = "${sig.method.formatLocationName()} Â· $levelText Â· ${sig.chance}%",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f),
+                    modifier = Modifier.padding(top = 2.dp, bottom = 4.dp)
+                )
+            }
+        }
+    }
 }
 
 @Composable
@@ -2432,29 +2574,11 @@ private fun PokemonEncounters(
         success = {
             GenericBox {
                 if (pokemonDetail?.encounters?.isNotEmpty() == true) {
-                    pokemonDetail.encounters?.forEach {
-
-                        Row(
-                            modifier = Modifier.padding(vertical = 4.dp)
-                        ) {
-                            Text(
-                                text = it.location_area.name?.replace("-", " ")?.capitalize()
-                                    ?: "?",
-                                style = MaterialTheme.typography.bodyLarge.copy(
-                                    color = Color.White
-                                ),
-                                fontWeight = FontWeight.Bold,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clip(RoundedCornerShape(8.dp))
-                                    .background(
-                                        color?.getColorByString(isSystemInDarkTheme())
-                                            ?: Color.Black
-                                    )
-                                    .padding(8.dp)
-                            )
+                    val accentColor = color?.getColorByString(isSystemInDarkTheme()) ?: Color.Black
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        pokemonDetail.encounters?.forEach { location ->
+                            EncounterLocationCard(location = location, accentColor = accentColor)
                         }
-
                     }
                 } else {
                     Text(
@@ -2471,6 +2595,7 @@ private fun PokemonEncounters(
     )
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun PokemonEggs(
     pokemonDetail: Pokemon?,
@@ -2503,41 +2628,66 @@ private fun PokemonEggs(
             }
         },
         success = {
-            GenericBox {
-                if (pokemonDetail?.specie?.egg_groups?.isNotEmpty() == true) {
-
-                    pokemonDetail.specie?.let { specie ->
-                        specie.egg_groups?.forEach {
-                            Row(
-                                modifier = Modifier.padding(vertical = 4.dp)
-                            ) {
-                                Text(
-                                    text = it.name?.getStringEggGroup(context) ?: "?",
-                                    style = MaterialTheme.typography.bodyLarge.copy(
-                                        color = Color.White
-                                    ),
-                                    fontWeight = FontWeight.Bold,
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .clip(RoundedCornerShape(8.dp))
-                                        .background(
-                                            color?.getColorByString(isSystemInDarkTheme())
-                                                ?: Color.Black
-                                        )
-                                        .padding(8.dp)
+            val accentColor = color?.getColorByString(isSystemInDarkTheme()) ?: Color.Black
+            val specie = pokemonDetail?.specie
+            val eggGroups = specie?.egg_groups
+            val hatch = specie?.hatch_counter
+            val genderRate = specie?.gender_rate
+            if (specie != null && (!eggGroups.isNullOrEmpty() || hatch != null || genderRate != null)) {
+                GenericBox {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        if (!eggGroups.isNullOrEmpty()) {
+                            DetailItemCard(accentColor) {
+                                CardSectionTitle(
+                                    stringResource(R.string.title_egg_groups),
+                                    accentColor
                                 )
+                                Spacer(modifier = Modifier.height(6.dp))
+                                FlowRow(
+                                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                                ) {
+                                    eggGroups.forEach { group ->
+                                        InfoChip(
+                                            text = group.name?.getStringEggGroup(context) ?: "?",
+                                            color = accentColor
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                        if (hatch != null || genderRate != null) {
+                            DetailItemCard(accentColor) {
+                                CardSectionTitle(stringResource(R.string.breeding), accentColor)
+                                Spacer(modifier = Modifier.height(6.dp))
+                                if (hatch != null) {
+                                    val steps = (hatch + 1) * 255
+                                    CardDetailText(
+                                        stringResource(R.string.hatch_steps_fmt, hatch, steps)
+                                    )
+                                }
+                                if (genderRate != null) {
+                                    val genderText = if (genderRate < 0) {
+                                        stringResource(R.string.gender_genderless)
+                                    } else {
+                                        val female = (genderRate / 8f * 100f).roundToInt()
+                                        val male = 100 - female
+                                        stringResource(R.string.gender_ratio_fmt, male, female)
+                                    }
+                                    CardDetailText(genderText)
+                                }
                             }
                         }
                     }
-                } else {
-                    Text(
-                        text = stringResource(R.string.no_data),
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(8.dp)
-                    )
                 }
+            } else {
+                Text(
+                    text = stringResource(R.string.no_data),
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(8.dp)
+                )
             }
         },
         error = { /* Do nothing yet */ }
@@ -2584,6 +2734,7 @@ private fun PokemonAbilities(
         },
         success = {
             if (pokemonDetail?.abilities?.isNotEmpty() == true) {
+                val accentColor = color?.getColorByString(isSystemInDarkTheme()) ?: Color.Black
                 GenericBox {
                     Text(
                         text = stringResource(R.string.about_abilities_hidden),
@@ -2591,47 +2742,45 @@ private fun PokemonAbilities(
                         textAlign = TextAlign.Center,
                         modifier = Modifier.fillMaxWidth()
                     )
-                    Spacer(modifier = Modifier.size(5.dp))
+                    Spacer(modifier = Modifier.size(8.dp))
 
-                    pokemonDetail.abilities?.forEach { abilityItem ->
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        pokemonDetail.abilities?.forEach { abilityItem ->
 
-                        val originalName = abilityItem.ability.name?.capitalize() ?: "?"
-                        val translatedText = remember { mutableStateOf<String?>(null) }
-                        val hidden = stringResource(R.string.hidden)
+                            val originalName = abilityItem.ability.name?.capitalize() ?: "?"
+                            val translatedText = remember { mutableStateOf<String?>(null) }
 
-                        LaunchedEffect(originalName) {
-                            originalName.translateIfSupported(
-                                onResult = { result ->
-                                    translatedText.value = if (abilityItem.is_hidden) {
-                                        "$result - $hidden"
-                                    } else {
-                                        result
-                                    }
-                                },
-                                onError = {
-                                    translatedText.value = originalName // fallback
-                                },
-                                context = context
-                            )
-                        }
+                            LaunchedEffect(originalName) {
+                                originalName.translateIfSupported(
+                                    onResult = { result -> translatedText.value = result },
+                                    onError = { translatedText.value = originalName }, // fallback
+                                    context = context
+                                )
+                            }
 
-                        Row(
-                            modifier = Modifier.padding(vertical = 4.dp)
-                        ) {
-                            Text(
-                                text = translatedText.value
-                                    ?: stringResource(R.string.loading_translate),
-                                style = MaterialTheme.typography.bodyLarge.copy(color = Color.White),
-                                fontWeight = FontWeight.Bold,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clip(RoundedCornerShape(8.dp))
-                                    .background(
-                                        color?.getColorByString(isSystemInDarkTheme())
-                                            ?: Color.Black
+                            DetailItemCard(accentColor) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(
+                                        text = translatedText.value
+                                            ?: stringResource(R.string.loading_translate),
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        fontWeight = FontWeight.Bold,
+                                        color = accentColor,
+                                        modifier = Modifier.weight(1f, fill = false)
                                     )
-                                    .padding(8.dp)
-                            )
+                                    if (abilityItem.is_hidden) {
+                                        Spacer(modifier = Modifier.width(8.dp))
+                                        InfoChip(
+                                            text = stringResource(R.string.hidden),
+                                            color = accentColor
+                                        )
+                                    }
+                                }
+                            }
                         }
                     }
                 }
@@ -2728,6 +2877,7 @@ private fun DefaultDamageFromTo(
     title: String,
     damageTo: List<Type>,
     damageFrom: List<Type>,
+    onTypeClick: ((String) -> Unit)? = null,
 ) {
     if (damageFrom.isNotEmpty() || damageTo.isNotEmpty()) {
         Column {
@@ -2742,7 +2892,7 @@ private fun DefaultDamageFromTo(
                 Row {
                     Text(stringResource(R.string.from))
                     Spacer(modifier = Modifier.size(2.dp))
-                    TypeListResponse(damageFrom)
+                    TypeListResponse(damageFrom, onTypeClick = onTypeClick)
                 }
             }
             damageTo.takeIf { it.isNotEmpty() }?.let {
@@ -2750,7 +2900,7 @@ private fun DefaultDamageFromTo(
                 Row {
                     Text(stringResource(R.string.to))
                     Spacer(modifier = Modifier.size(2.dp))
-                    TypeListResponse(damageTo)
+                    TypeListResponse(damageTo, onTypeClick = onTypeClick)
                 }
             }
         }
@@ -2948,106 +3098,559 @@ private fun getMockupPokemon(): Pokemon {
 }
 
 @Composable
-fun ZenithCryButton(viewModel: PokemonViewModel, color: Color) {
-    val cryUrl by viewModel.cryUrl.observeAsState()
+private fun TtsButton(
+    pokemonDetail: Pokemon?,
+    color: Color,
+    appPreferences: AppPreferences,
+    triggerAutoPlay: Boolean = false,
+    onAutoPlayConsumed: () -> Unit = {},
+) {
+    val context = LocalContext.current
+    val ttsSpeed by appPreferences.ttsSpeed.collectAsState()
+    val ttsPitch by appPreferences.ttsPitch.collectAsState()
+
+    var isSpeaking by remember { mutableStateOf(false) }
+    var textToSpeak by remember { mutableStateOf<String?>(null) }
+    var ttsLocaleToUse by remember { mutableStateOf(java.util.Locale.ENGLISH) }
+    var ttsReady by remember { mutableStateOf(false) }
+    // Spinner shows only while text isn't ready — not gated on ttsReady,
+    // since TTS init failure would cause infinite loading.
+    val isLoading = textToSpeak == null
+    val ttsRef = remember { mutableStateOf<TextToSpeech?>(null) }
+
+    DisposableEffect(Unit) {
+        val tts = TextToSpeech(context) { status ->
+            Handler(Looper.getMainLooper()).post {
+                if (status == TextToSpeech.SUCCESS) ttsReady = true
+            }
+        }
+        // Route TTS through the media stream so it follows the (usually audible)
+        // media volume instead of a muted/low secondary stream on some OEM ROMs.
+        runCatching { tts.setAudioAttributes(speechAudioAttributes()) }
+        tts.setOnUtteranceProgressListener(object : UtteranceProgressListener() {
+            override fun onStart(u: String?) {
+                Handler(Looper.getMainLooper()).post { isSpeaking = true }
+            }
+            override fun onDone(u: String?) {
+                Handler(Looper.getMainLooper()).post { isSpeaking = false }
+            }
+            @Suppress("OVERRIDE_DEPRECATION")
+            override fun onError(u: String?) {
+                Handler(Looper.getMainLooper()).post { isSpeaking = false }
+            }
+        })
+        ttsRef.value = tts
+        onDispose {
+            tts.stop()
+            tts.shutdown()
+            ttsRef.value = null
+        }
+    }
+
+    LaunchedEffect(pokemonDetail, pokemonDetail?.specie) {
+        if (pokemonDetail == null) return@LaunchedEffect
+        val entries = pokemonDetail.specie?.flavor_text_entries ?: return@LaunchedEffect
+        val deviceLang = java.util.Locale.getDefault().language
+        val englishText = entries.getFlavorTextForLanguage("en") ?: return@LaunchedEffect
+
+        // 1. PokéAPI native text (instant, no MLKit): en, pt, es, fr, de, it, ja, ko, zh-Hans…
+        val localizedText = entries.getFlavorTextForLanguage(deviceLang)
+        if (localizedText != null) {
+            ttsLocaleToUse = java.util.Locale.getDefault()
+            textToSpeak = localizedText
+            return@LaunchedEffect
+        }
+
+        // 2. Enable button immediately with English — user can press without waiting.
+        ttsLocaleToUse = java.util.Locale.ENGLISH
+        textToSpeak = englishText
+
+        // 3. Silent MLKit upgrade — model is pre-warmed by MainActivity, so usually fast.
+        englishText.translateIfSupported(
+            onResult = { translated ->
+                if (translated != englishText) {
+                    ttsLocaleToUse = java.util.Locale.getDefault()
+                    textToSpeak = translated
+                }
+            },
+            onError = { /* keep English text already set */ },
+            context = context
+        )
+    }
+
+    LaunchedEffect(triggerAutoPlay, ttsReady, textToSpeak) {
+        if (triggerAutoPlay && ttsReady && !textToSpeak.isNullOrBlank()) {
+            kotlinx.coroutines.delay(600)
+            ttsRef.value?.let { tts ->
+                val langResult = tts.setLanguage(ttsLocaleToUse)
+                if (langResult < 0) tts.setLanguage(java.util.Locale.ENGLISH)
+                tts.setSpeechRate(ttsSpeed)
+                tts.setPitch(ttsPitch)
+                tts.speak(textToSpeak, TextToSpeech.QUEUE_FLUSH, ttsSpeakParams(), "tts_pokemon")
+            }
+            onAutoPlayConsumed()
+        }
+    }
 
     IconButton(
         onClick = {
-            cryUrl?.let { url ->
-                try {
-                    MediaPlayer().apply {
-                        setDataSource(url)
-                        prepareAsync()
-                        setOnPreparedListener { start() }
-                        setOnCompletionListener { release() }
-                        setOnErrorListener { _, _, _ ->
-                            release()
-                            false
-                        }
-                    }
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                }
+            if (isLoading) return@IconButton
+            val tts = ttsRef.value ?: return@IconButton
+            if (isSpeaking) {
+                tts.stop()
+                isSpeaking = false
+            } else {
+                val text = textToSpeak ?: return@IconButton
+                val langResult = tts.setLanguage(ttsLocaleToUse)
+                if (langResult < 0) tts.setLanguage(java.util.Locale.ENGLISH)
+                tts.setSpeechRate(ttsSpeed)
+                tts.setPitch(ttsPitch)
+                isSpeaking = true
+                tts.speak(text, TextToSpeech.QUEUE_FLUSH, ttsSpeakParams(), "tts_pokemon")
             }
         },
         modifier = Modifier
             .size(48.dp)
-            .background(color.copy(alpha = 0.2f), RoundedCornerShape(12.dp))
+            .background(
+                if (isSpeaking) color.copy(alpha = 0.35f) else color.copy(alpha = 0.2f),
+                RoundedCornerShape(12.dp)
+            )
     ) {
-        Icon(
-            imageVector = Icons.AutoMirrored.Filled.VolumeUp,
-            contentDescription = "Play Cry",
-            tint = color,
-            modifier = Modifier.size(24.dp)
-        )
+        when {
+            isLoading -> CircularProgressIndicator(
+                color = color,
+                strokeWidth = 2.dp,
+                modifier = Modifier.size(20.dp)
+            )
+            isSpeaking -> Icon(
+                imageVector = Icons.Default.StopCircle,
+                contentDescription = stringResource(R.string.tts_stop),
+                tint = color,
+                modifier = Modifier.size(24.dp)
+            )
+            else -> Icon(
+                imageVector = Icons.AutoMirrored.Filled.MenuBook,
+                contentDescription = stringResource(R.string.tts_speak),
+                tint = color,
+                modifier = Modifier.size(24.dp)
+            )
+        }
     }
 }
 
 @Composable
+fun ZenithCryButton(viewModel: PokemonViewModel, color: Color) {
+    val context = LocalContext.current
+    val cryUrl by viewModel.cryUrl.observeAsState()
+    val playerRef = remember { mutableStateOf<MediaPlayer?>(null) }
+    val focusRef = remember { mutableStateOf<AudioFocusRequest?>(null) }
+    var isPlaying by remember { mutableStateOf(false) }
+    var isBuffering by remember { mutableStateOf(false) }
+
+    // Release everything when leaving the screen.
+    DisposableEffect(Unit) {
+        onDispose {
+            runCatching { playerRef.value?.release() }
+            playerRef.value = null
+            isPlaying = false
+            isBuffering = false
+            val am = context.getSystemService(Context.AUDIO_SERVICE) as? AudioManager
+            abandonAudioFocusCompat(am, focusRef.value)
+            focusRef.value = null
+        }
+    }
+
+    IconButton(
+        onClick = {
+            // If already playing, stop immediately.
+            if (isPlaying) {
+                runCatching { playerRef.value?.release() }
+                playerRef.value = null
+                isPlaying = false
+                isBuffering = false
+                val am = context.getSystemService(Context.AUDIO_SERVICE) as? AudioManager
+                abandonAudioFocusCompat(am, focusRef.value)
+                focusRef.value = null
+                return@IconButton
+            }
+
+            val url = cryUrl ?: return@IconButton
+            val am = context.getSystemService(Context.AUDIO_SERVICE) as? AudioManager
+
+            runCatching { playerRef.value?.release() }
+            playerRef.value = null
+
+            try {
+                val attrs = mediaSonificationAttributes()
+                focusRef.value = requestTransientAudioFocusCompat(am, attrs)
+                isBuffering = true
+
+                val mp = MediaPlayer().apply {
+                    setAudioAttributes(attrs)
+                    setVolume(1f, 1f)
+                    setDataSource(url)
+                    setOnPreparedListener {
+                        isBuffering = false
+                        isPlaying = true
+                        it.start()
+                    }
+                    setOnCompletionListener {
+                        runCatching { it.release() }
+                        playerRef.value = null
+                        isPlaying = false
+                        isBuffering = false
+                        abandonAudioFocusCompat(am, focusRef.value)
+                        focusRef.value = null
+                    }
+                    setOnErrorListener { player, _, _ ->
+                        runCatching { player.release() }
+                        playerRef.value = null
+                        isPlaying = false
+                        isBuffering = false
+                        abandonAudioFocusCompat(am, focusRef.value)
+                        focusRef.value = null
+                        true
+                    }
+                    prepareAsync()
+                }
+                playerRef.value = mp
+            } catch (e: Exception) {
+                e.printStackTrace()
+                isPlaying = false
+                isBuffering = false
+                abandonAudioFocusCompat(am, focusRef.value)
+                focusRef.value = null
+            }
+        },
+        modifier = Modifier
+            .size(48.dp)
+            .background(
+                if (isPlaying) color.copy(alpha = 0.35f) else color.copy(alpha = 0.2f),
+                RoundedCornerShape(12.dp)
+            )
+    ) {
+        when {
+            isBuffering -> CircularProgressIndicator(
+                color = color,
+                strokeWidth = 2.dp,
+                modifier = Modifier.size(20.dp)
+            )
+            isPlaying -> Icon(
+                imageVector = Icons.Default.StopCircle,
+                contentDescription = "Stop Cry",
+                tint = color,
+                modifier = Modifier.size(24.dp)
+            )
+            else -> Icon(
+                imageVector = Icons.AutoMirrored.Filled.VolumeUp,
+                contentDescription = "Play Cry",
+                tint = if (cryUrl != null) color else color.copy(alpha = 0.4f),
+                modifier = Modifier.size(24.dp)
+            )
+        }
+    }
+}
+
+/** Media attributes used for the Pokémon cry (short sound effect on the media stream). */
+private fun mediaSonificationAttributes(): AudioAttributes =
+    AudioAttributes.Builder()
+        .setUsage(AudioAttributes.USAGE_MEDIA)
+        .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+        .build()
+
+/** Media attributes used for the Pokédex TTS reading (spoken content on the media stream). */
+private fun speechAudioAttributes(): AudioAttributes =
+    AudioAttributes.Builder()
+        .setUsage(AudioAttributes.USAGE_MEDIA)
+        .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
+        .build()
+
+/** Forces max volume on the media stream for each utterance, regardless of engine defaults. */
+private fun ttsSpeakParams(): Bundle = Bundle().apply {
+    putFloat(TextToSpeech.Engine.KEY_PARAM_VOLUME, 1.0f)
+    putInt(TextToSpeech.Engine.KEY_PARAM_STREAM, AudioManager.STREAM_MUSIC)
+}
+
+@Suppress("DEPRECATION")
+private fun requestTransientAudioFocusCompat(
+    am: AudioManager?,
+    attrs: AudioAttributes,
+): AudioFocusRequest? {
+    am ?: return null
+    return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        val request = AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK)
+            .setAudioAttributes(attrs)
+            .build()
+        runCatching { am.requestAudioFocus(request) }
+        request
+    } else {
+        runCatching {
+            am.requestAudioFocus(
+                null,
+                AudioManager.STREAM_MUSIC,
+                AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK
+            )
+        }
+        null
+    }
+}
+
+@Suppress("DEPRECATION")
+private fun abandonAudioFocusCompat(am: AudioManager?, request: AudioFocusRequest?) {
+    am ?: return
+    runCatching {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            request?.let { am.abandonAudioFocusRequest(it) }
+        } else {
+            am.abandonAudioFocus(null)
+        }
+    }
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
 fun PokemonMoves(color: String, viewModel: PokemonViewModel) {
     val moves by viewModel.pokemonMoves.observeAsState()
-    val isDark = isSystemInDarkTheme()
-    val pokemonColor = color.getColorByString(isDark)
+    val accentColor = color.getColorByString(isSystemInDarkTheme())
+    val scope = rememberCoroutineScope()
 
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp)
-    ) {
+    // Move metadata (type, category, power, pp) fetched lazily and cached.
+    var moveDetails by remember { mutableStateOf<Map<String, MoveDetailsResponse>>(emptyMap()) }
+
+    val allLabel = stringResource(R.string.all)
+    val byLevel = stringResource(R.string.by_level)
+    val byTm = stringResource(R.string.by_tm)
+    val byEgg = stringResource(R.string.by_egg)
+    val byTutor = stringResource(R.string.by_tutor)
+    val otherLabel = stringResource(R.string.other)
+    var selectedGroup by remember { mutableStateOf(allLabel) }
+
+    LaunchedEffect(moves) {
+        moveDetails = emptyMap()
+        selectedGroup = allLabel
+        val names = moves?.mapNotNull { it.move.name }?.distinct() ?: return@LaunchedEffect
+        scope.launch {
+            val accumulated = mutableMapOf<String, MoveDetailsResponse>()
+            coroutineScope {
+                names.chunked(20).forEach { batch ->
+                    batch.map { name -> async { name to viewModel.getMoveDetails(name) } }
+                        .awaitAll()
+                        .forEach { (name, detail) -> if (detail != null) accumulated[name] = detail }
+                    moveDetails = accumulated.toMap()
+                }
+            }
+        }
+    }
+
+    fun groupLabel(method: String): String = when {
+        method.contains("level") -> byLevel
+        method.contains("machine") || method.contains("tm") -> byTm
+        method.contains("egg") -> byEgg
+        method.contains("tutor") -> byTutor
+        else -> otherLabel
+    }
+
+    GenericBox {
         if (moves.isNullOrEmpty()) {
             Text(
-                text = "No moves found",
-                style = MaterialTheme.typography.bodyMedium,
-                color = Color.Gray,
-                modifier = Modifier.padding(16.dp)
+                text = stringResource(R.string.no_moves_found),
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(8.dp)
             )
         } else {
-            moves?.forEach { moveItem ->
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 4.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = pokemonColor.copy(alpha = 0.1f)
-                    ),
-                    shape = RoundedCornerShape(8.dp)
+            val grouped = moves!!.groupBy {
+                groupLabel(it.version_group_details.firstOrNull()?.move_learn_method?.name ?: "")
+            }
+            val orderedGroups = listOf(byLevel, byTm, byEgg, byTutor, otherLabel)
+                .filter { grouped.containsKey(it) }
+            val chips = listOf(allLabel) + orderedGroups
+
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                // Filter chips (same UX as MoveSelectionSheet)
+                FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(12.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Column {
-                            Text(
-                                text = moveItem.move?.name?.capitalize() ?: "Unknown",
-                                style = MaterialTheme.typography.bodyLarge,
-                                fontWeight = FontWeight.Bold,
-                                color = pokemonColor
-                            )
-                            val method =
-                                moveItem.version_group_details?.firstOrNull()?.move_learn_method?.name
-                                    ?: "Unknown"
-                            Text(
-                                text = "Method: ${method.capitalize()}",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = Color.Gray
-                            )
-                        }
-                        val level =
-                            moveItem.version_group_details?.firstOrNull()?.level_learned_at ?: 0
-                        if (level > 0) {
-                            Text(
-                                text = "Lvl $level",
-                                style = MaterialTheme.typography.bodyMedium,
-                                fontWeight = FontWeight.Bold,
-                                color = Color.Gray
-                            )
-                        }
+                    chips.forEach { group ->
+                        FilterChip(
+                            selected = selectedGroup == group,
+                            onClick = { selectedGroup = group },
+                            label = {
+                                Text(group, style = MaterialTheme.typography.labelMedium)
+                            }
+                        )
+                    }
+                }
+
+                val displayGroups = if (selectedGroup == allLabel) {
+                    orderedGroups
+                } else {
+                    orderedGroups.filter { it == selectedGroup }
+                }
+
+                displayGroups.forEach { groupName ->
+                    CardSectionTitle(groupName, accentColor)
+                    grouped[groupName].orEmpty().forEach { moveItem ->
+                        val detail = moveDetails[moveItem.move.name]
+                        val level = moveItem.version_group_details
+                            .firstOrNull()?.level_learned_at ?: 0
+                        MoveItemCard(
+                            moveName = moveItem.move.name?.formatLocationName() ?: "?",
+                            level = if (groupName == byLevel) level else 0,
+                            detail = detail,
+                            accentColor = accentColor
+                        )
                     }
                 }
             }
         }
     }
+}
+
+/**
+ * A single move row styled like the Encounters cards. Shows the move name,
+ * the learn level (when relevant) and—once [detail] loads—its type, damage
+ * category and power/PP as colored chips.
+ */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun MoveItemCard(
+    moveName: String,
+    level: Int,
+    detail: MoveDetailsResponse?,
+    accentColor: Color,
+) {
+    DetailItemCard(accentColor) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = moveName,
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.Bold,
+                color = accentColor,
+                modifier = Modifier.weight(1f, fill = false)
+            )
+            if (level > 0) {
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = stringResource(R.string.encounter_level_single_fmt, level),
+                    style = MaterialTheme.typography.bodySmall,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f)
+                )
+            }
+        }
+        Spacer(modifier = Modifier.height(6.dp))
+        if (detail == null) {
+            CircularProgressIndicator(
+                modifier = Modifier.size(16.dp),
+                strokeWidth = 2.dp,
+                color = accentColor
+            )
+        } else {
+            val categoryName = detail.damage_class.name ?: "status"
+            val categoryColor = when (categoryName.lowercase()) {
+                "physical" -> Color(0xFFE74C3C)
+                "special" -> Color(0xFF3498DB)
+                else -> Color(0xFF95A5A6)
+            }
+            val categoryLabel = when (categoryName.lowercase()) {
+                "physical" -> stringResource(R.string.physical)
+                "special" -> stringResource(R.string.special)
+                else -> stringResource(R.string.status)
+            }
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                verticalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                TypeItem(detail.type.name ?: "normal")
+                InfoChip(text = categoryLabel, color = categoryColor)
+                detail.power?.let {
+                    InfoChip(
+                        text = "${stringResource(R.string.move_power_label)} $it",
+                        color = accentColor
+                    )
+                }
+                detail.pp?.let {
+                    InfoChip(
+                        text = "${stringResource(R.string.move_pp_label)} $it",
+                        color = accentColor
+                    )
+                }
+            }
+            detail.shortEffect?.takeIf { it.isNotBlank() }?.let { effect ->
+                Spacer(modifier = Modifier.height(6.dp))
+                CardDetailText(effect)
+            }
+        }
+    }
+}
+
+/**
+ * Reusable "info card" matching the Encounters tab visual language:
+ * rounded corners, a soft accent-tinted background and inner padding.
+ * Use it as the shell for any list-of-items tab (Eggs, Abilities, Moves...).
+ */
+@Composable
+private fun DetailItemCard(
+    accentColor: Color,
+    modifier: Modifier = Modifier,
+    content: @Composable ColumnScope.() -> Unit,
+) {
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(8.dp))
+            .background(accentColor.copy(alpha = 0.12f))
+            .padding(horizontal = 12.dp, vertical = 10.dp),
+        content = content
+    )
+}
+
+/**
+ * Small colored pill/badge, identical to the version chips used in
+ * [EncounterLocationCard]. Used for egg groups, move methods, "hidden", etc.
+ */
+@Composable
+private fun InfoChip(
+    text: String,
+    color: Color,
+    modifier: Modifier = Modifier,
+) {
+    Text(
+        text = text,
+        style = MaterialTheme.typography.labelSmall,
+        color = Color.White,
+        modifier = modifier
+            .clip(RoundedCornerShape(4.dp))
+            .background(color)
+            .padding(horizontal = 6.dp, vertical = 2.dp)
+    )
+}
+
+/** Section title line used inside a [DetailItemCard]. */
+@Composable
+private fun CardSectionTitle(text: String, accentColor: Color) {
+    Text(
+        text = text,
+        style = MaterialTheme.typography.bodyMedium,
+        fontWeight = FontWeight.Bold,
+        color = accentColor
+    )
+}
+
+/** Secondary detail line used inside a [DetailItemCard]. */
+@Composable
+private fun CardDetailText(text: String) {
+    Text(
+        text = text,
+        style = MaterialTheme.typography.bodySmall,
+        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f),
+        modifier = Modifier.padding(top = 2.dp, bottom = 4.dp)
+    )
 }
