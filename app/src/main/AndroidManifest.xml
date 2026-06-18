@@ -11,6 +11,16 @@
         android:name="android.hardware.camera.any"
         android:required="false" />
 
+    <!-- Android 11+ (API 30+) package visibility. Without declaring the TTS engine
+         service here, TextToSpeech cannot bind to the installed engine (e.g. Google
+         Text-to-speech) and onInit returns ERROR — the Pokédex voice stays silent
+         even though the system's own TTS "Play" works. -->
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.TTS_SERVICE" />
+        </intent>
+    </queries>
+
     <application
         android:name=".di.MyApplication"
         android:allowBackup="true"
