@@ -56,7 +56,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.stringResource
@@ -109,6 +111,7 @@ fun PokemonScanScreen(
     val stableMatch by viewModel.stableMatch.collectAsState()
     val scansRemaining by viewModel.scansRemaining.collectAsState()
     val isAnalyzing by viewModel.isAnalyzing.collectAsState()
+    val capturedFrame by viewModel.capturedFrame.collectAsState()
 
     // Include isAnalyzing in hasResults so the limit screen never flashes mid-capture
     val hasResults = predictions.isNotEmpty() || stableMatch != null || isAnalyzing
@@ -160,6 +163,7 @@ fun PokemonScanScreen(
                     predictions = predictions,
                     hasMatch = stableMatch != null,
                     isAnalyzing = isAnalyzing,
+                    capturedFrame = capturedFrame,
                     scansRemaining = scansRemaining,
                     onShutter = {
                         imageCaptureRef.value?.takePicture(
@@ -272,6 +276,7 @@ private fun ScannerOverlay(
     predictions: List<Prediction>,
     hasMatch: Boolean,
     isAnalyzing: Boolean,
+    capturedFrame: Bitmap?,
     scansRemaining: Int?,
     onShutter: () -> Unit,
     onPredictionClick: (Prediction) -> Unit,
@@ -314,23 +319,41 @@ private fun ScannerOverlay(
         }
 
         // Viewfinder frame — true center of screen
+        // While analyzing: shows the captured photo frozen inside; live feed visible outside
         Box(
             modifier = Modifier
                 .align(Alignment.Center)
                 .fillMaxWidth(0.78f)
                 .aspectRatio(1f)
-                .border(
-                    width = 3.dp,
-                    color = if (hasMatch) Color(0xFF66BB6A) else Color.White.copy(alpha = 0.8f),
-                    shape = RoundedCornerShape(24.dp)
+        ) {
+            if (capturedFrame != null && isAnalyzing) {
+                AsyncImage(
+                    model = capturedFrame,
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .clip(RoundedCornerShape(24.dp))
                 )
-        )
-
-        // Analyzing spinner — shown while the model is running on the captured frame
-        if (isAnalyzing) {
-            CircularProgressIndicator(
-                modifier = Modifier.align(Alignment.Center),
-                color = Color.White
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .clip(RoundedCornerShape(24.dp))
+                        .background(Color.Black.copy(alpha = 0.35f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator(color = Color.White)
+                }
+            }
+            // Border always on top
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .border(
+                        width = 3.dp,
+                        color = if (hasMatch) Color(0xFF66BB6A) else Color.White.copy(alpha = 0.8f),
+                        shape = RoundedCornerShape(24.dp)
+                    )
             )
         }
 
