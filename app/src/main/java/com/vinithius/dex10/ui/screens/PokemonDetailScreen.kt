@@ -2,6 +2,8 @@
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.Intent
+import android.provider.Settings
 import android.media.MediaPlayer
 import android.media.AudioAttributes
 import android.media.AudioFocusRequest
@@ -3115,10 +3117,32 @@ private fun TtsButton(
     var textToSpeak by remember { mutableStateOf<String?>(null) }
     var ttsLocaleToUse by remember { mutableStateOf(java.util.Locale.ENGLISH) }
     var ttsReady by remember { mutableStateOf(false) }
+    // True when the engine reported a failed init, OR never became ready in time
+    // (e.g. a device/emulator with no TTS engine or no downloaded voice data).
+    var ttsUnavailable by remember { mutableStateOf(false) }
     // Spinner shows only while text isn't ready — not gated on ttsReady,
     // since TTS init failure would cause infinite loading.
     val isLoading = textToSpeak == null
     val ttsRef = remember { mutableStateOf<TextToSpeech?>(null) }
+
+    // Sends the user to the system Text-to-Speech settings so they can pick an engine
+    // and download a voice. Falls back to Accessibility settings if the action is missing.
+    fun openTtsSettings() {
+        val opened = runCatching {
+            context.startActivity(
+                Intent("com.android.settings.TTS_SETTINGS")
+                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            )
+        }.isSuccess
+        if (!opened) {
+            runCatching {
+                context.startActivity(
+                    Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)
+                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                )
+            }
+        }
+    }
 
     // Speaks [text] in [locale], applying live speed/pitch. Centralized so click and
     // auto-play behave identically. setLanguage() MUST run on a ready engine, so this is
@@ -3164,8 +3188,10 @@ private fun TtsButton(
                         tts.setLanguage(java.util.Locale.ENGLISH)
                     }
                     ttsReady = true
+                    ttsUnavailable = false
                 } else {
                     android.util.Log.w("TtsButton", "TTS init failed: status=$status")
+                    ttsUnavailable = true
                 }
             }
         }
@@ -3225,6 +3251,13 @@ private fun TtsButton(
         )
     }
 
+    // If the engine never reports ready within a few seconds, treat it as unavailable
+    // (common on emulators or devices with no installed/downloaded TTS voice).
+    LaunchedEffect(Unit) {
+        kotlinx.coroutines.delay(5000)
+        if (!ttsReady) ttsUnavailable = true
+    }
+
     LaunchedEffect(triggerAutoPlay, ttsReady, textToSpeak) {
         if (triggerAutoPlay && ttsReady && !textToSpeak.isNullOrBlank()) {
             kotlinx.coroutines.delay(600)
@@ -3239,8 +3272,14 @@ private fun TtsButton(
         onClick = {
             val tts = ttsRef.value
             if (tts == null || !ttsReady) {
-                android.util.Log.w("TtsButton", "tapped before engine ready (ready=$ttsReady)")
-                Toast.makeText(context, context.getString(R.string.tts_initializing), Toast.LENGTH_SHORT).show()
+                android.util.Log.w("TtsButton", "tapped before engine ready (ready=$ttsReady, unavailable=$ttsUnavailable)")
+                if (ttsUnavailable) {
+                    // No working engine/voice on this device — send them to TTS settings.
+                    Toast.makeText(context, context.getString(R.string.tts_no_voice), Toast.LENGTH_LONG).show()
+                    openTtsSettings()
+                } else {
+                    Toast.makeText(context, context.getString(R.string.tts_initializing), Toast.LENGTH_SHORT).show()
+                }
                 return@IconButton
             }
             if (isSpeaking) {

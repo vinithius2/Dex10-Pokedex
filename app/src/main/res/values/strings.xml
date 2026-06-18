@@ -200,6 +200,7 @@
     <string name="tts_stop">Stop reading</string>
     <string name="tts_error">Could not read the entry. Check your device\'s Text-to-Speech voice.</string>
     <string name="tts_initializing">Voice is starting up, try again…</string>
+    <string name="tts_no_voice">No Text-to-Speech voice installed. Opening voice settings…</string>
     <!-- TRANSLATER STATUS -->
     <string name="loading_translate">Loading text…</string>
     <!-- SHAPES -->
