@@ -33,6 +33,8 @@
     <string name="kg_lbs" translatable="false">"%1$s kg (%2$s lbs)"</string>
     <string name="m_inch" translatable="false">"%1$s m (%2$s″)"</string>
     <string name="kg_lbs_loading" translatable="false">"… kg (… lbs)"</string>
+    <string name="encounter_level_fmt" translatable="false">Lv. %1$d–%2$d</string>
+    <string name="encounter_level_single_fmt" translatable="false">Lv. %1$d</string>
     <string name="m_inch_loading" translatable="false">"… m (…″)"</string>
     <string name="toast_baby">This is a baby pokemon!</string>
     <string name="toast_mythical">This is a Mythical pokemon!</string>

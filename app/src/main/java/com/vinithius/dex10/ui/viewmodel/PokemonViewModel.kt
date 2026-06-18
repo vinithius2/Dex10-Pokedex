@@ -31,7 +31,9 @@ import java.util.Locale
 
 import com.vinithius.dex10.datasource.data.PremiumManager
 import com.vinithius.dex10.datasource.data.AppPreferences
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 
 import kotlinx.coroutines.CoroutineDispatcher
 
@@ -384,8 +386,8 @@ class PokemonViewModel(
         _idPokemon.postValue(value)
     }
 
-    private val _openedFromScanner = kotlinx.coroutines.flow.MutableStateFlow(false)
-    val openedFromScanner: kotlinx.coroutines.flow.StateFlow<Boolean> = _openedFromScanner.asStateFlow()
+    private val _openedFromScanner = MutableStateFlow(false)
+    val openedFromScanner: StateFlow<Boolean> = _openedFromScanner.asStateFlow()
 
     fun setOpenedFromScanner(value: Boolean) {
         _openedFromScanner.value = value

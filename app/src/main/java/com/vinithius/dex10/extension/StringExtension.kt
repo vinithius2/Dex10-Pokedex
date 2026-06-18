@@ -313,6 +313,65 @@ fun String.getColorByString(isDark: Boolean): Color {
  * @param onResult Resultado da tradução, ou o texto original se idioma não suportado
  * @param onError Callback de erro, se a tradução falhar
  */
+fun String.formatLocationName(): String =
+    replace("-", " ")
+        .split(" ")
+        .joinToString(" ") { word -> word.replaceFirstChar { it.uppercase() } }
+
+fun String.formatVersionName(): String = when (this.lowercase()) {
+    "firered"         -> "FireRed"
+    "leafgreen"       -> "LeafGreen"
+    "heartgold"       -> "HeartGold"
+    "soulsilver"      -> "SoulSilver"
+    "black-2"         -> "Black 2"
+    "white-2"         -> "White 2"
+    "omega-ruby"      -> "Omega Ruby"
+    "alpha-sapphire"  -> "Alpha Sapphire"
+    "ultra-sun"       -> "Ultra Sun"
+    "ultra-moon"      -> "Ultra Moon"
+    "lets-go-pikachu" -> "Let's Go Pikachu"
+    "lets-go-eevee"   -> "Let's Go Eevee"
+    else -> replace("-", " ").split(" ").joinToString(" ") { w -> w.replaceFirstChar { it.uppercase() } }
+}
+
+fun String.getVersionColor(): Color = when (this.lowercase()) {
+    "red"             -> Color(0xFFCC0000)
+    "blue"            -> Color(0xFF1565C0)
+    "yellow"          -> Color(0xFFF57F17)
+    "gold"            -> Color(0xFFFF8F00)
+    "silver"          -> Color(0xFF607D8B)
+    "crystal"         -> Color(0xFF0288D1)
+    "ruby"            -> Color(0xFFD32F2F)
+    "sapphire"        -> Color(0xFF1565C0)
+    "emerald"         -> Color(0xFF2E7D32)
+    "firered"         -> Color(0xFFE64A19)
+    "leafgreen"       -> Color(0xFF388E3C)
+    "diamond"         -> Color(0xFF1976D2)
+    "pearl"           -> Color(0xFFC2185B)
+    "platinum"        -> Color(0xFF546E7A)
+    "heartgold"       -> Color(0xFFFF8F00)
+    "soulsilver"      -> Color(0xFF546E7A)
+    "black"           -> Color(0xFF37474F)
+    "white"           -> Color(0xFF78909C)
+    "black-2"         -> Color(0xFF37474F)
+    "white-2"         -> Color(0xFF78909C)
+    "x"               -> Color(0xFF1565C0)
+    "y"               -> Color(0xFFC62828)
+    "omega-ruby"      -> Color(0xFFBF360C)
+    "alpha-sapphire"  -> Color(0xFF0D47A1)
+    "sun"             -> Color(0xFFEF6C00)
+    "moon"            -> Color(0xFF283593)
+    "ultra-sun"       -> Color(0xFFE65100)
+    "ultra-moon"      -> Color(0xFF1A237E)
+    "lets-go-pikachu" -> Color(0xFFF57F17)
+    "lets-go-eevee"   -> Color(0xFF6D4C41)
+    "sword"           -> Color(0xFF1565C0)
+    "shield"          -> Color(0xFF6A1B9A)
+    "scarlet"         -> Color(0xFFB71C1C)
+    "violet"          -> Color(0xFF4A148C)
+    else              -> Color(0xFF607D8B)
+}
+
 fun String.translateIfSupported(
     languageCode: String = Locale.getDefault().language,
     onResult: (String) -> Unit,

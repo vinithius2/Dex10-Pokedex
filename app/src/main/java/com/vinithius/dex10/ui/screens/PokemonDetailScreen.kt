@@ -146,6 +146,12 @@ import com.vinithius.dex10.extension.getStringShape
 import com.vinithius.dex10.extension.getStringStat
 import com.vinithius.dex10.extension.getWindowColumns
 import com.vinithius.dex10.extension.translateIfSupported
+import com.vinithius.dex10.extension.formatLocationName
+import com.vinithius.dex10.extension.formatVersionName
+import com.vinithius.dex10.extension.getVersionColor
+import com.vinithius.dex10.datasource.response.Location
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import android.speech.tts.TextToSpeech
 import android.speech.tts.UtteranceProgressListener
 import android.os.Handler
@@ -2442,6 +2448,68 @@ private fun PokemonDamage(
     )
 }
 
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun EncounterLocationCard(location: Location, accentColor: Color) {
+    data class EncSig(val method: String, val minLevel: Int, val maxLevel: Int, val chance: Int)
+
+    val grouped = buildMap<EncSig, MutableList<String>> {
+        location.version_details?.forEach { vd ->
+            val vName = vd.version.name ?: return@forEach
+            vd.encounter_details.forEach { ed ->
+                val sig = EncSig(ed.method.name ?: "", ed.min_level, ed.max_level, ed.chance)
+                getOrPut(sig) { mutableListOf() }.add(vName)
+            }
+        }
+    }
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(8.dp))
+            .background(accentColor.copy(alpha = 0.12f))
+            .padding(horizontal = 12.dp, vertical = 10.dp)
+    ) {
+        Text(
+            text = location.location_area.name?.formatLocationName() ?: "?",
+            style = MaterialTheme.typography.bodyMedium,
+            fontWeight = FontWeight.Bold,
+            color = accentColor
+        )
+        if (grouped.isNotEmpty()) {
+            Spacer(modifier = Modifier.height(6.dp))
+            grouped.forEach { (sig, versions) ->
+                FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    versions.distinct().forEach { vName ->
+                        Text(
+                            text = vName.formatVersionName(),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = Color.White,
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(4.dp))
+                                .background(vName.getVersionColor())
+                                .padding(horizontal = 6.dp, vertical = 2.dp)
+                        )
+                    }
+                }
+                val levelText = if (sig.minLevel == sig.maxLevel)
+                    stringResource(R.string.encounter_level_single_fmt, sig.minLevel)
+                else
+                    stringResource(R.string.encounter_level_fmt, sig.minLevel, sig.maxLevel)
+                Text(
+                    text = "${sig.method.formatLocationName()} · $levelText · ${sig.chance}%",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f),
+                    modifier = Modifier.padding(top = 2.dp, bottom = 4.dp)
+                )
+            }
+        }
+    }
+}
+
 @Composable
 private fun PokemonEncounters(
     pokemonDetail: Pokemon?,
@@ -2475,29 +2543,11 @@ private fun PokemonEncounters(
         success = {
             GenericBox {
                 if (pokemonDetail?.encounters?.isNotEmpty() == true) {
-                    pokemonDetail.encounters?.forEach {
-
-                        Row(
-                            modifier = Modifier.padding(vertical = 4.dp)
-                        ) {
-                            Text(
-                                text = it.location_area.name?.replace("-", " ")?.capitalize()
-                                    ?: "?",
-                                style = MaterialTheme.typography.bodyLarge.copy(
-                                    color = Color.White
-                                ),
-                                fontWeight = FontWeight.Bold,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clip(RoundedCornerShape(8.dp))
-                                    .background(
-                                        color?.getColorByString(isSystemInDarkTheme())
-                                            ?: Color.Black
-                                    )
-                                    .padding(8.dp)
-                            )
+                    val accentColor = color?.getColorByString(isSystemInDarkTheme()) ?: Color.Black
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        pokemonDetail.encounters?.forEach { location ->
+                            EncounterLocationCard(location = location, accentColor = accentColor)
                         }
-
                     }
                 } else {
                     Text(
@@ -2990,7 +3040,6 @@ private fun getMockupPokemon(): Pokemon {
     )
 }
 
-@Composable
 @Composable
 private fun TtsButton(
     pokemonDetail: Pokemon?,
