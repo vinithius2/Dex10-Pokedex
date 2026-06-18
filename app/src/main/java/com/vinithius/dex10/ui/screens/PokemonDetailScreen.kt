@@ -165,6 +165,7 @@ import android.speech.tts.UtteranceProgressListener
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.widget.Toast
 import androidx.compose.material.icons.automirrored.filled.MenuBook
 import androidx.compose.material.icons.filled.StopCircle
 import androidx.compose.runtime.DisposableEffect
@@ -3124,19 +3125,26 @@ private fun TtsButton(
     // only ever called after onInit(SUCCESS). The speak() result is checked — a long input
     // (> getMaxSpeechInputLength) or a missing voice returns ERROR and plays nothing.
     fun speakNow(tts: TextToSpeech, text: String, locale: java.util.Locale) {
+        // Pick a locale that the engine actually has a voice for, else fall back to English,
+        // else to whatever locale the engine defaults to (never leave it unset → silent).
         val langResult = tts.setLanguage(locale)
         if (langResult == TextToSpeech.LANG_MISSING_DATA ||
             langResult == TextToSpeech.LANG_NOT_SUPPORTED
         ) {
-            tts.setLanguage(java.util.Locale.ENGLISH)
+            val enResult = tts.setLanguage(java.util.Locale.ENGLISH)
+            android.util.Log.w("TtsButton", "locale $locale unavailable ($langResult); en=$enResult")
         }
         tts.setSpeechRate(ttsSpeed.coerceIn(0.5f, 2.0f))
         tts.setPitch(ttsPitch.coerceIn(0.5f, 2.0f))
         val safeText = text.take(TextToSpeech.getMaxSpeechInputLength() - 1)
-        val result = tts.speak(safeText, TextToSpeech.QUEUE_FLUSH, ttsSpeakParams(), "tts_pokemon")
+        // Pass null params: audio routing is governed by setAudioAttributes() set at init.
+        // The deprecated KEY_PARAM_STREAM bundle can conflict with audio attributes on some
+        // engines and silently drop the output.
+        val result = tts.speak(safeText, TextToSpeech.QUEUE_FLUSH, null, "tts_pokemon")
+        android.util.Log.d("TtsButton", "speak() result=$result len=${safeText.length} locale=$locale")
         if (result == TextToSpeech.ERROR) {
-            android.util.Log.w("TtsButton", "speak() returned ERROR (len=${safeText.length})")
             isSpeaking = false
+            Toast.makeText(context, context.getString(R.string.tts_error), Toast.LENGTH_SHORT).show()
         } else {
             isSpeaking = true
         }
@@ -3229,17 +3237,21 @@ private fun TtsButton(
 
     IconButton(
         onClick = {
-            if (isLoading) return@IconButton
-            val tts = ttsRef.value ?: return@IconButton
-            if (!ttsReady) {
-                android.util.Log.w("TtsButton", "tapped before engine ready")
+            val tts = ttsRef.value
+            if (tts == null || !ttsReady) {
+                android.util.Log.w("TtsButton", "tapped before engine ready (ready=$ttsReady)")
+                Toast.makeText(context, context.getString(R.string.tts_initializing), Toast.LENGTH_SHORT).show()
                 return@IconButton
             }
             if (isSpeaking) {
                 tts.stop()
                 isSpeaking = false
             } else {
-                val text = textToSpeak ?: return@IconButton
+                val text = textToSpeak
+                if (text.isNullOrBlank()) {
+                    Toast.makeText(context, context.getString(R.string.no_description_available), Toast.LENGTH_SHORT).show()
+                    return@IconButton
+                }
                 speakNow(tts, text, ttsLocaleToUse)
             }
         },
@@ -3399,11 +3411,6 @@ private fun speechAudioAttributes(): AudioAttributes =
         .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
         .build()
 
-/** Forces max volume on the media stream for each utterance, regardless of engine defaults. */
-private fun ttsSpeakParams(): Bundle = Bundle().apply {
-    putFloat(TextToSpeech.Engine.KEY_PARAM_VOLUME, 1.0f)
-    putInt(TextToSpeech.Engine.KEY_PARAM_STREAM, AudioManager.STREAM_MUSIC)
-}
 
 @Suppress("DEPRECATION")
 private fun requestTransientAudioFocusCompat(

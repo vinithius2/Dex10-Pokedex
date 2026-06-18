@@ -198,6 +198,8 @@
     <string name="tts_auto_play_desc">Read Pokédex entry when opening from a scan</string>
     <string name="tts_speak">Read Pokédex entry</string>
     <string name="tts_stop">Stop reading</string>
+    <string name="tts_error">Could not read the entry. Check your device\'s Text-to-Speech voice.</string>
+    <string name="tts_initializing">Voice is starting up, try again…</string>
     <!-- TRANSLATER STATUS -->
     <string name="loading_translate">Loading text…</string>
     <!-- SHAPES -->
