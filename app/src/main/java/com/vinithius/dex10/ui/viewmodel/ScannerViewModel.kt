@@ -94,8 +94,13 @@ class ScannerViewModel(
     }
 
     override fun onCleared() {
-        classifier?.close()
+        // Close off the main thread: close() blocks on the session lock until any
+        // in-flight inference finishes, and we must not stall the UI thread (ANR risk).
+        val toClose = classifier
         classifier = null
+        if (toClose != null) {
+            Thread { toClose.close() }.start()
+        }
     }
 
     companion object {

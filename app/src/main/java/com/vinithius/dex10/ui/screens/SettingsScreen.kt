@@ -246,6 +246,22 @@ fun SettingsScreen(
 
             Spacer(modifier = Modifier.height(40.dp))
         }
+
+        // --- Version footer ---
+        Spacer(modifier = Modifier.height(16.dp))
+        Text(
+            text = stringResource(
+                R.string.app_version_fmt,
+                com.vinithius.dex10.BuildConfig.VERSION_NAME,
+                com.vinithius.dex10.BuildConfig.VERSION_CODE
+            ),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 16.dp),
+            textAlign = androidx.compose.ui.text.style.TextAlign.Center
+        )
     }
 }
 
