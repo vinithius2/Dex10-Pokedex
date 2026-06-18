@@ -384,6 +384,13 @@ class PokemonViewModel(
         _idPokemon.postValue(value)
     }
 
+    private val _openedFromScanner = kotlinx.coroutines.flow.MutableStateFlow(false)
+    val openedFromScanner: kotlinx.coroutines.flow.StateFlow<Boolean> = _openedFromScanner.asStateFlow()
+
+    fun setOpenedFromScanner(value: Boolean) {
+        _openedFromScanner.value = value
+    }
+
 
 
     /**

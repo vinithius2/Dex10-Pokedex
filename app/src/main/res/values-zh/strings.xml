@@ -153,6 +153,23 @@
     <string name="water">水</string>
     <string name="normal">一般</string>
     <string name="unknow">未知</string>
+    <!-- SPRITE TYPE SELECTOR -->
+    <string name="sprite_type_official_artwork">官方插图</string>
+    <string name="sprite_type_official_artwork_desc">高分辨率官方插图</string>
+    <string name="sprite_type_gif">动态GIF</string>
+    <string name="sprite_type_gif_desc">对战精灵图</string>
+    <string name="sprite_type_home">Pokémon HOME</string>
+    <string name="sprite_type_home_desc">3D风格渲染</string>
+    <string name="sprite_type_pixel">像素画</string>
+    <string name="sprite_type_pixel_desc">经典正面精灵图</string>
+    <!-- TTS / VOICE -->
+    <string name="tts_section_title">语音</string>
+    <string name="tts_speed">语音速度</string>
+    <string name="tts_pitch">音调</string>
+    <string name="tts_auto_play">扫描后自动播放</string>
+    <string name="tts_auto_play_desc">从扫描打开时朗读宝可梦图鉴条目</string>
+    <string name="tts_speak">朗读图鉴条目</string>
+    <string name="tts_stop">停止朗读</string>
     <string name="loading_translate">加载文本中…</string>
     <string name="shape_ball">球形</string>
     <string name="shape_squiggle">蜿蜒形</string>

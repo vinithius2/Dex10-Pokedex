@@ -182,6 +182,7 @@ fun PokemonScanScreen(
                     onPredictionClick = { prediction ->
                         activity?.trackButtonClick("Scanner: open detail ID: ${prediction.dexId}")
                         pokemonViewModel.setIdPokemon(prediction.dexId)
+                        pokemonViewModel.setOpenedFromScanner(true)
                         viewModel.dismissMatch()
                         navController.navigate("pokemonDetail/${prediction.dexId}")
                     },
@@ -211,6 +212,7 @@ fun PokemonScanScreen(
                 onOpenDetails = {
                     activity?.trackButtonClick("Scanner: open detail ID: ${match.dexId}")
                     pokemonViewModel.setIdPokemon(match.dexId)
+                    pokemonViewModel.setOpenedFromScanner(true)
                     viewModel.dismissMatch()
                     navController.navigate("pokemonDetail/${match.dexId}")
                 },

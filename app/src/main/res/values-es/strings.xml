@@ -153,6 +153,23 @@
     <string name="water">Agua</string>
     <string name="normal">Normal</string>
     <string name="unknow">Desconocido</string>
+    <!-- SPRITE TYPE SELECTOR -->
+    <string name="sprite_type_official_artwork">Arte oficial</string>
+    <string name="sprite_type_official_artwork_desc">Arte oficial en alta resolución</string>
+    <string name="sprite_type_gif">GIF animado</string>
+    <string name="sprite_type_gif_desc">Sprites de Showdown</string>
+    <string name="sprite_type_home">Pokémon HOME</string>
+    <string name="sprite_type_home_desc">Renderizado estilo 3D</string>
+    <string name="sprite_type_pixel">Pixel Art</string>
+    <string name="sprite_type_pixel_desc">Sprite clásico frontal</string>
+    <!-- TTS / VOICE -->
+    <string name="tts_section_title">Voz</string>
+    <string name="tts_speed">Velocidad de voz</string>
+    <string name="tts_pitch">Tono</string>
+    <string name="tts_auto_play">Reproducción automática desde escáner</string>
+    <string name="tts_auto_play_desc">Leer entrada Pokédex al abrir desde escaneo</string>
+    <string name="tts_speak">Leer entrada Pokédex</string>
+    <string name="tts_stop">Detener lectura</string>
     <string name="loading_translate">Cargando texto…</string>
     <string name="shape_ball">Esfera</string>
     <string name="shape_squiggle">Ondulado</string>

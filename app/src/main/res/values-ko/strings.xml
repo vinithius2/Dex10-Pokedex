@@ -153,6 +153,23 @@
     <string name="water">물</string>
     <string name="normal">노말</string>
     <string name="unknow">알 수 없음</string>
+    <!-- SPRITE TYPE SELECTOR -->
+    <string name="sprite_type_official_artwork">공식 아트워크</string>
+    <string name="sprite_type_official_artwork_desc">고해상도 공식 아트</string>
+    <string name="sprite_type_gif">애니메이션 GIF</string>
+    <string name="sprite_type_gif_desc">쇼다운 스프라이트</string>
+    <string name="sprite_type_home">Pokémon HOME</string>
+    <string name="sprite_type_home_desc">3D 스타일 렌더링</string>
+    <string name="sprite_type_pixel">픽셀 아트</string>
+    <string name="sprite_type_pixel_desc">클래식 정면 스프라이트</string>
+    <!-- TTS / VOICE -->
+    <string name="tts_section_title">음성</string>
+    <string name="tts_speed">음성 속도</string>
+    <string name="tts_pitch">음정</string>
+    <string name="tts_auto_play">스캐너에서 자동 재생</string>
+    <string name="tts_auto_play_desc">스캔에서 열 때 포켓도감 항목 읽기</string>
+    <string name="tts_speak">포켓도감 항목 읽기</string>
+    <string name="tts_stop">읽기 중지</string>
     <string name="loading_translate">텍스트 로딩 중…</string>
     <string name="shape_ball">공 모양</string>
     <string name="shape_squiggle">꾸불꾸불한 모양</string>

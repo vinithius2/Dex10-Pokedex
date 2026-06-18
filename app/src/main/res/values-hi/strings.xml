@@ -153,6 +153,23 @@
     <string name="water">पानी</string>
     <string name="normal">नॉर्मल</string>
     <string name="unknow">अज्ञात</string>
+    <!-- SPRITE TYPE SELECTOR -->
+    <string name="sprite_type_official_artwork">आधिकारिक कला</string>
+    <string name="sprite_type_official_artwork_desc">उच्च-रिज़ॉल्यूशन आधिकारिक कला</string>
+    <string name="sprite_type_gif">एनिमेटेड GIF</string>
+    <string name="sprite_type_gif_desc">Showdown स्प्राइट्स</string>
+    <string name="sprite_type_home">Pokémon HOME</string>
+    <string name="sprite_type_home_desc">3D शैली रेंडरिंग</string>
+    <string name="sprite_type_pixel">पिक्सेल आर्ट</string>
+    <string name="sprite_type_pixel_desc">क्लासिक फ्रंट स्प्राइट</string>
+    <!-- TTS / VOICE -->
+    <string name="tts_section_title">वॉइस</string>
+    <string name="tts_speed">वाणी गति</string>
+    <string name="tts_pitch">पिच</string>
+    <string name="tts_auto_play">स्कैनर से ऑटो-प्ले</string>
+    <string name="tts_auto_play_desc">स्कैन से खोलने पर Pokédex प्रविष्टि पढ़ें</string>
+    <string name="tts_speak">Pokédex प्रविष्टि पढ़ें</string>
+    <string name="tts_stop">पढ़ना बंद करें</string>
     <string name="loading_translate">टेक्स्ट लोड हो रहा है…</string>
     <string name="shape_ball">गेंद</string>
     <string name="shape_squiggle">टेढ़ा-मेढ़ा</string>

@@ -146,6 +146,13 @@ import com.vinithius.dex10.extension.getStringShape
 import com.vinithius.dex10.extension.getStringStat
 import com.vinithius.dex10.extension.getWindowColumns
 import com.vinithius.dex10.extension.translateIfSupported
+import android.speech.tts.TextToSpeech
+import android.speech.tts.UtteranceProgressListener
+import android.os.Handler
+import android.os.Looper
+import androidx.compose.material.icons.filled.MenuBook
+import androidx.compose.material.icons.filled.StopCircle
+import androidx.compose.runtime.DisposableEffect
 import com.vinithius.dex10.ui.MainActivity
 import com.vinithius.dex10.ui.theme.text
 import com.vinithius.dex10.ui.viewmodel.PokemonViewModel
@@ -390,6 +397,24 @@ fun SharedTransitionScope.MainCard(
                         ZenithCryButton(
                             viewModel = viewModel,
                             color = color.getColorByString(isSystemInDarkTheme())
+                        )
+                    }
+
+                    // TTS Button
+                    val openedFromScanner by viewModel.openedFromScanner.collectAsState()
+                    val appPreferences: AppPreferences = get()
+                    val ttsAutoPlay by appPreferences.ttsAutoPlay.collectAsState()
+                    Box(
+                        modifier = Modifier
+                            .align(Alignment.TopStart)
+                            .padding(16.dp)
+                    ) {
+                        TtsButton(
+                            pokemonDetail = pokemonDetail,
+                            color = color.getColorByString(isSystemInDarkTheme()),
+                            appPreferences = appPreferences,
+                            triggerAutoPlay = openedFromScanner && ttsAutoPlay,
+                            onAutoPlayConsumed = { viewModel.setOpenedFromScanner(false) }
                         )
                     }
 
@@ -645,6 +670,24 @@ fun SharedTransitionScope.MainCardLargeScreen(
                             ZenithCryButton(
                                 viewModel = viewModel,
                                 color = color.getColorByString(isSystemInDarkTheme())
+                            )
+                        }
+
+                        // TTS Button
+                        val openedFromScannerLarge by viewModel.openedFromScanner.collectAsState()
+                        val appPreferencesLarge: AppPreferences = get()
+                        val ttsAutoPlayLarge by appPreferencesLarge.ttsAutoPlay.collectAsState()
+                        Box(
+                            modifier = Modifier
+                                .align(Alignment.TopStart)
+                                .padding(16.dp)
+                        ) {
+                            TtsButton(
+                                pokemonDetail = pokemonDetail,
+                                color = color.getColorByString(isSystemInDarkTheme()),
+                                appPreferences = appPreferencesLarge,
+                                triggerAutoPlay = openedFromScannerLarge && ttsAutoPlayLarge,
+                                onAutoPlayConsumed = { viewModel.setOpenedFromScanner(false) }
                             )
                         }
 
@@ -2945,6 +2988,102 @@ private fun getMockupPokemon(): Pokemon {
         damage = listOf(),
         favorite = false,
     )
+}
+
+@Composable
+@Composable
+private fun TtsButton(
+    pokemonDetail: Pokemon?,
+    color: Color,
+    appPreferences: AppPreferences,
+    triggerAutoPlay: Boolean = false,
+    onAutoPlayConsumed: () -> Unit = {},
+) {
+    val context = LocalContext.current
+    val ttsSpeed by appPreferences.ttsSpeed.collectAsState()
+    val ttsPitch by appPreferences.ttsPitch.collectAsState()
+
+    var isSpeaking by remember { mutableStateOf(false) }
+    var textToSpeak by remember { mutableStateOf<String?>(null) }
+    var ttsReady by remember { mutableStateOf(false) }
+    val ttsRef = remember { mutableStateOf<TextToSpeech?>(null) }
+
+    DisposableEffect(Unit) {
+        val tts = TextToSpeech(context) { status ->
+            Handler(Looper.getMainLooper()).post {
+                if (status == TextToSpeech.SUCCESS) ttsReady = true
+            }
+        }
+        tts.setOnUtteranceProgressListener(object : UtteranceProgressListener() {
+            override fun onStart(u: String?) {
+                Handler(Looper.getMainLooper()).post { isSpeaking = true }
+            }
+            override fun onDone(u: String?) {
+                Handler(Looper.getMainLooper()).post { isSpeaking = false }
+            }
+            @Suppress("OVERRIDE_DEPRECATION")
+            override fun onError(u: String?) {
+                Handler(Looper.getMainLooper()).post { isSpeaking = false }
+            }
+        })
+        ttsRef.value = tts
+        onDispose {
+            tts.stop()
+            tts.shutdown()
+            ttsRef.value = null
+        }
+    }
+
+    LaunchedEffect(pokemonDetail) {
+        if (pokemonDetail == null) return@LaunchedEffect
+        pokemonDetail.specie?.flavor_text_entries
+            ?.getFlavorTextForLanguage("en")
+            ?.translateIfSupported(
+                onResult = { textToSpeak = it },
+                onError = { textToSpeak = pokemonDetail.specie?.flavor_text_entries?.getFlavorTextForLanguage("en") },
+                context = context
+            )
+    }
+
+    LaunchedEffect(triggerAutoPlay, ttsReady, textToSpeak) {
+        if (triggerAutoPlay && ttsReady && !textToSpeak.isNullOrBlank()) {
+            kotlinx.coroutines.delay(600)
+            ttsRef.value?.let { tts ->
+                tts.language = java.util.Locale.getDefault()
+                tts.setSpeechRate(ttsSpeed)
+                tts.setPitch(ttsPitch)
+                tts.speak(textToSpeak, TextToSpeech.QUEUE_FLUSH, null, "tts_pokemon")
+            }
+            onAutoPlayConsumed()
+        }
+    }
+
+    IconButton(
+        onClick = {
+            val tts = ttsRef.value ?: return@IconButton
+            if (isSpeaking) {
+                tts.stop()
+                isSpeaking = false
+            } else {
+                val text = textToSpeak ?: return@IconButton
+                tts.language = java.util.Locale.getDefault()
+                tts.setSpeechRate(ttsSpeed)
+                tts.setPitch(ttsPitch)
+                tts.speak(text, TextToSpeech.QUEUE_FLUSH, null, "tts_pokemon")
+            }
+        },
+        enabled = textToSpeak != null,
+        modifier = Modifier
+            .size(48.dp)
+            .background(color.copy(alpha = 0.2f), RoundedCornerShape(12.dp))
+    ) {
+        Icon(
+            imageVector = if (isSpeaking) Icons.Default.StopCircle else Icons.Default.MenuBook,
+            contentDescription = if (isSpeaking) stringResource(R.string.tts_stop) else stringResource(R.string.tts_speak),
+            tint = if (textToSpeak != null) color else color.copy(alpha = 0.4f),
+            modifier = Modifier.size(24.dp)
+        )
+    }
 }
 
 @Composable

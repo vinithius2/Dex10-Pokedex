@@ -153,6 +153,23 @@
     <string name="water">みず</string>
     <string name="normal">ノーマル</string>
     <string name="unknow">不明</string>
+    <!-- SPRITE TYPE SELECTOR -->
+    <string name="sprite_type_official_artwork">公式アートワーク</string>
+    <string name="sprite_type_official_artwork_desc">高解像度の公式アート</string>
+    <string name="sprite_type_gif">アニメーションGIF</string>
+    <string name="sprite_type_gif_desc">Showdownスプライト</string>
+    <string name="sprite_type_home">Pokémon HOME</string>
+    <string name="sprite_type_home_desc">3Dスタイルレンダリング</string>
+    <string name="sprite_type_pixel">ドット絵</string>
+    <string name="sprite_type_pixel_desc">クラシック正面スプライト</string>
+    <!-- TTS / VOICE -->
+    <string name="tts_section_title">音声</string>
+    <string name="tts_speed">読み上げ速度</string>
+    <string name="tts_pitch">ピッチ</string>
+    <string name="tts_auto_play">スキャン後に自動再生</string>
+    <string name="tts_auto_play_desc">スキャンから開く際にPokédex情報を読み上げ</string>
+    <string name="tts_speak">Pokédex情報を読み上げ</string>
+    <string name="tts_stop">読み上げを停止</string>
     <string name="loading_translate">テキスト翻訳中…</string>
     <string name="shape_ball">ボール状</string>
     <string name="shape_squiggle">細長い</string>
