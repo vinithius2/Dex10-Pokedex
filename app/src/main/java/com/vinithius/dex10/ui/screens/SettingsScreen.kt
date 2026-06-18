@@ -190,8 +190,8 @@ private fun SpriteTypeSelector(
 ) {
     val context = LocalContext.current
     val options = listOf(
-        AppPreferences.SpriteType.GIF to Pair("Animated GIF", "Showdown sprites · recommended"),
         AppPreferences.SpriteType.OFFICIAL_ARTWORK to Pair("Official Artwork", "High-resolution official art"),
+        AppPreferences.SpriteType.GIF to Pair("Animated GIF", "Showdown sprites"),
         AppPreferences.SpriteType.HOME to Pair("Pokémon HOME", "3D-style rendering"),
         AppPreferences.SpriteType.PIXEL to Pair("Pixel Art", "Classic front-facing sprite"),
     )

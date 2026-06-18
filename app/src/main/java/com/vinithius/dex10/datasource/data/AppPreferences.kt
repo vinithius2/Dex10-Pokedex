@@ -38,9 +38,9 @@ class AppPreferences(context: Context) {
     }
 
     enum class SpriteType(val key: Int) {
-        GIF(0), OFFICIAL_ARTWORK(1), HOME(2), PIXEL(3);
+        OFFICIAL_ARTWORK(1), GIF(0), HOME(2), PIXEL(3);
         companion object {
-            fun fromInt(v: Int) = values().firstOrNull { it.key == v } ?: GIF
+            fun fromInt(v: Int) = values().firstOrNull { it.key == v } ?: OFFICIAL_ARTWORK
         }
     }
 
@@ -121,7 +121,7 @@ class AppPreferences(context: Context) {
 
     // --- Sprite Type ---
     private val _spriteType = MutableStateFlow(
-        SpriteType.fromInt(prefs.getInt(KEY_SPRITE_TYPE, SpriteType.GIF.key))
+        SpriteType.fromInt(prefs.getInt(KEY_SPRITE_TYPE, SpriteType.OFFICIAL_ARTWORK.key))
     )
     val spriteType: StateFlow<SpriteType> = _spriteType.asStateFlow()
 
