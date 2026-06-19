@@ -186,6 +186,38 @@ class MainActivity : ComponentActivity() {
         )
 
         handleDeeplink(intent)
+        maybeLaunchInAppReview(appPrefs)
+    }
+
+    /**
+     * Launches the Google Play in-app review flow (the overlay rating card).
+     * Play decides whether to actually show it (per-user quota) and never reports the rating.
+     * [onCannotRequest] runs only when the flow couldn't even be requested, so the caller can
+     * fall back — e.g. open the store listing.
+     */
+    fun launchInAppReview(onCannotRequest: () -> Unit = {}) {
+        val manager = ReviewManagerFactory.create(this)
+        manager.requestReviewFlow().addOnCompleteListener { task ->
+            if (task.isSuccessful) {
+                manager.launchReviewFlow(this, task.result)
+            } else {
+                onCannotRequest()
+            }
+        }
+    }
+
+    /**
+     * Auto-offers the in-app review at app start, but only for engaged returning users and at
+     * most once per cooldown window. Fired slightly after launch so it doesn't compete with the
+     * cold-start frame, and only if the Activity is still alive.
+     */
+    private fun maybeLaunchInAppReview(appPrefs: AppPreferences) {
+        appPrefs.incrementAppOpenCount()
+        if (!appPrefs.shouldRequestReview()) return
+        appPrefs.markReviewPrompted() // respect cooldown even if Play suppresses the card
+        window.decorView.postDelayed({
+            if (!isFinishing && !isDestroyed) launchInAppReview()
+        }, 3000)
     }
 
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
@@ -1134,7 +1166,15 @@ private fun DrawerContent(
             onClick = {
                 onCloseDrawer()
                 activity?.trackButtonClick("Drawer: rate app")
-                getIntentToUrl(reviewUrl.toString(), context)
+                // Official Play in-app review overlay; if it can't be requested
+                // (offline, sideloaded, quota), fall back to the store listing.
+                if (activity != null) {
+                    activity.launchInAppReview(
+                        onCannotRequest = { reviewUrl?.let { getIntentToUrl(it, context) } }
+                    )
+                } else {
+                    reviewUrl?.let { getIntentToUrl(it, context) }
+                }
             }
         )
 
