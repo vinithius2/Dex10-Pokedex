@@ -38,6 +38,8 @@ class AppPreferences(context: Context) {
         private const val KEY_VIEW_MODE = "view_mode"
         private const val KEY_TCG_FAVORITES = "tcg_favorite_cards"
         private const val KEY_SPRITE_TYPE = "sprite_type"
+        private const val KEY_APP_OPEN_COUNT = "app_open_count"
+        private const val KEY_REVIEW_LAST_PROMPT = "review_last_prompt_date"
     }
 
     enum class SpriteType(val key: Int) {
@@ -188,6 +190,35 @@ class AppPreferences(context: Context) {
         }
         prefs.edit().putString(KEY_SCANNER_DATE, today).putInt(KEY_SCANNER_COUNT, count).apply()
         return count
+    }
+
+    // --- In-App Review gating ---
+    // We only auto-offer the Play in-app review to engaged users and never more than once per
+    // cooldown window. Play enforces its own per-user quota on top of this, so the card may
+    // still not appear even when we ask.
+
+    /** Increments and returns the number of cold app opens. */
+    fun incrementAppOpenCount(): Int {
+        val next = prefs.getInt(KEY_APP_OPEN_COUNT, 0) + 1
+        prefs.edit().putInt(KEY_APP_OPEN_COUNT, next).apply()
+        return next
+    }
+
+    /** True only after [minOpens] opens and at least [cooldownDays] since the last prompt. */
+    fun shouldRequestReview(minOpens: Int = 4, cooldownDays: Long = 45): Boolean {
+        if (prefs.getInt(KEY_APP_OPEN_COUNT, 0) < minOpens) return false
+        val last = prefs.getString(KEY_REVIEW_LAST_PROMPT, null) ?: return true
+        return try {
+            val lastDay = java.time.LocalDate.parse(last).toEpochDay()
+            java.time.LocalDate.now().toEpochDay() - lastDay >= cooldownDays
+        } catch (e: Exception) {
+            true
+        }
+    }
+
+    /** Records that we asked today, so the cooldown is respected next time. */
+    fun markReviewPrompted() {
+        prefs.edit().putString(KEY_REVIEW_LAST_PROMPT, todayIso()).apply()
     }
 
     // --- TCG Card Favourites (premium only) ---
