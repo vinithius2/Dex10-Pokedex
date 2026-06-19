@@ -1,5 +1,6 @@
 package com.vinithius.dex10.datasource.data
 
+import android.app.Activity
 import android.content.Context
 import androidx.test.core.app.ApplicationProvider
 import com.vinithius.dex10.datasource.data.PremiumManager
@@ -7,6 +8,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -21,11 +23,30 @@ class PremiumManagerTest {
     private lateinit var context: Context
     private lateinit var premiumManager: PremiumManager
 
+    /** No-op billing so the manager can be built without a real Play connection. */
+    private val fakeBilling = object : BillingHandler {
+        override fun setup(activity: Activity, listener: BillingListener) {}
+        override fun launchPurchaseFlow(activity: Activity) {}
+        override fun launchDonationFlow(activity: Activity) {}
+        override fun queryExistingPurchases() {}
+        override fun destroy() {}
+    }
+
     @Before
     fun setup() {
         context = ApplicationProvider.getApplicationContext()
         val prefs = context.getSharedPreferences("test_prefs", Context.MODE_PRIVATE)
-        premiumManager = PremiumManager(context, prefs)
+        premiumManager = PremiumManager(context, fakeBilling, prefs)
+    }
+
+    @Test
+    fun `constructor_doesNotCrash_whenEncryptedPrefsUnavailable`() {
+        // No injected prefs → goes through buildSecurePrefs(). EncryptedSharedPreferences can't
+        // be created without a real Android Keystore, so this exercises the recovery/fallback
+        // path that previously threw in the constructor and crashed the app on launch.
+        val manager = PremiumManager(context, fakeBilling, null)
+        assertNotNull(manager)
+        assertFalse(manager.isPremium.value)
     }
 
     @Test
