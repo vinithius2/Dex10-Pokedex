@@ -28,17 +28,48 @@ class PremiumManager(
         const val FREE_SCANNER_DAILY_LIMIT = 3
     }
 
-    private val encryptedPrefs = if (injectedPrefs != null) {
-        injectedPrefs
-    } else {
-        val masterKeyAlias = MasterKeys.getOrCreate(MasterKeys.AES256_GCM_SPEC)
-        EncryptedSharedPreferences.create(
-            PREFS_NAME,
-            masterKeyAlias,
-            context,
-            EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
-            EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
-        )
+    private val encryptedPrefs: android.content.SharedPreferences =
+        injectedPrefs ?: buildSecurePrefs(context)
+
+    /**
+     * Builds the encrypted prefs, recovering from a corrupted Tink keyset instead of crashing.
+     *
+     * `EncryptedSharedPreferences.create()` throws (e.g. "Protocol message contained an invalid
+     * tag (zero)") when the stored keyset can't be read — classically after the app is restored
+     * from backup onto a new device (the Android Keystore master key is NOT backed up) or after a
+     * Keystore reset. Since this runs in the constructor, the unhandled throw crashed the app on
+     * launch. We wipe the keyset + master key and rebuild once; if that still fails we fall back
+     * to plain prefs so the app starts (the only stored value is the premium flag, which Play
+     * Billing restores).
+     */
+    private fun buildSecurePrefs(context: Context): android.content.SharedPreferences {
+        fun create(): android.content.SharedPreferences {
+            val masterKeyAlias = MasterKeys.getOrCreate(MasterKeys.AES256_GCM_SPEC)
+            return EncryptedSharedPreferences.create(
+                PREFS_NAME,
+                masterKeyAlias,
+                context,
+                EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+                EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+            )
+        }
+        return try {
+            create()
+        } catch (e: Exception) {
+            Log.w(TAG, "EncryptedSharedPreferences corrupt — resetting keyset/master key", e)
+            runCatching { context.deleteSharedPreferences(PREFS_NAME) }
+            runCatching {
+                val keyStore = java.security.KeyStore.getInstance("AndroidKeyStore")
+                keyStore.load(null)
+                keyStore.deleteEntry("_androidx_security_master_key_")
+            }
+            try {
+                create()
+            } catch (e2: Exception) {
+                Log.e(TAG, "EncryptedSharedPreferences unrecoverable — using plain prefs", e2)
+                context.getSharedPreferences("${PREFS_NAME}_plain", Context.MODE_PRIVATE)
+            }
+        }
     }
 
     private val _isPremium = MutableStateFlow(

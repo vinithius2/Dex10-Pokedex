@@ -21,8 +21,8 @@ android {
         applicationId "com.vinithius.dex10"
         minSdk 24
         targetSdk 36
-        versionCode 27
-        versionName "3.2"
+        versionCode 29
+        versionName "3.4"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         buildConfigField "String", "WEBHOOK_KEY", apikeyProperties['WEBHOOK_KEY']
