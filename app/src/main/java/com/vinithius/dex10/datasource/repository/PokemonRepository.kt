@@ -380,12 +380,25 @@ class PokemonRepository(
 
     // REMOTE - POKE API
 
+    /**
+     * Records [e] to Crashlytics unless it's an expected HTTP 404. A 404 just means the resource
+     * doesn't exist (e.g. PokéAPI `characteristic/{id}` only covers IDs 1-30, so most Pokémon
+     * return 404) — that's a data condition, not a bug, and was flooding the non-fatal dashboard.
+     */
+    private fun reportIfUnexpected(e: Throwable, tag: String) {
+        if (e is HttpException && e.code() == 404) {
+            Log.d(tag, "404 (no data)")
+        } else {
+            FirebaseCrashlytics.getInstance().recordException(e)
+            Log.e(tag, e.toString())
+        }
+    }
+
     private suspend fun getPokemonList(limit: Int = 1302): PokemonDataWrapper? {
         return try {
             remoteDataSource.getPokemonList(limit)
-        } catch (e: HttpException) {
-            FirebaseCrashlytics.getInstance().recordException(e)
-            Log.e("Pokemon dataWrapper", e.toString())
+        } catch (e: Exception) {
+            reportIfUnexpected(e, "Pokemon dataWrapper")
             null
         }
     }
@@ -393,9 +406,8 @@ class PokemonRepository(
     override suspend fun getPokemonDetail(id: Int): Pokemon? {
         return try {
             remoteDataSource.getPokemonDetail(id)
-        } catch (e: HttpException) {
-            FirebaseCrashlytics.getInstance().recordException(e)
-            Log.e("Pokemon (ID: $id) ", e.toString())
+        } catch (e: Exception) {
+            reportIfUnexpected(e, "Pokemon (ID: $id)")
             null
         }
     }
@@ -404,8 +416,7 @@ class PokemonRepository(
         return try {
             remoteDataSource.getPokemonEncounters(id)
         } catch (e: Exception) {
-            FirebaseCrashlytics.getInstance().recordException(e)
-            Log.e("Encounters (ID: $id) ", e.toString())
+            reportIfUnexpected(e, "Encounters (ID: $id)")
             null
         }
     }
@@ -414,8 +425,7 @@ class PokemonRepository(
         return try {
             remoteDataSource.getPokemonEvolution(id)
         } catch (e: Exception) {
-            FirebaseCrashlytics.getInstance().recordException(e)
-            Log.e("EvolutionChain (ID: $id) ", e.toString())
+            reportIfUnexpected(e, "EvolutionChain (ID: $id)")
             null
         }
     }
@@ -424,8 +434,7 @@ class PokemonRepository(
         return try {
             remoteDataSource.getPokemonCharacteristic(id)
         } catch (e: Exception) {
-            FirebaseCrashlytics.getInstance().recordException(e)
-            Log.e("Characteristic (ID: $id) ", e.toString())
+            reportIfUnexpected(e, "Characteristic (ID: $id)")
             null
         }
     }
@@ -434,8 +443,7 @@ class PokemonRepository(
         return try {
             remoteDataSource.getPokemonSpecies(id)
         } catch (e: Exception) {
-            FirebaseCrashlytics.getInstance().recordException(e)
-            Log.e("Specie (ID: $id) ", e.toString())
+            reportIfUnexpected(e, "Specie (ID: $id)")
             null
         }
     }
@@ -444,8 +452,7 @@ class PokemonRepository(
         return try {
             remoteDataSource.getPokemonDamageRelations(type)
         } catch (e: Exception) {
-            FirebaseCrashlytics.getInstance().recordException(e)
-            Log.e("Damage (Type: $type) ", e.toString())
+            reportIfUnexpected(e, "Damage (Type: $type)")
             null
         }
     }
