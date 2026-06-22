@@ -344,8 +344,19 @@ class PokemonRepository(
         val statEntityList = pokemon.toStatEntities()
         val typeEntityList = pokemon.toTypeEntities()
         val abilityEntityList = pokemon.toAbilityEntities()
-        // Inserir Pokémon
+        // Inserir Pokémon (REPLACE atualiza os campos se o Pokémon já existir localmente)
         val pokemonId = localDataSource.insertPokemon(pokemonEntity)
+        // Limpar relações antigas para que o re-sync não duplique tipos/habilidades/stats
+        // quando o Pokémon já existia localmente.
+        val oldTypeIds = localDataSource.getTypesByPokemonId(pokemonId.toInt()).map { it.typeId }
+        localDataSource.deleteTypesByPokemonId(pokemonId.toInt())
+        localDataSource.deleteTypesByIds(oldTypeIds)
+        val oldAbilityIds = localDataSource.getAbilitiesByPokemonId(pokemonId.toInt()).map { it.abilityId }
+        localDataSource.deleteAbilitiesByPokemonId(pokemonId.toInt())
+        localDataSource.deleteAbilitiesByIds(oldAbilityIds)
+        val oldStatIds = localDataSource.getStatsByPokemonId(pokemonId.toInt()).map { it.statId }
+        localDataSource.deleteStatsByPokemonId(pokemonId.toInt())
+        localDataSource.deleteStatsByIds(oldStatIds)
         // Adicionando tipos (se existirem)
         typeEntityList?.forEach { type ->
             val typeId = localDataSource.insertType(type)

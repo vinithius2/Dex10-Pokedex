@@ -12,7 +12,9 @@ import androidx.room.Update
 interface PokemonDao {
 
     // INSERTS
-    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    // REPLACE so a Pokémon already in Room gets its fields overwritten when Firebase
+    // data changes (e.g. corrected color/habitat/enrichment fields on a re-sync).
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertPokemon(pokemon: PokemonEntity): Long
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
@@ -115,6 +117,18 @@ interface PokemonDao {
 
     @Query("DELETE FROM type WHERE id IN (:typeIds)")
     suspend fun deleteTypesByIds(typeIds: List<Int>)
+
+    @Query("DELETE FROM pokemon_ability WHERE pokemon_id = :pokemonId")
+    suspend fun deleteAbilitiesByPokemonId(pokemonId: Int)
+
+    @Query("DELETE FROM ability WHERE id IN (:abilityIds)")
+    suspend fun deleteAbilitiesByIds(abilityIds: List<Int>)
+
+    @Query("DELETE FROM pokemon_stat WHERE pokemon_id = :pokemonId")
+    suspend fun deleteStatsByPokemonId(pokemonId: Int)
+
+    @Query("DELETE FROM stat WHERE id IN (:statIds)")
+    suspend fun deleteStatsByIds(statIds: List<Int>)
 
     @Query("""
         UPDATE pokemon SET
