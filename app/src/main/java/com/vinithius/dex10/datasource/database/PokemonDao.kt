@@ -170,4 +170,49 @@ interface PokemonDao {
 
     @Delete
     suspend fun deletePokemonAbility(pokemonAbility: PokemonAbility)
+
+    // Forced full refresh (DATA_VERSION / Remote Config bump) -----------------------------------
+    // The @Insert methods above are IGNORE, so an edited Firebase record never overwrites a
+    // cached row. A forced refresh therefore wipes the Pokémon tables and re-inserts fresh data.
+    // Favourites live only in the `pokemon` table, so they are captured before the wipe and
+    // restored after the re-insert. The move-detail cache is intentionally left untouched.
+
+    @Query("SELECT id FROM pokemon WHERE favorite = 1")
+    suspend fun getFavoritePokemonIds(): List<Int>
+
+    @Query("UPDATE pokemon SET favorite = 1 WHERE id IN (:ids)")
+    suspend fun restoreFavorites(ids: List<Int>)
+
+    @Query("DELETE FROM pokemon_stat")
+    suspend fun clearPokemonStats()
+
+    @Query("DELETE FROM pokemon_ability")
+    suspend fun clearPokemonAbilities()
+
+    @Query("DELETE FROM pokemon_type")
+    suspend fun clearPokemonTypes()
+
+    @Query("DELETE FROM stat")
+    suspend fun clearStats()
+
+    @Query("DELETE FROM ability")
+    suspend fun clearAbilities()
+
+    @Query("DELETE FROM type")
+    suspend fun clearTypes()
+
+    @Query("DELETE FROM pokemon")
+    suspend fun clearPokemons()
+
+    /** Wipes every Pokémon-list table in one transaction (children first, then parents). */
+    @Transaction
+    suspend fun clearAllPokemonData() {
+        clearPokemonStats()
+        clearPokemonAbilities()
+        clearPokemonTypes()
+        clearStats()
+        clearAbilities()
+        clearTypes()
+        clearPokemons()
+    }
 }

@@ -232,6 +232,7 @@
     <string name="benefit_support_dev">Supporta lo sviluppatore</string>
     <string name="upgrade_now">Sblocca Ora</string>
     <string name="go_premium">Passa a Premium (Senza Pubblicità)</string>
+    <string name="scanner_go_premium">Passa a Premium (Scansioni illimitate)</string>
     <string name="premium_upsell_title">Diventa un Maestro</string>
     <string name="premium_upsell_subtitle">Accesso a vita con un pagamento unico</string>
     <string name="payment_one_time">Pagamento unico</string>
@@ -378,11 +379,13 @@
     <string name="scanner_match_confidence">%1$d%% di corrispondenza</string>
     <string name="scanner_open_details">Vedi dettagli</string>
     <string name="scanner_dismiss">Chiudi</string>
-    <string name="scanner_uses_remaining">%1$d rimasti oggi</string>
-    <string name="scanner_limit_reached">Hai usato i tuoi 3 scan gratuiti di oggi.
+    <string name="scanner_uses_remaining">%1$d rimasti</string>
+    <string name="scanner_limit_reached">Hai usato tutti i tuoi scan gratuiti.
 Passa a Premium per scan illimitati.</string>
+    <string name="scanner_resets_in">Di nuovo tra %1$s</string>
+    <string name="scanner_limit_resets_label">Scan gratis di nuovo tra</string>
     <string name="feature_scanner">Scanner Pokémon</string>
-    <string name="val_trainer_scanner">3×/giorno</string>
+    <string name="val_trainer_scanner">5 / 2 h</string>
     <string name="val_master_scanner">Illimitato</string>
     <!-- Added: missing translations -->
     <string name="all_images">Tutte le immagini</string>

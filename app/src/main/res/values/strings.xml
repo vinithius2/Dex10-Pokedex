@@ -270,6 +270,7 @@
     <string name="benefit_support_dev">Support the developer</string>
     <string name="upgrade_now">Upgrade Now</string>
     <string name="go_premium">Go Premium (No Ads)</string>
+    <string name="scanner_go_premium">Go Premium (Unlimited scans)</string>
 
     <!-- Premium Comparison -->
     <string name="premium_upsell_title">Become a Master</string>
@@ -314,7 +315,7 @@
     <string name="val_trainer_tcg_cards">First 3</string>
     <string name="val_master_tcg_cards">All cards</string>
     <string name="feature_scanner">Pokémon Scanner</string>
-    <string name="val_trainer_scanner">3×/day</string>
+    <string name="val_trainer_scanner">5 / 2h</string>
     <string name="val_master_scanner">Unlimited</string>
 
     <string name="cta_upgrade">Unlock Now — %1$s</string>
@@ -455,6 +456,7 @@
     <!-- Pokemon Camera Scanner -->
     <string name="scan_pokemon">Scan Pokémon</string>
     <string name="scanner_camera_permission_message">To scan Pokémon, the app needs access to your camera.</string>
+    <string name="scanner_camera_unavailable">No camera available on this device.</string>
     <string name="scanner_grant_permission">Allow camera</string>
     <string name="scanner_model_title">Pokémon recognition</string>
     <string name="scanner_model_message">Download the recognition model (about %1$d MB) to scan Pokémon with your camera. Everything runs on your device and this is done only once.</string>
@@ -466,6 +468,8 @@
     <string name="scanner_match_confidence">%1$d%% match</string>
     <string name="scanner_open_details">View details</string>
     <string name="scanner_dismiss">Dismiss</string>
-    <string name="scanner_uses_remaining">%1$d left today</string>
-    <string name="scanner_limit_reached">You\'ve used your 3 free scans for today.\nUpgrade to Premium for unlimited scans.</string>
+    <string name="scanner_uses_remaining">%1$d left</string>
+    <string name="scanner_limit_reached">You\'ve used all your free scans.\nUpgrade to Premium for unlimited scans.</string>
+    <string name="scanner_resets_in">Resets in %1$s</string>
+    <string name="scanner_limit_resets_label">Free scans refill in</string>
 </resources>
