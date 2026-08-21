@@ -185,7 +185,7 @@ fun SettingsScreen(
                 value = ttsSpeed,
                 onValueChange = { appPreferences.setTtsSpeed(it) },
                 valueRange = 0.5f..2.0f,
-                steps = 5,
+                steps = 14, // 0.1 increments
                 modifier = Modifier.fillMaxWidth()
             )
 
@@ -208,7 +208,7 @@ fun SettingsScreen(
                 value = ttsPitch,
                 onValueChange = { appPreferences.setTtsPitch(it) },
                 valueRange = 0.5f..2.0f,
-                steps = 5,
+                steps = 14, // 0.1 increments — default 1.4 (Pokédex tone) lands on a tick
                 modifier = Modifier.fillMaxWidth()
             )
         }

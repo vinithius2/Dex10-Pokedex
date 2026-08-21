@@ -27,8 +27,12 @@ class ScannerViewModel(
     private val _stableMatch = MutableStateFlow<Prediction?>(null)
     val stableMatch: StateFlow<Prediction?> = _stableMatch
 
-    private val _scansRemaining = MutableStateFlow(premiumManager.scannerUsesRemainingToday())
+    private val _scansRemaining = MutableStateFlow(premiumManager.scannerUsesRemaining())
     val scansRemaining: StateFlow<Int?> = _scansRemaining
+
+    /** Epoch millis when free scans refill; null for premium or when no window is open. */
+    private val _scansResetAt = MutableStateFlow(premiumManager.scannerResetAt())
+    val scansResetAt: StateFlow<Long?> = _scansResetAt
 
     /** True while the captured photo is being run through the classifier. */
     private val _isAnalyzing = MutableStateFlow(false)
@@ -56,7 +60,7 @@ class ScannerViewModel(
             _isAnalyzing.value = true
             try {
                 val allowed = premiumManager.consumeScannerUseOrTriggerUpsell()
-                _scansRemaining.value = premiumManager.scannerUsesRemainingToday()
+                refreshScannerState()
                 if (!allowed) return@launch
 
                 val activeClassifier = classifier
@@ -86,11 +90,20 @@ class ScannerViewModel(
 
     fun triggerUpsell() = premiumManager.triggerUpsell()
 
+    /**
+     * Re-reads the remaining count and reset time from [PremiumManager]. Called after a scan,
+     * on entering the screen, and when the on-screen countdown hits zero (window refilled).
+     */
+    fun refreshScannerState() {
+        _scansRemaining.value = premiumManager.scannerUsesRemaining()
+        _scansResetAt.value = premiumManager.scannerResetAt()
+    }
+
     fun dismissMatch() {
         _stableMatch.value = null
         _predictions.value = emptyList()
         _capturedFrame.value = null
-        _scansRemaining.value = premiumManager.scannerUsesRemainingToday()
+        refreshScannerState()
     }
 
     override fun onCleared() {

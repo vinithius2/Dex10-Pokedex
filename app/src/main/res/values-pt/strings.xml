@@ -240,6 +240,7 @@
     <string name="benefit_support_dev">Apoiar o desenvolvedor</string>
     <string name="upgrade_now">Fazer upgrade agora</string>
     <string name="go_premium">Mudar para Premium (Sem Anúncios)</string>
+    <string name="scanner_go_premium">Mudar para Premium (Scan ilimitado)</string>
     <string name="premium_upsell_title">Torne-se um Mestre</string>
     <string name="premium_upsell_subtitle">Acesso vitalício por um pagamento único</string>
     <string name="payment_one_time">Pagamento Único</string>
@@ -381,6 +382,7 @@
     <string name="scan_pokemon">Escanear Pokémon</string>
     <string name="scanner_camera_permission_message">Para escanear Pokémon, o app precisa de acesso à sua câmera.</string>
     <string name="scanner_grant_permission">Permitir câmera</string>
+    <string name="scanner_camera_unavailable">Nenhuma câmera disponível neste dispositivo.</string>
     <string name="scanner_model_title">Reconhecimento de Pokémon</string>
     <string name="scanner_model_message">Baixe o modelo de reconhecimento (cerca de %1$d MB) para escanear Pokémon com a câmera. Tudo roda no seu aparelho e o download é feito só uma vez.</string>
     <string name="scanner_download">Baixar modelo</string>
@@ -391,11 +393,13 @@
     <string name="scanner_match_confidence">%1$d%% de correspondência</string>
     <string name="scanner_open_details">Ver detalhes</string>
     <string name="scanner_dismiss">Dispensar</string>
-    <string name="scanner_uses_remaining">%1$d restantes hoje</string>
-    <string name="scanner_limit_reached">Você usou os 3 scans gratuitos de hoje.
+    <string name="scanner_uses_remaining">%1$d restantes</string>
+    <string name="scanner_limit_reached">Você usou todos os scans gratuitos.
 Assine o Premium para scans ilimitados.</string>
+    <string name="scanner_resets_in">Recarrega em %1$s</string>
+    <string name="scanner_limit_resets_label">Os scans grátis voltam em</string>
     <string name="feature_scanner">Pokémon Scanner</string>
-    <string name="val_trainer_scanner">3×/dia</string>
+    <string name="val_trainer_scanner">5 / 2h</string>
     <string name="val_master_scanner">Ilimitado</string>
     <!-- Added: missing translations -->
     <string name="anime_info">Informações do Anime</string>

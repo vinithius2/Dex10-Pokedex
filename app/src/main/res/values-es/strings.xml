@@ -232,6 +232,7 @@
     <string name="benefit_support_dev">Apoyar al desarrollador</string>
     <string name="upgrade_now">Mejorar Ahora</string>
     <string name="go_premium">Ir a Premium (Sin anuncios)</string>
+    <string name="scanner_go_premium">Ir a Premium (Escaneos ilimitados)</string>
     <string name="premium_upsell_title">Conviértete en un Maestro</string>
     <string name="premium_upsell_subtitle">Acceso de por vida con un pago único</string>
     <string name="payment_one_time">Pago único</string>
@@ -378,11 +379,13 @@
     <string name="scanner_match_confidence">%1$d%% de coincidencia</string>
     <string name="scanner_open_details">Ver detalles</string>
     <string name="scanner_dismiss">Descartar</string>
-    <string name="scanner_uses_remaining">%1$d restantes hoy</string>
-    <string name="scanner_limit_reached">Has usado los 3 scans gratuitos de hoy.
+    <string name="scanner_uses_remaining">%1$d restantes</string>
+    <string name="scanner_limit_reached">Has usado todos tus scans gratuitos.
 Actualiza a Premium para scans ilimitados.</string>
+    <string name="scanner_resets_in">Vuelve en %1$s</string>
+    <string name="scanner_limit_resets_label">Los scans gratis vuelven en</string>
     <string name="feature_scanner">Pokémon Scanner</string>
-    <string name="val_trainer_scanner">3×/día</string>
+    <string name="val_trainer_scanner">5 / 2 h</string>
     <string name="val_master_scanner">Ilimitado</string>
     <!-- Added: missing translations -->
     <string name="all_images">Todas las imágenes</string>

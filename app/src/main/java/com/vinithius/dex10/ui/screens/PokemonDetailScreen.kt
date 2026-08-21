@@ -578,8 +578,11 @@ fun SharedTransitionScope.MainCard(
             PokemonVariations(navController, pokemonDetail, viewModel)
         }
 
-        // Evolutions
-        pokemonDetail?.evolution?.toEvoStages()?.takeIf { it.size > 1 }?.let {
+        // Evolutions — gate on the RESOLVED stages, not the raw chain: this way we never render
+        // an "Evolutions" header with just the base Pokémon when a chain member fails to resolve.
+        val evoDisplayStages = pokemonDetail?.evolution?.toEvoStages()
+            ?.let { viewModel.getEvoDisplayStages(it) }
+        if ((evoDisplayStages?.size ?: 0) > 1) {
             SectionTitle(
                 title = stringResource(R.string.evolutions),
                 color = colorObj,
@@ -852,14 +855,18 @@ fun SharedTransitionScope.MainCardLargeScreen(
             }
         }
 
-        // Evolutions
-        item(span = { GridItemSpan(maxLineSpan) }) {
-            Column {
-                SectionTitle(
-                    title = stringResource(R.string.evolutions),
-                    color = color.getColorByString(isSystemInDarkTheme())
-                )
-                PokemonEvolution(navController, pokemonDetail, viewModel)
+        // Evolutions — only when at least one evolution actually resolves (see MainCard note).
+        val evoDisplayStagesLarge = pokemonDetail?.evolution?.toEvoStages()
+            ?.let { viewModel.getEvoDisplayStages(it) }
+        if ((evoDisplayStagesLarge?.size ?: 0) > 1) {
+            item(span = { GridItemSpan(maxLineSpan) }) {
+                Column {
+                    SectionTitle(
+                        title = stringResource(R.string.evolutions),
+                        color = color.getColorByString(isSystemInDarkTheme())
+                    )
+                    PokemonEvolution(navController, pokemonDetail, viewModel)
+                }
             }
         }
 
@@ -3115,9 +3122,12 @@ private fun TtsButton(
     var textToSpeak by remember { mutableStateOf<String?>(null) }
     var ttsLocaleToUse by remember { mutableStateOf(java.util.Locale.ENGLISH) }
     var ttsReady by remember { mutableStateOf(false) }
-    // Spinner shows only while text isn't ready — not gated on ttsReady,
-    // since TTS init failure would cause infinite loading.
-    val isLoading = textToSpeak == null
+    // Set when the user taps before the engine finishes warming up, so the entry plays the
+    // instant the engine is ready instead of swallowing the tap (which felt like a long delay).
+    var pendingSpeak by remember { mutableStateOf(false) }
+    // Spinner shows while the text isn't ready, or while a queued tap waits for the engine —
+    // not gated on ttsReady alone, since a TTS init failure would cause infinite loading.
+    val isLoading = textToSpeak == null || (pendingSpeak && !ttsReady)
     val ttsRef = remember { mutableStateOf<TextToSpeech?>(null) }
 
     // Speaks [text] in [locale], applying live speed/pitch. Centralized so click and
@@ -3136,7 +3146,10 @@ private fun TtsButton(
         }
         tts.setSpeechRate(ttsSpeed.coerceIn(0.5f, 2.0f))
         tts.setPitch(ttsPitch.coerceIn(0.5f, 2.0f))
-        val safeText = text.take(TextToSpeech.getMaxSpeechInputLength() - 1)
+        // Announce the Pokémon by name first, then read the entry — "Bulbasaur. <entry>".
+        // The name is a proper noun, so it stays untranslated across languages.
+        val spoken = pokemonDetail?.name?.capitalize()?.let { "$it. $text" } ?: text
+        val safeText = spoken.take(TextToSpeech.getMaxSpeechInputLength() - 1)
         // Pass null params: audio routing is governed by setAudioAttributes() set at init.
         // The deprecated KEY_PARAM_STREAM bundle can conflict with audio attributes on some
         // engines and silently drop the output.
@@ -3200,7 +3213,7 @@ private fun TtsButton(
         // Single short entry — the joined bullet list overflows TTS max length and goes silent.
         val englishText = entries.getSingleFlavorTextForLanguage("en") ?: return@LaunchedEffect
 
-        // 1. PokéAPI native text (instant, no MLKit): en, pt, es, fr, de, it, ja, ko, zh-Hans…
+        // 1. PokéAPI native text for the device language (instant, no MLKit): en, fr, de, es, it…
         val localizedText = entries.getSingleFlavorTextForLanguage(deviceLang)
         if (localizedText != null) {
             ttsLocaleToUse = java.util.Locale.getDefault()
@@ -3208,26 +3221,44 @@ private fun TtsButton(
             return@LaunchedEffect
         }
 
-        // 2. Enable button immediately with English — user can press without waiting.
-        ttsLocaleToUse = java.util.Locale.ENGLISH
-        textToSpeak = englishText
+        // 2. Device language IS English → nothing to translate.
+        if (deviceLang.equals("en", ignoreCase = true)) {
+            ttsLocaleToUse = java.util.Locale.ENGLISH
+            textToSpeak = englishText
+            return@LaunchedEffect
+        }
 
-        // 3. Silent MLKit upgrade — model is pre-warmed by MainActivity, so usually fast.
+        // 3. No native entry (e.g. Portuguese, which PokéAPI lacks): translate so the Pokédex
+        //    speaks the USER'S language, not English. We deliberately keep the button in its
+        //    loading state until the translation lands (the model is pre-warmed in MainActivity,
+        //    so it's usually quick) — a tap meanwhile is queued (pendingSpeak) and fires in the
+        //    translated language. English is used only if the translation genuinely fails, so we
+        //    never go silent.
         englishText.translateIfSupported(
             onResult = { translated ->
                 if (translated != englishText) {
                     ttsLocaleToUse = java.util.Locale.getDefault()
                     textToSpeak = translated
+                } else {
+                    // languageCode not in supported_languages → no translation available.
+                    ttsLocaleToUse = java.util.Locale.ENGLISH
+                    textToSpeak = englishText
                 }
             },
-            onError = { /* keep English text already set */ },
+            onError = {
+                // Translation failed (e.g. model unavailable offline) — fall back to English.
+                ttsLocaleToUse = java.util.Locale.ENGLISH
+                textToSpeak = englishText
+            },
             context = context
         )
     }
 
     LaunchedEffect(triggerAutoPlay, ttsReady, textToSpeak) {
         if (triggerAutoPlay && ttsReady && !textToSpeak.isNullOrBlank()) {
-            kotlinx.coroutines.delay(600)
+            // Short settle so the shared-element transition starts before audio; kept small
+            // so the entry begins reading almost immediately on arriving from the scanner.
+            kotlinx.coroutines.delay(250)
             val tts = ttsRef.value
             val text = textToSpeak
             if (tts != null && text != null) speakNow(tts, text, ttsLocaleToUse)
@@ -3235,13 +3266,27 @@ private fun TtsButton(
         }
     }
 
+    // Fires a tap that arrived before the engine was ready (or before the text was prepared),
+    // so a quick tap on entering details still plays as soon as everything is available.
+    LaunchedEffect(pendingSpeak, ttsReady, textToSpeak) {
+        if (pendingSpeak && ttsReady && !textToSpeak.isNullOrBlank()) {
+            pendingSpeak = false
+            val tts = ttsRef.value
+            val text = textToSpeak
+            if (tts != null && text != null) speakNow(tts, text, ttsLocaleToUse)
+        }
+    }
+
     IconButton(
         onClick = {
             val tts = ttsRef.value ?: return@IconButton
-            if (!ttsReady) return@IconButton // engine still warming up — silent no-op
             if (isSpeaking) {
                 tts.stop()
                 isSpeaking = false
+                pendingSpeak = false
+            } else if (!ttsReady || textToSpeak == null) {
+                // Not ready yet — queue it so it plays the moment the engine/text are ready.
+                pendingSpeak = true
             } else {
                 val text = textToSpeak ?: return@IconButton
                 speakNow(tts, text, ttsLocaleToUse)

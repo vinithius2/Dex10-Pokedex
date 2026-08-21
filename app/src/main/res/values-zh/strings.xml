@@ -232,6 +232,7 @@
     <string name="benefit_support_dev">支持开发者</string>
     <string name="upgrade_now">立即升级</string>
     <string name="go_premium">获取高级版（无广告）</string>
+    <string name="scanner_go_premium">获取高级版（无限扫描）</string>
     <string name="premium_upsell_title">成为大师</string>
     <string name="premium_upsell_subtitle">一次付费，终身访问</string>
     <string name="payment_one_time">一次性付费</string>
@@ -378,11 +379,13 @@
     <string name="scanner_match_confidence">匹配度 %1$d%%</string>
     <string name="scanner_open_details">查看详情</string>
     <string name="scanner_dismiss">关闭</string>
-    <string name="scanner_uses_remaining">今日还剩 %1$d 次</string>
-    <string name="scanner_limit_reached">您已用完今日3次免费扫描。
+    <string name="scanner_uses_remaining">还剩 %1$d 次</string>
+    <string name="scanner_limit_reached">您已用完所有免费扫描。
 升级到高级版即可无限次扫描。</string>
+    <string name="scanner_resets_in">%1$s 后恢复</string>
+    <string name="scanner_limit_resets_label">免费扫描将在以下时间后恢复</string>
     <string name="feature_scanner">宝可梦扫描仪</string>
-    <string name="val_trainer_scanner">每天3次</string>
+    <string name="val_trainer_scanner">5次/2小时</string>
     <string name="val_master_scanner">无限次</string>
     <!-- Added: missing translations -->
     <string name="all_images">所有图片</string>

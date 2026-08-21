@@ -67,7 +67,6 @@ import kotlinx.coroutines.launch
 import org.koin.androidx.compose.getViewModel
 import com.vinithius.dex10.datasource.data.AppPreferences.ViewMode
 import androidx.compose.runtime.collectAsState
-import com.android.billingclient.api.*
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
 import androidx.compose.material.icons.filled.Check

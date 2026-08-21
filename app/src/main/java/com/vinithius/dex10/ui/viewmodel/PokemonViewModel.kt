@@ -980,12 +980,18 @@ class PokemonViewModel(
     fun getEvoDisplayStages(
         stages: List<com.vinithius.dex10.extension.EvoStage>
     ): List<List<com.vinithius.dex10.extension.EvoDisplayEntry>> {
-        val backup = _pokemonListBackup.value ?: return emptyList()
+        val backup = _pokemonListBackup.value
         return stages.map { stage ->
             stage.entries.mapNotNull { entry ->
-                backup.find { it.pokemon.name == entry.name }?.let { pwd ->
+                // Resolve the id straight from the species URL so the evolution display no longer
+                // depends on the (Firebase-sourced) list containing every chain member by an
+                // exact-matching name — a missing/renamed entry used to be dropped silently,
+                // collapsing the chain. Fall back to the list lookup only when the URL has no id.
+                val id = entry.url.getIdIntoUrl()?.toIntOrNull()
+                    ?: backup?.find { it.pokemon.name == entry.name }?.pokemon?.id
+                id?.let {
                     com.vinithius.dex10.extension.EvoDisplayEntry(
-                        id = pwd.pokemon.id,
+                        id = it,
                         name = entry.name,
                         triggerText = entry.triggerText
                     )
