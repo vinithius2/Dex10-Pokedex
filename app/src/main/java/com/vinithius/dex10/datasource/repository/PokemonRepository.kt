@@ -97,6 +97,19 @@ class PokemonRepository(
                 val pokemonFirebaseList = getFirebasePokemonList(callBackError)
                 maxPokemonsSize = pokemonFirebaseList.size
                 setCountMaxPokemon(maxPokemonsSize, context)
+
+                // Forced refresh (first run / DATA_VERSION / Remote Config bump): wipe stale rows
+                // so edited Firebase records actually overwrite the cache (the @Insert methods are
+                // IGNORE). Done only AFTER a successful Firebase fetch, so a failed fetch never
+                // leaves the app empty. Favourites live only in the DB, so capture them first and
+                // restore after re-insert; reset the validation flag so it re-runs on fresh data.
+                val favoriteIdsToRestore = if (isFirstRunOrVersionBump) {
+                    val favorites = localDataSource.getFavoritePokemonIds()
+                    localDataSource.clearAllPokemonData()
+                    setValidationVersion(context, 0)
+                    favorites
+                } else emptyList()
+
                 var count = 0
                 pokemonFirebaseList.forEach { pokemon ->
                     val isFavorite = getFavorite(pokemon.name, context)
@@ -106,6 +119,10 @@ class PokemonRepository(
                     val progress = count.toFloat() / maxPokemonsSize.toFloat()
                     callBackLoadingFirebaseCounter.invoke(progress)
                     Log.i("Insert pokemon", "${pokemon.id} ${pokemon.name}")
+                }
+
+                if (favoriteIdsToRestore.isNotEmpty()) {
+                    localDataSource.restoreFavorites(favoriteIdsToRestore)
                 }
             }
 
@@ -141,14 +158,25 @@ class PokemonRepository(
         prefs.edit().putInt(VALIDATION_VERSION_KEY, version).apply()
     }
 
+    /** Last activated Remote Config value, or 0 when it hasn't been fetched yet. */
+    private fun remoteDataVersion(): Int = try {
+        com.google.firebase.remoteconfig.FirebaseRemoteConfig.getInstance()
+            .getLong(RC_DATA_VERSION).toInt()
+    } catch (e: Exception) {
+        0
+    }
+
+    /** Higher of the shipped constant and the Remote Config value — either can force a refresh. */
+    private fun targetDataVersion(): Int = maxOf(DATA_VERSION, remoteDataVersion())
+
     private fun needsDataRefresh(context: Context): Boolean {
         val prefs = context.getSharedPreferences(DATA_VERSION_PREFS, Context.MODE_PRIVATE)
-        return prefs.getInt(DATA_VERSION_KEY, 0) < DATA_VERSION
+        return prefs.getInt(DATA_VERSION_KEY, 0) < targetDataVersion()
     }
 
     private fun setDataVersionDone(context: Context) {
         val prefs = context.getSharedPreferences(DATA_VERSION_PREFS, Context.MODE_PRIVATE)
-        prefs.edit().putInt(DATA_VERSION_KEY, DATA_VERSION).apply()
+        prefs.edit().putInt(DATA_VERSION_KEY, targetDataVersion()).apply()
     }
 
     /**
@@ -736,6 +764,11 @@ class PokemonRepository(
         private const val DATA_VERSION = 1
         private const val DATA_VERSION_PREFS = "pokemon_data_version_prefs"
         private const val DATA_VERSION_KEY = "data_version"
+
+        // Remote Config long key. Bump it in the Firebase console to force a full re-sync of the
+        // Realtime DB into the local cache on the next app open — no Play release required. The
+        // effective target is max(DATA_VERSION, this), so a shipped bump and a server bump both work.
+        const val RC_DATA_VERSION = "pokemon_data_version"
 
         /**
          * Maps PokeAPI slugs to the exact name used in the TCG.

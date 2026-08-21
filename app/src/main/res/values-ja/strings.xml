@@ -232,6 +232,7 @@
     <string name="benefit_support_dev">開発者をサポート</string>
     <string name="upgrade_now">今すぐアップグレード</string>
     <string name="go_premium">プレミアムにアップグレード (広告なし)</string>
+    <string name="scanner_go_premium">プレミアムにアップグレード (スキャン無制限)</string>
     <string name="premium_upsell_title">マスターになろう</string>
     <string name="premium_upsell_subtitle">一回払いで永久アクセス</string>
     <string name="payment_one_time">一回払い</string>
@@ -378,11 +379,13 @@
     <string name="scanner_match_confidence">一致度 %1$d%%</string>
     <string name="scanner_open_details">詳細を見る</string>
     <string name="scanner_dismiss">閉じる</string>
-    <string name="scanner_uses_remaining">本日残り%1$d回</string>
-    <string name="scanner_limit_reached">本日の無料スキャン3回を使い切りました。
+    <string name="scanner_uses_remaining">残り%1$d回</string>
+    <string name="scanner_limit_reached">無料スキャンをすべて使い切りました。
 プレミアムにアップグレードで無制限にスキャンできます。</string>
+    <string name="scanner_resets_in">%1$s後に回復</string>
+    <string name="scanner_limit_resets_label">無料スキャンの回復まで</string>
     <string name="feature_scanner">ポケモンスキャナー</string>
-    <string name="val_trainer_scanner">1日3回</string>
+    <string name="val_trainer_scanner">2時間に5回</string>
     <string name="val_master_scanner">無制限</string>
     <!-- Added: missing translations -->
     <string name="all_images">すべての画像</string>

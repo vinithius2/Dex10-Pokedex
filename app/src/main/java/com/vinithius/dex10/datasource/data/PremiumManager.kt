@@ -25,7 +25,11 @@ class PremiumManager(
         const val SKU_COFFEE = "donation_coffee_small"
         const val FREE_TEAM_LIMIT = 1
         const val FREE_FAVORITE_LIMIT = 50
-        const val FREE_SCANNER_DAILY_LIMIT = 3
+
+        // Free scanner allowance: [FREE_SCANNER_LIMIT] scans per rolling [SCANNER_WINDOW_MILLIS]
+        // window. Tweak these two to make the limit looser/tighter — e.g. 1h = 60*60*1000L.
+        const val FREE_SCANNER_LIMIT = 5
+        const val SCANNER_WINDOW_MILLIS = 2L * 60L * 60L * 1000L // 2 hours
     }
 
     private val encryptedPrefs: android.content.SharedPreferences =
@@ -139,13 +143,22 @@ class PremiumManager(
     }
 
     /**
-     * Returns how many scanner uses remain today for a free user.
+     * Returns how many scanner uses remain in the current window for a free user.
      * Always returns null for premium users (unlimited).
      */
-    fun scannerUsesRemainingToday(): Int? {
+    fun scannerUsesRemaining(): Int? {
         if (_isPremium.value) return null
-        val used = appPreferences?.getScannerUsageToday() ?: 0
-        return (FREE_SCANNER_DAILY_LIMIT - used).coerceAtLeast(0)
+        val used = appPreferences?.getScannerUsage(SCANNER_WINDOW_MILLIS) ?: 0
+        return (FREE_SCANNER_LIMIT - used).coerceAtLeast(0)
+    }
+
+    /**
+     * Epoch millis when the free scanner allowance refills, or null when there is nothing to
+     * count down (premium user, or no window currently open). Drives the on-screen countdown.
+     */
+    fun scannerResetAt(): Long? {
+        if (_isPremium.value) return null
+        return appPreferences?.getScannerResetAt(SCANNER_WINDOW_MILLIS)
     }
 
     /**
@@ -155,12 +168,12 @@ class PremiumManager(
      */
     fun consumeScannerUseOrTriggerUpsell(): Boolean {
         if (_isPremium.value) return true
-        val remaining = scannerUsesRemainingToday() ?: return true
+        val remaining = scannerUsesRemaining() ?: return true
         if (remaining <= 0) {
             triggerUpsell()
             return false
         }
-        appPreferences?.incrementScannerUsage()
+        appPreferences?.incrementScannerUsage(SCANNER_WINDOW_MILLIS)
         return true
     }
 

@@ -21,8 +21,8 @@ android {
         applicationId "com.vinithius.dex10"
         minSdk 24
         targetSdk 36
-        versionCode 29
-        versionName "3.4"
+        versionCode 31
+        versionName "3.6"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         buildConfigField "String", "WEBHOOK_KEY", apikeyProperties['WEBHOOK_KEY']
@@ -172,7 +172,7 @@ dependencies {
     googleImplementation 'com.google.android.gms:play-services-ads:23.6.0'
     googleImplementation 'com.google.android.play:review:2.0.2'
     googleImplementation 'com.google.android.play:review-ktx:2.0.2'
-    googleImplementation 'com.android.billingclient:billing-ktx:7.0.0'
+    googleImplementation 'com.android.billingclient:billing:8.0.0'
 
     // Amazon flavor: Firebase, Play Services, Ads, Amazon In-App Purchasing
     // Download Amazon IAP SDK JAR from https://developer.amazon.com/apps-and-games/sdk

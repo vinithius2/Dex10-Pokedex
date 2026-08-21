@@ -7,6 +7,7 @@ import android.text.Html
 import android.text.Spanned
 import androidx.compose.ui.graphics.Color
 import com.google.firebase.crashlytics.FirebaseCrashlytics
+import com.google.mlkit.common.model.DownloadConditions
 import com.google.mlkit.nl.translate.TranslateLanguage
 import com.google.mlkit.nl.translate.Translation
 import com.google.mlkit.nl.translate.TranslatorOptions
@@ -411,13 +412,16 @@ fun String.translateIfSupported(
 
         val translator = Translation.getClient(options)
 
-        translator.translate(this)
-            .addOnSuccessListener { translatedText ->
-                onResult(translatedText)
+        // Ensure the on-device model is present before translating. Without this, translate()
+        // fails whenever the model hasn't been downloaded yet and the caller falls back to
+        // English. After the first download the model is cached and works offline.
+        translator.downloadModelIfNeeded(DownloadConditions.Builder().build())
+            .addOnSuccessListener {
+                translator.translate(this)
+                    .addOnSuccessListener { translatedText -> onResult(translatedText) }
+                    .addOnFailureListener { exception -> onError(exception) }
             }
-            .addOnFailureListener { exception ->
-                onError(exception)
-            }
+            .addOnFailureListener { exception -> onError(exception) }
     } else {
         onResult(this)
     }

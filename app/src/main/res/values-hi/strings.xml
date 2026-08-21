@@ -232,6 +232,7 @@
     <string name="benefit_support_dev">डेवलपर का समर्थन करें</string>
     <string name="upgrade_now">अभी अपग्रेड करें</string>
     <string name="go_premium">प्रीमियम पर जाएं (कोई विज्ञापन नहीं)</string>
+    <string name="scanner_go_premium">प्रीमियम पर जाएं (असीमित स्कैन)</string>
     <string name="premium_upsell_title">मास्टर बनें</string>
     <string name="premium_upsell_subtitle">एक बार के भुगतान के लिए लाइफटाइम एक्सेस</string>
     <string name="payment_one_time">एक बार का भुगतान</string>
@@ -378,11 +379,13 @@
     <string name="scanner_match_confidence">%1$d%% मिलान</string>
     <string name="scanner_open_details">विवरण देखें</string>
     <string name="scanner_dismiss">हटाएं</string>
-    <string name="scanner_uses_remaining">आज %1$d शेष</string>
-    <string name="scanner_limit_reached">आपने आज के 3 मुफ्त स्कैन उपयोग कर लिए हैं।
+    <string name="scanner_uses_remaining">%1$d शेष</string>
+    <string name="scanner_limit_reached">आपने सभी मुफ्त स्कैन उपयोग कर लिए हैं।
 असीमित स्कैन के लिए प्रीमियम अपग्रेड करें।</string>
+    <string name="scanner_resets_in">%1$s में फिर मिलेंगे</string>
+    <string name="scanner_limit_resets_label">मुफ्त स्कैन फिर मिलेंगे</string>
     <string name="feature_scanner">पोकेमॉन स्कैनर</string>
-    <string name="val_trainer_scanner">3×/दिन</string>
+    <string name="val_trainer_scanner">5 / 2 घंटे</string>
     <string name="val_master_scanner">असीमित</string>
     <!-- Added: missing translations -->
     <string name="all_images">सभी छवियाँ</string>

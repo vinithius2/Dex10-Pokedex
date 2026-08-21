@@ -19,11 +19,16 @@ class AppPreferences(context: Context) {
         private const val KEY_DARK_MODE = "dark_mode"
         private const val KEY_NOTIFICATIONS = "notifications_enabled"
         private const val KEY_LOW_QUALITY = "low_quality_images"
-        private const val KEY_SCANNER_COUNT = "scanner_daily_count"
-        private const val KEY_SCANNER_DATE = "scanner_daily_date"
+        private const val KEY_SCANNER_COUNT = "scanner_window_count"
+        private const val KEY_SCANNER_WINDOW_START = "scanner_window_start"
         private const val KEY_TTS_SPEED = "tts_speed"
         private const val KEY_TTS_PITCH = "tts_pitch"
         private const val KEY_TTS_AUTO_PLAY = "tts_auto_play"
+
+        // Default "Pokédex voice" tuning. A pitch above 1.0 gives the bright, slightly
+        // robotic cartoon-Pokédex/Rotom tone; speed stays natural so entries stay clear.
+        const val DEFAULT_TTS_SPEED = 1.0f
+        const val DEFAULT_TTS_PITCH = 1.4f
 
         // FCM topics — send to all three from Firebase Console to reach everyone,
         // or target individually to reach only premium / only free users.
@@ -145,7 +150,7 @@ class AppPreferences(context: Context) {
     }
 
     // --- TTS / Voice ---
-    private val _ttsSpeed = MutableStateFlow(prefs.getFloat(KEY_TTS_SPEED, 1.0f))
+    private val _ttsSpeed = MutableStateFlow(prefs.getFloat(KEY_TTS_SPEED, DEFAULT_TTS_SPEED))
     val ttsSpeed: StateFlow<Float> = _ttsSpeed.asStateFlow()
 
     fun setTtsSpeed(value: Float) {
@@ -153,7 +158,7 @@ class AppPreferences(context: Context) {
         _ttsSpeed.value = value
     }
 
-    private val _ttsPitch = MutableStateFlow(prefs.getFloat(KEY_TTS_PITCH, 1.0f))
+    private val _ttsPitch = MutableStateFlow(prefs.getFloat(KEY_TTS_PITCH, DEFAULT_TTS_PITCH))
     val ttsPitch: StateFlow<Float> = _ttsPitch.asStateFlow()
 
     fun setTtsPitch(value: Float) {
@@ -169,27 +174,41 @@ class AppPreferences(context: Context) {
         _ttsAutoPlay.value = value
     }
 
-    // --- Scanner Daily Usage ---
-
     private fun todayIso(): String =
         java.time.LocalDate.now().toString() // "2026-06-12"
 
-    /** Returns how many scanner identifications the user has used today. */
-    fun getScannerUsageToday(): Int {
-        if (prefs.getString(KEY_SCANNER_DATE, null) != todayIso()) return 0
+    // --- Scanner Rolling-Window Usage ---
+    // Free scans are limited per rolling time window (not per calendar day): the first scan
+    // opens a window of [windowMillis]; once it elapses the counter resets and the next scan
+    // opens a fresh window. This powers the on-screen "X left" badge and the reset countdown.
+
+    /** How many scans were used in the currently-active window (0 once the window elapses). */
+    fun getScannerUsage(windowMillis: Long): Int {
+        val start = prefs.getLong(KEY_SCANNER_WINDOW_START, 0L)
+        if (start == 0L || System.currentTimeMillis() - start >= windowMillis) return 0
         return prefs.getInt(KEY_SCANNER_COUNT, 0)
     }
 
-    /** Increments the daily scanner counter and returns the new count. */
-    fun incrementScannerUsage(): Int {
-        val today = todayIso()
-        val count = if (prefs.getString(KEY_SCANNER_DATE, null) == today) {
-            prefs.getInt(KEY_SCANNER_COUNT, 0) + 1
-        } else {
-            1
-        }
-        prefs.edit().putString(KEY_SCANNER_DATE, today).putInt(KEY_SCANNER_COUNT, count).apply()
+    /** Consumes one scan, opening a fresh window when needed. Returns the new in-window count. */
+    fun incrementScannerUsage(windowMillis: Long): Int {
+        val now = System.currentTimeMillis()
+        val start = prefs.getLong(KEY_SCANNER_WINDOW_START, 0L)
+        val withinWindow = start != 0L && now - start < windowMillis
+        val count = if (withinWindow) prefs.getInt(KEY_SCANNER_COUNT, 0) + 1 else 1
+        val windowStart = if (withinWindow) start else now
+        prefs.edit()
+            .putLong(KEY_SCANNER_WINDOW_START, windowStart)
+            .putInt(KEY_SCANNER_COUNT, count)
+            .apply()
         return count
+    }
+
+    /** Epoch millis when the current window resets, or null if no window is active. */
+    fun getScannerResetAt(windowMillis: Long): Long? {
+        val start = prefs.getLong(KEY_SCANNER_WINDOW_START, 0L)
+        if (start == 0L) return null
+        val resetAt = start + windowMillis
+        return if (System.currentTimeMillis() >= resetAt) null else resetAt
     }
 
     // --- In-App Review gating ---

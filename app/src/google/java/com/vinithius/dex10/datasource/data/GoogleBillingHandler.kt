@@ -5,9 +5,6 @@ import android.content.Context
 import android.util.Log
 import com.android.billingclient.api.*
 import com.vinithius.dex10.analytics.AnalyticsManager
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 
 class GoogleBillingHandler(private val context: Context) : BillingHandler, PurchasesUpdatedListener {
 
@@ -20,11 +17,14 @@ class GoogleBillingHandler(private val context: Context) : BillingHandler, Purch
     override fun setup(activity: Activity, listener: BillingListener) {
         this.listener = listener
 
+        if (billingClient != null) return
+
         billingClient = BillingClient.newBuilder(context)
             .setListener(this)
             .enablePendingPurchases(
                 PendingPurchasesParams.newBuilder().enableOneTimeProducts().build()
             )
+            .enableAutoServiceReconnection()
             .build()
 
         billingClient?.startConnection(object : BillingClientStateListener {
@@ -56,8 +56,15 @@ class GoogleBillingHandler(private val context: Context) : BillingHandler, Purch
                             it.purchaseState == Purchase.PurchaseState.PURCHASED
                 }
                 listener?.onPremiumStatusChecked(hasPremium)
-                purchases.filter { it.purchaseState == Purchase.PurchaseState.PURCHASED && !it.isAcknowledged }
-                    .forEach { acknowledgePurchase(it) }
+                purchases.filter { it.purchaseState == Purchase.PurchaseState.PURCHASED }
+                    .forEach { purchase ->
+                        when {
+                            purchase.products.contains(PremiumManager.SKU_PREMIUM) && !purchase.isAcknowledged ->
+                                acknowledgePurchase(purchase)
+                            purchase.products.contains(PremiumManager.SKU_COFFEE) ->
+                                consumeCoffee(purchase)
+                        }
+                    }
             } else {
                 Log.e(tag, "Query purchases failed: ${result.debugMessage}")
             }
@@ -75,14 +82,24 @@ class GoogleBillingHandler(private val context: Context) : BillingHandler, Purch
         )
         billingClient?.queryProductDetailsAsync(
             QueryProductDetailsParams.newBuilder().setProductList(products).build()
-        ) { result, details ->
+        ) { result, queryResult ->
             if (result.responseCode == BillingClient.BillingResponseCode.OK) {
+                val details = queryResult.productDetailsList
                 productDetails = details.find { it.productId == PremiumManager.SKU_PREMIUM }
                 coffeeProductDetails = details.find { it.productId == PremiumManager.SKU_COFFEE }
+                queryResult.unfetchedProductList.forEach { unfetchedProduct ->
+                    Log.w(
+                        tag,
+                        "Product not fetched: ${unfetchedProduct.productId} " +
+                                "(status ${unfetchedProduct.statusCode})"
+                    )
+                }
                 listener?.onPricesLoaded(
                     productDetails?.oneTimePurchaseOfferDetails?.formattedPrice,
                     coffeeProductDetails?.oneTimePurchaseOfferDetails?.formattedPrice
                 )
+            } else {
+                Log.e(tag, "Query product details failed: ${result.debugMessage}")
             }
         }
     }
@@ -125,30 +142,28 @@ class GoogleBillingHandler(private val context: Context) : BillingHandler, Purch
     }
 
     private fun acknowledgePurchase(purchase: Purchase) {
-        CoroutineScope(Dispatchers.IO).launch {
-            billingClient?.acknowledgePurchase(
-                AcknowledgePurchaseParams.newBuilder().setPurchaseToken(purchase.purchaseToken).build()
-            ) { result ->
-                if (result.responseCode != BillingClient.BillingResponseCode.OK)
-                    Log.e(tag, "Acknowledge failed: ${result.debugMessage}")
-            }
+        billingClient?.acknowledgePurchase(
+            AcknowledgePurchaseParams.newBuilder().setPurchaseToken(purchase.purchaseToken).build()
+        ) { result ->
+            if (result.responseCode != BillingClient.BillingResponseCode.OK)
+                Log.e(tag, "Acknowledge failed: ${result.debugMessage}")
         }
     }
 
     private fun consumeCoffee(purchase: Purchase) {
-        CoroutineScope(Dispatchers.IO).launch {
-            billingClient?.consumeAsync(
-                ConsumeParams.newBuilder().setPurchaseToken(purchase.purchaseToken).build()
-            ) { result, _ ->
-                if (result.responseCode == BillingClient.BillingResponseCode.OK)
-                    listener?.onDonationConsumed()
-                else
-                    Log.e(tag, "Consume failed: ${result.debugMessage}")
-            }
+        billingClient?.consumeAsync(
+            ConsumeParams.newBuilder().setPurchaseToken(purchase.purchaseToken).build()
+        ) { result, _ ->
+            if (result.responseCode == BillingClient.BillingResponseCode.OK)
+                listener?.onDonationConsumed()
+            else
+                Log.e(tag, "Consume failed: ${result.debugMessage}")
         }
     }
 
     override fun destroy() {
         billingClient?.endConnection()
+        billingClient = null
+        listener = null
     }
 }

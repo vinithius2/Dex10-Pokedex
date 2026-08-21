@@ -40,6 +40,8 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.FileDownload
+import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -115,18 +117,19 @@ fun PokemonScanScreen(
         if (!hasCameraPermission) permissionLauncher.launch(Manifest.permission.CAMERA)
     }
 
+    // Re-read remaining/reset on entry so a window that elapsed while away shows fresh values.
+    LaunchedEffect(Unit) { viewModel.refreshScannerState() }
+
     val modelState by viewModel.modelState.collectAsState()
     val predictions by viewModel.predictions.collectAsState()
     val stableMatch by viewModel.stableMatch.collectAsState()
     val scansRemaining by viewModel.scansRemaining.collectAsState()
+    val scansResetAt by viewModel.scansResetAt.collectAsState()
     val isAnalyzing by viewModel.isAnalyzing.collectAsState()
     val capturedFrame by viewModel.capturedFrame.collectAsState()
 
-    // Include isAnalyzing in hasResults so the limit screen never flashes mid-capture
-    val hasResults = predictions.isNotEmpty() || stableMatch != null || isAnalyzing
-    val isOutOfScans = scansRemaining != null && scansRemaining == 0 && !hasResults
-
     val imageCaptureRef: MutableState<ImageCapture?> = remember { mutableStateOf(null) }
+    var cameraError by remember { mutableStateOf(false) }
     val captureExecutor: ExecutorService = remember { Executors.newSingleThreadExecutor() }
     DisposableEffect(Unit) { onDispose { captureExecutor.shutdown() } }
 
@@ -154,26 +157,35 @@ fun PokemonScanScreen(
                 )
             }
 
-            isOutOfScans -> {
+            cameraError -> {
                 ScannerMessageContent(
-                    message = stringResource(R.string.scanner_limit_reached),
-                    buttonLabel = stringResource(R.string.go_premium),
-                    onClick = {
-                        activity?.trackButtonClick("Scanner: upsell from limit screen")
-                        navController.popBackStack()
-                        viewModel.triggerUpsell()
-                    }
+                    message = stringResource(R.string.scanner_camera_unavailable),
+                    buttonLabel = stringResource(R.string.back),
+                    onClick = { navController.popBackStack() }
                 )
             }
 
             else -> {
-                CameraPreviewWithCapture(imageCaptureRef = imageCaptureRef)
+                CameraPreviewWithCapture(
+                    imageCaptureRef = imageCaptureRef,
+                    onError = { cameraError = true }
+                )
                 ScannerOverlay(
                     predictions = predictions,
                     hasMatch = stableMatch != null,
                     isAnalyzing = isAnalyzing,
                     capturedFrame = capturedFrame,
                     scansRemaining = scansRemaining,
+                    scansResetAt = scansResetAt,
+                    onCountdownFinished = { viewModel.refreshScannerState() },
+                    onOutOfScans = {
+                        // Free session spent: the shutter NEVER captures — it opens the premium
+                        // sheet. Pop back to the list first so the sheet reliably shows: a modal
+                        // bottom sheet can't draw over the camera's SurfaceView preview.
+                        activity?.trackButtonClick("Scanner: upsell from shutter (out of scans)")
+                        navController.popBackStack()
+                        viewModel.triggerUpsell()
+                    },
                     onShutter = {
                         imageCaptureRef.value?.takePicture(
                             captureExecutor,
@@ -236,6 +248,7 @@ fun PokemonScanScreen(
 @Composable
 private fun CameraPreviewWithCapture(
     imageCaptureRef: MutableState<ImageCapture?>,
+    onError: () -> Unit,
 ) {
     val lifecycleOwner = LocalLifecycleOwner.current
     val providerHolder = remember { mutableStateOf<ProcessCameraProvider?>(null) }
@@ -248,47 +261,63 @@ private fun CameraPreviewWithCapture(
             }
             val providerFuture = ProcessCameraProvider.getInstance(ctx)
             providerFuture.addListener({
-                val provider = providerFuture.get()
-                providerHolder.value = provider
-                val preview = Preview.Builder().build().also {
-                    it.setSurfaceProvider(previewView.surfaceProvider)
+                // CameraX init / binding can throw when the device exposes no usable camera
+                // (emulators report 0 cameras, some devices have only a front lens, or the
+                // provider future itself fails). Catch it and surface a message instead of
+                // crashing on the main thread.
+                try {
+                    val provider = providerFuture.get()
+                    providerHolder.value = provider
+                    val preview = Preview.Builder().build().also {
+                        it.setSurfaceProvider(previewView.surfaceProvider)
+                    }
+                    val imageCapture = ImageCapture.Builder()
+                        .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
+                        .build()
+                    imageCaptureRef.value = imageCapture
+
+                    // Share a single ViewPort between Preview and ImageCapture so the
+                    // captured frame has the EXACT same field of view (FILL_CENTER) the
+                    // user sees on screen. Without this, ImageCapture returns the full
+                    // sensor frame (different aspect ratio), making the white-square crop
+                    // land on a different region than what was framed.
+                    val rotation = previewView.display?.rotation ?: Surface.ROTATION_0
+                    val metrics = ctx.resources.displayMetrics
+                    val vpWidth = if (previewView.width > 0) previewView.width else metrics.widthPixels
+                    val vpHeight = if (previewView.height > 0) previewView.height else metrics.heightPixels
+                    val viewPort = ViewPort.Builder(Rational(vpWidth, vpHeight), rotation)
+                        .setScaleType(ViewPort.FILL_CENTER)
+                        .build()
+                    val useCaseGroup = UseCaseGroup.Builder()
+                        .addUseCase(preview)
+                        .addUseCase(imageCapture)
+                        .setViewPort(viewPort)
+                        .build()
+
+                    // Rear camera only: the scanner is meant to be pointed at real objects, so it
+                    // always uses the back lens. A device without a back camera shows the
+                    // "unavailable" message instead of falling back to the (useless) front lens.
+                    if (provider.hasCamera(CameraSelector.DEFAULT_BACK_CAMERA)) {
+                        provider.unbindAll()
+                        provider.bindToLifecycle(
+                            lifecycleOwner,
+                            CameraSelector.DEFAULT_BACK_CAMERA,
+                            useCaseGroup
+                        )
+                    } else {
+                        onError()
+                    }
+                } catch (e: Exception) {
+                    android.util.Log.w("PokemonScanScreen", "Camera unavailable", e)
+                    onError()
                 }
-                val imageCapture = ImageCapture.Builder()
-                    .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
-                    .build()
-                imageCaptureRef.value = imageCapture
-
-                // Share a single ViewPort between Preview and ImageCapture so the
-                // captured frame has the EXACT same field of view (FILL_CENTER) the
-                // user sees on screen. Without this, ImageCapture returns the full
-                // sensor frame (different aspect ratio), making the white-square crop
-                // land on a different region than what was framed.
-                val rotation = previewView.display?.rotation ?: Surface.ROTATION_0
-                val metrics = ctx.resources.displayMetrics
-                val vpWidth = if (previewView.width > 0) previewView.width else metrics.widthPixels
-                val vpHeight = if (previewView.height > 0) previewView.height else metrics.heightPixels
-                val viewPort = ViewPort.Builder(Rational(vpWidth, vpHeight), rotation)
-                    .setScaleType(ViewPort.FILL_CENTER)
-                    .build()
-                val useCaseGroup = UseCaseGroup.Builder()
-                    .addUseCase(preview)
-                    .addUseCase(imageCapture)
-                    .setViewPort(viewPort)
-                    .build()
-
-                provider.unbindAll()
-                provider.bindToLifecycle(
-                    lifecycleOwner,
-                    CameraSelector.DEFAULT_BACK_CAMERA,
-                    useCaseGroup
-                )
             }, ContextCompat.getMainExecutor(ctx))
             previewView
         }
     )
 
     DisposableEffect(Unit) {
-        onDispose { providerHolder.value?.unbindAll() }
+        onDispose { runCatching { providerHolder.value?.unbindAll() } }
     }
 }
 
@@ -343,19 +372,26 @@ private fun ScannerOverlay(
     isAnalyzing: Boolean,
     capturedFrame: Bitmap?,
     scansRemaining: Int?,
+    scansResetAt: Long?,
+    onCountdownFinished: () -> Unit,
+    onOutOfScans: () -> Unit,
     onShutter: () -> Unit,
     onPredictionClick: (Prediction) -> Unit,
     onDismissResults: () -> Unit,
 ) {
+    // Free tier with the session spent → shutter becomes a premium gate (scansRemaining == 0).
+    // Premium users have scansRemaining == null, so this is always false for them.
+    val outOfScans = scansRemaining == 0
     Box(modifier = Modifier.fillMaxSize()) {
-        // Hint + remaining badge — top center
-        Row(
+        // Hint + remaining badge + reset countdown — top center.
+        // Everything here is free-tier only: premium users have scansRemaining == null.
+        Column(
             modifier = Modifier
                 .align(Alignment.TopCenter)
                 .statusBarsPadding()
                 .padding(top = 56.dp, start = 24.dp, end = 24.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalAlignment = Alignment.CenterVertically
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             Text(
                 text = stringResource(R.string.scanner_hint),
@@ -366,20 +402,30 @@ private fun ScannerOverlay(
                     .background(Color.Black.copy(alpha = 0.5f), RoundedCornerShape(16.dp))
                     .padding(horizontal = 16.dp, vertical = 8.dp)
             )
+            // One chip in a fixed spot below the hint, swapped IN PLACE so it never stacks (and
+            // so the countdown never slips behind the viewfinder): while scans remain it's the
+            // "X restantes" counter; once the session is spent it becomes the reset countdown;
+            // when that hits zero it flips back to the counter — the cycle repeats. Premium
+            // (scansRemaining == null) shows neither.
             if (scansRemaining != null) {
-                val isLow = scansRemaining <= 1
-                Text(
-                    text = stringResource(R.string.scanner_uses_remaining, scansRemaining),
-                    color = if (isLow) Color(0xFFFFB74D) else Color.White,
-                    style = MaterialTheme.typography.labelMedium,
-                    modifier = Modifier
-                        .background(
-                            color = if (isLow) Color(0xFF7B3F00).copy(alpha = 0.75f)
-                                    else Color.Black.copy(alpha = 0.55f),
-                            shape = RoundedCornerShape(12.dp)
-                        )
-                        .padding(horizontal = 10.dp, vertical = 6.dp)
-                )
+                if (outOfScans && scansResetAt != null) {
+                    ScanResetChip(resetAt = scansResetAt, onFinished = onCountdownFinished)
+                } else {
+                    val isLow = scansRemaining <= 1
+                    Text(
+                        text = stringResource(R.string.scanner_uses_remaining, scansRemaining),
+                        color = if (isLow) Color(0xFFFFB74D) else Color.White,
+                        style = MaterialTheme.typography.labelLarge,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier
+                            .background(
+                                color = if (isLow) Color(0xFF7B3F00).copy(alpha = 0.75f)
+                                        else Color.Black.copy(alpha = 0.55f),
+                                shape = RoundedCornerShape(12.dp)
+                            )
+                            .padding(horizontal = 12.dp, vertical = 6.dp)
+                    )
+                }
             }
         }
 
@@ -455,23 +501,45 @@ private fun ScannerOverlay(
             }
         }
 
-        // Shutter button — shown when no results are visible and not currently analyzing
+        // Shutter button — shown when no results are visible and not currently analyzing.
+        // When the free session is spent it turns into a premium gate: tapping it (or the
+        // label below) opens the upsell sheet instead of capturing.
         if (!hasMatch && !isAnalyzing && predictions.isEmpty()) {
-            Box(
+            Column(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
-                    .padding(bottom = 40.dp)
-                    .size(72.dp)
-                    .background(Color.White, CircleShape)
-                    .clickable(onClick = onShutter),
-                contentAlignment = Alignment.Center
+                    .padding(bottom = 40.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                Icon(
-                    imageVector = Icons.Default.CameraAlt,
-                    contentDescription = stringResource(R.string.scan_pokemon),
-                    tint = Color.Black,
-                    modifier = Modifier.size(36.dp)
-                )
+                Box(
+                    modifier = Modifier
+                        .size(72.dp)
+                        .background(if (outOfScans) Color(0xFFFFD54F) else Color.White, CircleShape)
+                        .clickable(onClick = if (outOfScans) onOutOfScans else onShutter),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = if (outOfScans) Icons.Default.Lock else Icons.Default.CameraAlt,
+                        contentDescription = stringResource(
+                            if (outOfScans) R.string.scanner_go_premium else R.string.scan_pokemon
+                        ),
+                        tint = Color.Black,
+                        modifier = Modifier.size(if (outOfScans) 30.dp else 36.dp)
+                    )
+                }
+                if (outOfScans) {
+                    Text(
+                        text = stringResource(R.string.scanner_go_premium),
+                        color = Color.Black,
+                        style = MaterialTheme.typography.labelLarge,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier
+                            .background(Color(0xFFFFD54F), RoundedCornerShape(16.dp))
+                            .clickable(onClick = onOutOfScans)
+                            .padding(horizontal = 16.dp, vertical = 8.dp)
+                    )
+                }
             }
         }
     }
@@ -666,5 +734,75 @@ private fun ScannerMessageContent(
         Button(onClick = onClick) {
             Text(buttonLabel)
         }
+    }
+}
+
+/**
+ * Pill shown in the camera overlay once the free session is spent: an explicit label plus the
+ * live countdown to when the attempts refill, so the wait is unmistakable.
+ */
+@Composable
+private fun ScanResetChip(resetAt: Long, onFinished: () -> Unit) {
+    val countdown = rememberResetCountdown(resetAt, onFinished)
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
+        modifier = Modifier
+            .background(Color(0xFF7B3F00).copy(alpha = 0.9f), RoundedCornerShape(12.dp))
+            .padding(horizontal = 12.dp, vertical = 7.dp)
+    ) {
+        Icon(
+            imageVector = Icons.Default.Refresh,
+            contentDescription = null,
+            tint = Color.White.copy(alpha = 0.9f),
+            modifier = Modifier.size(14.dp)
+        )
+        Text(
+            text = stringResource(R.string.scanner_limit_resets_label),
+            color = Color.White.copy(alpha = 0.9f),
+            style = MaterialTheme.typography.labelMedium
+        )
+        Text(
+            text = countdown,
+            color = Color(0xFFFFD54F),
+            style = MaterialTheme.typography.labelLarge,
+            fontWeight = FontWeight.Bold
+        )
+    }
+}
+
+/**
+ * Ticks once per second toward [resetAt], returning the formatted remaining time. Invokes
+ * [onFinished] exactly once when it hits zero so the caller can refill the allowance. Keyed on
+ * [resetAt] so a new window restarts the timer cleanly.
+ */
+@Composable
+private fun rememberResetCountdown(resetAt: Long, onFinished: () -> Unit): String {
+    var remaining by remember(resetAt) {
+        mutableStateOf((resetAt - System.currentTimeMillis()).coerceAtLeast(0L))
+    }
+    LaunchedEffect(resetAt) {
+        while (true) {
+            remaining = (resetAt - System.currentTimeMillis()).coerceAtLeast(0L)
+            if (remaining <= 0L) {
+                onFinished()
+                break
+            }
+            kotlinx.coroutines.delay(1000L)
+        }
+    }
+    return formatResetCountdown(remaining)
+}
+
+/** "1:59:32" when at least an hour remains, otherwise "12:07". */
+private fun formatResetCountdown(millis: Long): String {
+    val totalSeconds = (millis / 1000L).coerceAtLeast(0L)
+    val hours = totalSeconds / 3600L
+    val minutes = (totalSeconds % 3600L) / 60L
+    val seconds = totalSeconds % 60L
+    return if (hours > 0L) {
+        String.format(java.util.Locale.US, "%d:%02d:%02d", hours, minutes, seconds)
+    } else {
+        String.format(java.util.Locale.US, "%02d:%02d", minutes, seconds)
     }
 }
