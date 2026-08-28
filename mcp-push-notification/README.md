@@ -1,32 +1,55 @@
-# Dex10 MCP Push Notification Server
+# Universal MCP Push Notification Server
 
-Servidor MCP hospedado no **Cloudflare Workers** que permite enviar push notifications para o app **Dex10 Pokédex** via **Firebase Cloud Messaging (FCM) HTTP v1 API** — diretamente do Claude Code.
+Servidor MCP hospedado no **Cloudflare Workers** que envia push notifications multi-idioma e multi-região para **qualquer app Android/iOS** via **FCM HTTP v1 API**.
+
+## Como funciona com o Claude
+
+```
+Usuário: "Envie uma notificação sobre o evento de Pokémon lendário"
+         ↓
+Claude: Traduz para todos os idiomas do app (pt, en, es, ja...)
+Claude: Mostra preview:
+  🇧🇷 pt → lang_pt: "Evento Pokémon Lendário! Capture Mewtwo..."
+  🇺🇸 en → lang_en: "Legendary Pokémon Event! Catch Mewtwo..."
+  🇪🇸 es → lang_es: "¡Evento Pokémon Legendario! ¡Atrapa a Mewtwo..."
+  🇯🇵 ja → lang_ja: "伝説ポケモンイベント！ミュウツーを捕まえよう..."
+Claude: Chama send_notification com todas as traduções
+         ↓
+Cloudflare Worker → FCM → Cada dispositivo recebe no SEU idioma
+```
 
 ## Arquitetura
 
 ```
-Claude Code
-    │
-    │  MCP Protocol (HTTP)
+Claude Code (MCP Client)
+    │  Bearer Token Auth
+    │  POST /mcp
     ▼
-Cloudflare Worker  ─── Cloudflare KV (tokens)
+Cloudflare Worker (MCP Server)
+    ├── Cloudflare KV ──► configs de apps (Firebase credentials)
+    │                 └─► tokens FCM de dispositivos (label + locale + país)
     │
-    │  FCM HTTP v1 API
+    │  FCM HTTP v1 API (1 chamada por idioma)
     ▼
 Firebase Cloud Messaging
-    │
-    ▼
-App Dex10 (Android)
+    ├── lang_pt  ──► dispositivos em Português
+    ├── lang_en  ──► dispositivos em Inglês
+    ├── lang_es  ──► dispositivos em Espanhol
+    ├── lang_ja  ──► dispositivos em Japonês
+    ├── country_BR ──► dispositivos no Brasil
+    └── all_users  ──► todos (fallback)
 ```
 
-## Ferramentas MCP disponíveis
+## Ferramentas MCP
 
 | Ferramenta | Descrição |
 |---|---|
-| `send_notification` | Envia notificação para tópico FCM ou dispositivo específico |
-| `register_token` | Registra token FCM de um dispositivo com um label amigável |
-| `list_tokens` | Lista todos os tokens registrados |
-| `delete_token` | Remove um token pelo label |
+| `register_app` | Cadastra um app Firebase (credenciais + locales suportados) |
+| `list_apps` | Lista apps cadastrados |
+| `send_notification` | Envia notificação multi-idioma/região (Claude traduz automaticamente) |
+| `register_device` | Registra token FCM com locale e país |
+| `list_devices` | Lista dispositivos registrados |
+| `delete_device` | Remove um dispositivo |
 
 ## Setup
 
@@ -41,118 +64,155 @@ wrangler login
 
 ```bash
 cd mcp-push-notification
-wrangler kv namespace create FCM_TOKENS_KV
-wrangler kv namespace create FCM_TOKENS_KV --preview
+npm install
+
+wrangler kv namespace create MCP_KV
+wrangler kv namespace create MCP_KV --preview
 ```
 
-Copie os IDs gerados e atualize o `wrangler.toml`:
+Atualize o `wrangler.toml` com os IDs gerados:
 
 ```toml
 [[kv_namespaces]]
-binding = "FCM_TOKENS_KV"
-id = "SEU_KV_ID_AQUI"
-preview_id = "SEU_KV_PREVIEW_ID_AQUI"
+binding = "MCP_KV"
+id = "SEU_KV_ID"
+preview_id = "SEU_KV_PREVIEW_ID"
 ```
 
-### 3. Configurar o projeto Firebase
-
-No `wrangler.toml`, atualize:
-
-```toml
-[vars]
-FCM_PROJECT_ID = "seu-projeto-firebase"
-```
-
-### 4. Configurar a Service Account (secret)
-
-No [Firebase Console](https://console.firebase.google.com):
-1. Projeto → ⚙️ Configurações → Contas de serviço
-2. **Gerar nova chave privada** → baixe o JSON
-3. Configure o secret no Cloudflare:
+### 3. Configurar autenticação (recomendado)
 
 ```bash
-wrangler secret put FCM_SERVICE_ACCOUNT
-# Cole o conteúdo completo do JSON quando solicitado
+# Gera um token seguro
+openssl rand -hex 32
+
+# Configura no Cloudflare
+wrangler secret put MCP_AUTH_TOKEN
 ```
 
-### 5. Instalar dependências e fazer deploy
+### 4. Deploy
 
 ```bash
-npm install
 npm run deploy
+# URL do Worker: https://universal-mcp-push-notification.SEU-SUBDOMINIO.workers.dev
 ```
 
-O deploy retorna a URL do Worker, ex: `https://dex10-mcp-push-notification.SEU-SUBDOMINIO.workers.dev`
+### 5. Configurar no Claude Code
 
-### 6. Configurar no Claude Code
-
-Adicione ao seu `~/.claude/claude_desktop_config.json` (ou ao `claude.json` do projeto):
+`~/.claude/claude_desktop_config.json`:
 
 ```json
 {
   "mcpServers": {
-    "dex10-push": {
+    "push-notifications": {
       "type": "http",
-      "url": "https://dex10-mcp-push-notification.SEU-SUBDOMINIO.workers.dev/mcp"
+      "url": "https://universal-mcp-push-notification.SEU-SUBDOMINIO.workers.dev/mcp",
+      "headers": {
+        "Authorization": "Bearer SEU_MCP_AUTH_TOKEN"
+      }
     }
   }
 }
 ```
 
-> Reinicie o Claude Code para carregar o servidor MCP.
-
-## Uso
-
-### Enviar para todos os usuários (tópico)
-
-O app precisa se inscrever no tópico `all_users` (ou outro de sua escolha). No app Android, basta chamar:
-
-```kotlin
-FirebaseMessaging.getInstance().subscribeToTopic("all_users")
-```
+### 6. Cadastrar um app (uma vez)
 
 No Claude Code:
-
 ```
-Envie uma notificação para todos os usuários avisando sobre o novo evento de captura de Pokémon lendários
-```
-
-### Registrar um dispositivo de teste
-
-```
-Registre o token FCM "dXNlcl9kZXZpY2VfdG9rZW4..." com o label "pixel_dev"
+Cadastre o app "dex10" com os locales pt, en, es e ja, locale padrão en, e o seguinte service account JSON: {...}
 ```
 
-### Enviar para um dispositivo específico
+Ou via ferramenta `register_app` diretamente.
+
+O Service Account JSON é obtido em:
+> Firebase Console → ⚙️ Configurações do Projeto → Contas de serviço → Gerar nova chave privada
+
+---
+
+## Configuração no App Android (Kotlin)
+
+O app precisa se inscrever nos tópicos FCM na inicialização:
+
+```kotlin
+import com.google.firebase.messaging.FirebaseMessaging
+import java.util.Locale
+
+fun subscribeToFcmTopics() {
+    val messaging = FirebaseMessaging.getInstance()
+
+    // Tópico do idioma do dispositivo (ex: lang_pt, lang_en)
+    val locale = Locale.getDefault().language  // "pt", "en", "es", "ja"
+    messaging.subscribeToTopic("lang_$locale")
+
+    // Tópico do país do dispositivo (ex: country_BR, country_US)
+    val country = Locale.getDefault().country  // "BR", "US", "ES", "JP"
+    if (country.isNotEmpty()) {
+        messaging.subscribeToTopic("country_$country")
+    }
+
+    // Tópico geral (recebe fallback de "all users")
+    messaging.subscribeToTopic("all_users")
+}
+```
+
+Chame `subscribeToFcmTopics()` no `onCreate` da `Application` ou `MainActivity`.
+
+---
+
+## Exemplos de uso no Claude
+
+### Notificação para todos os usuários (multi-idioma automático)
 
 ```
-Envie uma notificação de teste para o dispositivo "pixel_dev"
+Envie uma notificação para todos os usuários do app dex10 sobre o evento especial
+de captura de Pokémon lendários. Use target "all" e inclua um fallback para all_users.
+O deep link deve ser "dex10://events/legendary".
 ```
 
-### Navegar para um Pokémon com deep link
+Claude vai:
+1. Chamar `list_apps` para ver os locales de "dex10" (pt, en, es, ja)
+2. Traduzir a mensagem para os 4 idiomas
+3. Mostrar o preview
+4. Chamar `send_notification` → envia 4 mensagens (uma por tópico de idioma) + 1 fallback
+
+### Notificação para um país específico
 
 ```
-Envie uma notificação sobre Mewtwo com deeplink "dex10://pokemon/150"
+Avise apenas os usuários do Brasil sobre a manutenção programada amanhã às 22h.
 ```
 
-## Variáveis de ambiente
+Claude chama `send_notification` com `target_type: "country"`, `target_value: "BR"`.
+
+### Notificação para um idioma específico
+
+```
+Envie uma mensagem apenas em japonês sobre o novo Pokémon regional.
+```
+
+Claude chama `send_notification` com `target_type: "language"`, `target_value: "ja"`.
+
+### Notificação para dispositivo de teste
+
+```
+Mande uma notificação de teste para o meu Pixel (label "pixel_vinithius").
+```
+
+Claude chama `send_notification` com `target_type: "token"`, `target_value: "pixel_vinithius"`.
+
+---
+
+## Variáveis e secrets
 
 | Nome | Tipo | Descrição |
 |---|---|---|
-| `FCM_PROJECT_ID` | `[vars]` | ID do projeto Firebase |
-| `FCM_SERVICE_ACCOUNT` | secret | JSON da Service Account do Firebase |
-| `FCM_TOKENS_KV` | KV binding | Namespace para tokens de dispositivos |
+| `MCP_KV` | KV binding | Armazena configs de apps e tokens de dispositivos |
+| `MCP_AUTH_TOKEN` | secret (opcional) | Token Bearer para autenticar o cliente MCP |
+
+As credenciais Firebase (Service Account) são armazenadas **dentro do KV** via `register_app` — não precisam de secrets separados por app.
 
 ## Desenvolvimento local
 
 ```bash
 npm run dev
+# Worker em http://localhost:8787
+# Configure no Claude Code com URL: http://localhost:8787/mcp
 ```
-
-O Worker sobe em `http://localhost:8787`. Para testar:
-
-```bash
-curl http://localhost:8787/
-```
-
-Para usar localmente com o Claude Code, configure a URL `http://localhost:8787/mcp`.

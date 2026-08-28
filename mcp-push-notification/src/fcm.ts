@@ -3,23 +3,14 @@
  * Autentica via Service Account (JWT → OAuth2) e envia notificações.
  */
 
-export interface ServiceAccount {
-  type: string;
-  project_id: string;
-  private_key_id: string;
-  private_key: string;
-  client_email: string;
-  client_id: string;
-  auth_uri: string;
-  token_uri: string;
-}
+import type { ServiceAccount } from "./types.js";
 
-export interface FcmNotificationPayload {
+export type { ServiceAccount };
+
+export interface FcmMessage {
   title: string;
   body: string;
-  /** Deep link interno do app (ex: "dex10://pokemon/25") */
   deeplink?: string;
-  /** URL web a abrir */
   url?: string;
 }
 
@@ -70,8 +61,8 @@ async function signJwt(sa: ServiceAccount): Promise<string> {
   );
 
   const signingInput = `${header}.${payload}`;
-
   const keyData = pemToArrayBuffer(sa.private_key);
+
   const cryptoKey = await crypto.subtle.importKey(
     "pkcs8",
     keyData,
@@ -103,7 +94,7 @@ async function getAccessToken(sa: ServiceAccount): Promise<string> {
 
   if (!resp.ok) {
     const err = await resp.text();
-    throw new Error(`Falha ao obter access token: ${err}`);
+    throw new Error(`Falha ao obter access token OAuth2: ${err}`);
   }
 
   const { access_token } = (await resp.json()) as { access_token: string };
@@ -112,20 +103,19 @@ async function getAccessToken(sa: ServiceAccount): Promise<string> {
 
 // ─── Envio FCM ───────────────────────────────────────────────────────────────
 
-export async function sendFcmNotification(
+export async function sendFcmMessage(
   sa: ServiceAccount,
   projectId: string,
   target: FcmTarget,
-  notification: FcmNotificationPayload
-): Promise<{ messageId: string }> {
+  message: FcmMessage
+): Promise<string> {
   const accessToken = await getAccessToken(sa);
 
-  // Monta o payload de dados extras (deeplink / url)
+  // Payload de dados extras (deeplink / url)
   const data: Record<string, string> = {};
-  if (notification.deeplink) data["deeplink"] = notification.deeplink;
-  if (notification.url) data["url"] = notification.url;
+  if (message.deeplink) data["deeplink"] = message.deeplink;
+  if (message.url) data["url"] = message.url;
 
-  // Monta o campo de destino
   const targetField =
     target.type === "topic"
       ? { topic: target.value }
@@ -134,17 +124,11 @@ export async function sendFcmNotification(
   const body = {
     message: {
       ...targetField,
-      notification: {
-        title: notification.title,
-        body: notification.body,
-      },
+      notification: { title: message.title, body: message.body },
       ...(Object.keys(data).length > 0 ? { data } : {}),
       android: {
         priority: "HIGH",
-        notification: {
-          channel_id: "default_channel",
-          click_action: "FLUTTER_NOTIFICATION_CLICK",
-        },
+        notification: { channel_id: "default_channel" },
       },
     },
   };
@@ -165,7 +149,5 @@ export async function sendFcmNotification(
   }
 
   const result = (await resp.json()) as { name: string };
-  // name = "projects/{project}/messages/{messageId}"
-  const messageId = result.name.split("/").pop() ?? result.name;
-  return { messageId };
+  return result.name.split("/").pop() ?? result.name;
 }
