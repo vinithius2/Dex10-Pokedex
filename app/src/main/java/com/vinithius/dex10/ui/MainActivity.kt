@@ -115,7 +115,9 @@ import com.google.android.play.core.review.ReviewManagerFactory
 
 import com.google.firebase.analytics.FirebaseAnalytics
 import com.google.firebase.installations.FirebaseInstallations
+import com.google.firebase.messaging.FirebaseMessaging
 import com.google.firebase.remoteconfig.FirebaseRemoteConfig
+import com.vinithius.dex10.service.registerDeviceOnMcpServer
 import com.google.gson.Gson
 import com.google.mlkit.common.model.DownloadConditions
 import com.google.mlkit.nl.translate.TranslateLanguage
@@ -237,6 +239,7 @@ class MainActivity : ComponentActivity() {
     private fun pushNotification() {
         // Criação do canal de notificação
         getFID()
+        registerDeviceIfNewVersion()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
                 "default_channel",
@@ -248,6 +251,36 @@ class MainActivity : ComponentActivity() {
             val notificationManager: NotificationManager =
                 getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             notificationManager.createNotificationChannel(channel)
+        }
+    }
+
+    /**
+     * Registra o device no servidor MCP ao abrir o app com uma versão nova.
+     * Garante que tokens FCM atualizados e locale/país corretos sejam enviados
+     * mesmo que onNewToken() não seja disparado após um update do app.
+     */
+    private fun registerDeviceIfNewVersion() {
+        val currentVersionCode = packageManager.getPackageInfo(packageName, 0).let {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                it.longVersionCode.toInt()
+            } else {
+                @Suppress("DEPRECATION")
+                it.versionCode
+            }
+        }
+        val lastRegisteredVersion = sharedPreferences.getInt("last_registered_version", -1)
+        if (currentVersionCode == lastRegisteredVersion) return
+
+        // Versão nova detectada (ou primeira instalação) — registra token no servidor
+        FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
+            if (!task.isSuccessful) {
+                Log.e("FCM", "Erro ao obter token FCM para registro: ${task.exception?.message}")
+                return@addOnCompleteListener
+            }
+            registerDeviceOnMcpServer(task.result)
+            sharedPreferences.edit()
+                .putInt("last_registered_version", currentVersionCode)
+                .apply()
         }
     }
 
