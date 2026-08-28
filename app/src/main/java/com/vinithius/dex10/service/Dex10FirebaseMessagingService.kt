@@ -22,6 +22,8 @@ class Dex10FirebaseMessagingService : FirebaseMessagingService() {
     override fun onNewToken(token: String) {
         super.onNewToken(token)
         Log.d("FCM Token", token)
+        // Registra no servidor MCP para subscrição server-side de tópicos FCM
+        registerDeviceOnMcpServer(token)
     }
 
     private fun sendNotification(title: String?, messageBody: String?, data: Map<String, String>) {
