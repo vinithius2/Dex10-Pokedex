@@ -1,0 +1,21 @@
+name = "dex10-mcp-push-notification"
+main = "src/index.ts"
+compatibility_date = "2025-08-01"
+compatibility_flags = ["nodejs_compat"]
+
+# ─── KV para armazenar tokens FCM de dispositivos ───
+[[kv_namespaces]]
+binding = "FCM_TOKENS_KV"
+id = "REPLACE_WITH_YOUR_KV_ID"
+preview_id = "REPLACE_WITH_YOUR_KV_PREVIEW_ID"
+
+# ─── Variáveis de ambiente (não-secretas) ───
+[vars]
+FCM_PROJECT_ID = "REPLACE_WITH_YOUR_FIREBASE_PROJECT_ID"
+
+# ─── Segredos (configurar via: wrangler secret put NOME) ───
+# FCM_SERVICE_ACCOUNT  → JSON completo da service account do Firebase
+#
+# Como configurar:
+#   wrangler secret put FCM_SERVICE_ACCOUNT
+#   (cole o conteúdo do JSON da service account quando solicitado)
