@@ -472,4 +472,5 @@
     <string name="scanner_limit_reached">You\'ve used all your free scans.\nUpgrade to Premium for unlimited scans.</string>
     <string name="scanner_resets_in">Resets in %1$s</string>
     <string name="scanner_limit_resets_label">Free scans refill in</string>
+    <string name="scanner_photo_too_small">Photo too small. The width or height must be at least 1000 px.</string>
 </resources>

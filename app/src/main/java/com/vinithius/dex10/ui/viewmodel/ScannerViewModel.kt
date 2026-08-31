@@ -42,6 +42,10 @@ class ScannerViewModel(
     private val _capturedFrame = MutableStateFlow<Bitmap?>(null)
     val capturedFrame: StateFlow<Bitmap?> = _capturedFrame
 
+    /** True when the last captured photo was rejected because its dimensions were below the minimum. */
+    private val _photoTooSmall = MutableStateFlow(false)
+    val photoTooSmall: StateFlow<Boolean> = _photoTooSmall
+
     private var classifier: PokemonClassifier? = null
 
     fun downloadModel() {
@@ -56,6 +60,14 @@ class ScannerViewModel(
     fun captureAndClassify(bitmap: Bitmap) {
         viewModelScope.launch(Dispatchers.IO) {
             val readyState = modelState.value as? ScannerModelManager.ModelState.Ready ?: return@launch
+
+            // Reject frames that are too small for reliable recognition.
+            if (bitmap.width < MIN_PHOTO_DIMENSION && bitmap.height < MIN_PHOTO_DIMENSION) {
+                _photoTooSmall.value = true
+                return@launch
+            }
+            _photoTooSmall.value = false
+
             _capturedFrame.value = bitmap  // freeze inside viewfinder immediately
             _isAnalyzing.value = true
             try {
@@ -103,6 +115,7 @@ class ScannerViewModel(
         _stableMatch.value = null
         _predictions.value = emptyList()
         _capturedFrame.value = null
+        _photoTooSmall.value = false
         refreshScannerState()
     }
 
@@ -119,5 +132,8 @@ class ScannerViewModel(
     companion object {
         private const val MIN_DISPLAY_CONFIDENCE = 0.15f
         private const val STABLE_CONFIDENCE = 0.45f
+
+        /** Minimum side length (px) required in at least one dimension before classifying. */
+        const val MIN_PHOTO_DIMENSION = 1000
     }
 }
