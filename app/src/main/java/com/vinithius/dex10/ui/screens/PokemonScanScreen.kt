@@ -127,7 +127,6 @@ fun PokemonScanScreen(
     val scansResetAt by viewModel.scansResetAt.collectAsState()
     val isAnalyzing by viewModel.isAnalyzing.collectAsState()
     val capturedFrame by viewModel.capturedFrame.collectAsState()
-    val photoTooSmall by viewModel.photoTooSmall.collectAsState()
 
     val imageCaptureRef: MutableState<ImageCapture?> = remember { mutableStateOf(null) }
     var cameraError by remember { mutableStateOf(false) }
@@ -207,7 +206,6 @@ fun PokemonScanScreen(
                         viewModel.dismissMatch()
                         navController.navigate("pokemonDetail/${prediction.dexId}")
                     },
-                    photoTooSmall = photoTooSmall,
                     onDismissResults = { viewModel.dismissMatch() }
                 )
             }
@@ -375,7 +373,6 @@ private fun ScannerOverlay(
     capturedFrame: Bitmap?,
     scansRemaining: Int?,
     scansResetAt: Long?,
-    photoTooSmall: Boolean,
     onCountdownFinished: () -> Unit,
     onOutOfScans: () -> Unit,
     onShutter: () -> Unit,
@@ -430,21 +427,6 @@ private fun ScannerOverlay(
                     )
                 }
             }
-        }
-
-        // "Photo too small" warning — shown briefly when the captured frame is below 1000 px.
-        if (photoTooSmall) {
-            Text(
-                text = stringResource(R.string.scanner_photo_too_small),
-                color = Color(0xFFFFB74D),
-                style = MaterialTheme.typography.bodySmall,
-                textAlign = TextAlign.Center,
-                modifier = Modifier
-                    .align(Alignment.TopCenter)
-                    .padding(top = 148.dp, start = 24.dp, end = 24.dp)
-                    .background(Color(0xFF7B3F00).copy(alpha = 0.85f), RoundedCornerShape(12.dp))
-                    .padding(horizontal = 14.dp, vertical = 8.dp)
-            )
         }
 
         // Viewfinder frame — true center of screen
